@@ -10,7 +10,8 @@
     "@imtbl/config": "0.0.0",
     "@imtbl/generated-clients": "0.0.0",
     "axios": "^1.6.5",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "ethers-v6": "npm:ethers@6.11.1"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.0.0",
