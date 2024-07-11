@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Web3Provider } from '@ethersproject/providers';
-import { ethers } from 'ethers';
+import { ethers } from 'ethers-v6';
 import { Environment } from '@imtbl/config';
 import { Passport } from '@imtbl/passport';
 import { track } from '@imtbl/metrics';
@@ -86,7 +86,7 @@ const SANDBOX_CONFIGURATION = {
 
 // Checkout SDK
 export class Checkout {
-  private readOnlyProviders: Map<ChainId, ethers.providers.JsonRpcProvider>;
+  private readOnlyProviders: Map<ChainId, ethers.JsonRpcProvider>;
 
   private httpClient: HttpClient;
 
@@ -108,7 +108,7 @@ export class Checkout {
     this.fiatRampService = new FiatRampService(this.config);
     this.readOnlyProviders = new Map<
     ChainId,
-    ethers.providers.JsonRpcProvider
+    ethers.JsonRpcProvider
     >();
     this.availability = availabilityService(
       this.config.isDevelopment,

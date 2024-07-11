@@ -3,7 +3,7 @@
  */
 import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
 import { Environment } from '@imtbl/config';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers-v6';
 import { Passport, UserProfile } from '@imtbl/passport';
 import {
   getNetworkAllowList,
@@ -287,7 +287,7 @@ describe('Connect', () => {
 
   it('should call gasEstimate function', async () => {
     (createReadOnlyProviders as jest.Mock).mockResolvedValue(
-      {} as Map<ChainId, ethers.providers.JsonRpcProvider>,
+      {} as Map<ChainId, ethers.JsonRpcProvider>,
     );
     (gasEstimator as jest.Mock).mockResolvedValue({} as GasEstimateSwapResult);
 
@@ -381,7 +381,7 @@ describe('Connect', () => {
     const getAllBalancesResult = {
       balances: [
         {
-          balance: BigNumber.from('1'),
+          balance: BigInt('1'),
           formattedBalance: '1',
           token: {
             name: 'Ethereum',
@@ -537,12 +537,12 @@ describe('Connect', () => {
       requirements: [
         {
           type: ItemType.NATIVE,
-          amount: BigNumber.from('1'),
+          amount: BigInt('1'),
         },
       ],
       gas: {
         type: GasTokenType.NATIVE,
-        limit: BigNumber.from('1'),
+        limit: BigInt('1'),
       },
     };
 
@@ -650,7 +650,7 @@ describe('Connect', () => {
         type: TransactionOrGasType.GAS,
         gasToken: {
           type: GasTokenType.NATIVE,
-          limit: BigNumber.from('1'),
+          limit: BigInt('1'),
         },
       },
     };
@@ -700,7 +700,7 @@ describe('Connect', () => {
         type: TransactionOrGasType.GAS,
         gasToken: {
           type: GasTokenType.NATIVE,
-          limit: BigNumber.from('1'),
+          limit: BigInt('1'),
         },
       },
     };
