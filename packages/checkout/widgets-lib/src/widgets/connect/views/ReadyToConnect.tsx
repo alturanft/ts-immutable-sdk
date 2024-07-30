@@ -1,37 +1,44 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
+import { ChainId, WalletProviderName } from "@imtbl/checkout-sdk";
+import { useContext, useState, useCallback, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { addProviderListenersForWidgetRoot } from "../../../lib";
+import { SimpleTextBody } from "../../../components/Body/SimpleTextBody";
+import { FooterButton } from "../../../components/Footer/FooterButton";
+import { HeaderNavigation } from "../../../components/Header/HeaderNavigation";
+import { MetamaskConnectHero } from "../../../components/Hero/MetamaskConnectHero";
+import { PassportConnectHero } from "../../../components/Hero/PassportConnectHero";
+import { SimpleLayout } from "../../../components/SimpleLayout/SimpleLayout";
+import { ConnectWidgetViews } from "../../../context/view-context/ConnectViewContextTypes";
+import { ConnectContext, ConnectActions } from "../context/ConnectContext";
 import {
-  ChainId,
-  WalletProviderName,
-} from '@imtbl/checkout-sdk';
+  ViewContext,
+  ViewActions,
+} from "../../../context/view-context/ViewContext";
+import { isMetaMaskProvider, isPassportProvider } from "../../../lib/provider";
 import {
-  useContext, useState, useCallback, useMemo, useEffect,
-} from 'react';
-import { useTranslation } from 'react-i18next';
-import { addProviderListenersForWidgetRoot } from '../../../lib';
-import { SimpleTextBody } from '../../../components/Body/SimpleTextBody';
-import { FooterButton } from '../../../components/Footer/FooterButton';
-import { HeaderNavigation } from '../../../components/Header/HeaderNavigation';
-import { MetamaskConnectHero } from '../../../components/Hero/MetamaskConnectHero';
-import { PassportConnectHero } from '../../../components/Hero/PassportConnectHero';
-import { SimpleLayout } from '../../../components/SimpleLayout/SimpleLayout';
-import { ConnectWidgetViews } from '../../../context/view-context/ConnectViewContextTypes';
-import { ConnectContext, ConnectActions } from '../context/ConnectContext';
-import { ViewContext, ViewActions } from '../../../context/view-context/ViewContext';
-import { isMetaMaskProvider, isPassportProvider } from '../../../lib/provider';
-import { UserJourney, useAnalytics } from '../../../context/analytics-provider/SegmentAnalyticsProvider';
-import { identifyUser } from '../../../lib/analytics/identifyUser';
+  UserJourney,
+  useAnalytics,
+} from "../../../context/analytics-provider/SegmentAnalyticsProvider";
+import { identifyUser } from "../../../lib/analytics/identifyUser";
 
 export interface ReadyToConnectProps {
   targetChainId: ChainId;
   allowedChains: ChainId[];
 }
-export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectProps) {
+export function ReadyToConnect({
+  targetChainId,
+  allowedChains,
+}: ReadyToConnectProps) {
   const { t } = useTranslation();
   const {
     connectState: { checkout, provider, sendCloseEvent },
     connectDispatch,
   } = useContext(ConnectContext);
-  const { viewState: { history }, viewDispatch } = useContext(ViewContext);
+  const {
+    viewState: { history },
+    viewDispatch,
+  } = useContext(ViewContext);
 
   const isPassport = isPassportProvider(provider);
   const isMetaMask = isMetaMaskProvider(provider);
@@ -41,7 +48,7 @@ export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectP
   useEffect(() => {
     page({
       userJourney: UserJourney.CONNECT,
-      screen: 'ReadyToConnect',
+      screen: "ReadyToConnect",
     });
   }, []);
 
@@ -66,8 +73,11 @@ export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectP
     }
   }, [isPassport, isMetaMask]);
 
-  const textView = () => `views.READY_TO_CONNECT.${isPassport ? 'passport' : 'metamask'}`;
-  const [footerButtonTextKey, setFooterButtonTextKey] = useState(`${textView()}.footer.buttonText1`);
+  const textView = () =>
+    `views.READY_TO_CONNECT.${isPassport ? "passport" : "metamask"}`;
+  const [footerButtonTextKey, setFooterButtonTextKey] = useState(
+    `${textView()}.footer.buttonText1`
+  );
   const [loading, setLoading] = useState(false);
   const heroContent = () => {
     if (isPassport) {
@@ -76,7 +86,8 @@ export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectP
     return <MetamaskConnectHero />;
   };
 
-  const isConnectWidgetView = (view:string) => Object.values(ConnectWidgetViews).includes(view as ConnectWidgetViews);
+  const isConnectWidgetView = (view: string) =>
+    Object.values(ConnectWidgetViews).includes(view as ConnectWidgetViews);
 
   const showBackButton = useMemo(() => {
     if (history.length <= 1) return false;
@@ -86,10 +97,16 @@ export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectP
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const handleConnectViewUpdate = async (provider: Web3Provider) => {
-    const chainId = await provider.provider.request!({ method: 'eth_chainId', params: [] });
+    const chainId = await provider.provider.request!({
+      method: "eth_chainId",
+      params: [],
+    });
     // eslint-disable-next-line radix
     const parsedChainId = parseInt(chainId.toString());
-    if (parsedChainId !== targetChainId && !allowedChains?.includes(parsedChainId)) {
+    if (
+      parsedChainId !== targetChainId &&
+      !allowedChains?.includes(parsedChainId)
+    ) {
       // TODO: What do we do with Passport here as it can't connect to L1
       if (isPassport) {
         viewDispatch({
@@ -127,9 +144,9 @@ export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectP
     try {
       track({
         userJourney: UserJourney.CONNECT,
-        screen: 'ReadyToConnect',
-        control: 'Connect',
-        controlType: 'Button',
+        screen: "ReadyToConnect",
+        control: "Connect",
+        controlType: "Button",
       });
 
       let changeAccount = false;
@@ -165,25 +182,27 @@ export function ReadyToConnect({ targetChainId, allowedChains }: ReadyToConnectP
   return (
     <SimpleLayout
       testId="ready-to-connect"
-      header={(
+      header={
         <HeaderNavigation
           showBack={showBackButton}
-          title={t('views.READY_TO_CONNECT.header.title')}
+          title={t("views.READY_TO_CONNECT.header.title")}
           transparent
           onCloseButtonClick={sendCloseEvent}
         />
-      )}
+      }
       floatHeader
       heroContent={heroContent()}
-      footer={(
+      footer={
         <FooterButton
           loading={loading}
           actionText={t(footerButtonTextKey)}
           onActionClick={onConnectClick}
         />
-      )}
+      }
     >
-      <SimpleTextBody heading={t(`${textView()}.body.heading`)}>{t(`${textView()}.body.content`)}</SimpleTextBody>
+      <SimpleTextBody heading={t(`${textView()}.body.heading`)}>
+        {t(`${textView()}.body.content`)}
+      </SimpleTextBody>
     </SimpleLayout>
   );
 }

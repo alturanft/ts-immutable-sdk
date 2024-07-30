@@ -1,13 +1,13 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 
 /**
  * Enum representing possible Wallet Widget event types.
  */
 export enum WalletEventType {
-  CLOSE_WIDGET = 'close-widget',
-  NETWORK_SWITCH = 'network-switch',
-  DISCONNECT_WALLET = 'disconnect-wallet',
-  LANGUAGE_CHANGED = 'language-changed',
+  CLOSE_WIDGET = "close-widget",
+  NETWORK_SWITCH = "network-switch",
+  DISCONNECT_WALLET = "disconnect-wallet",
+  LANGUAGE_CHANGED = "language-changed",
 }
 
 /**

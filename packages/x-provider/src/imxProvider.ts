@@ -1,4 +1,4 @@
-import { imx } from '@imtbl/generated-clients';
+import { imx } from "@imtbl/generated-clients";
 import {
   AnyToken,
   UnsignedOrderRequest,
@@ -9,8 +9,8 @@ import {
   NftTransferDetails,
   TokenAmount,
   UnsignedTransferRequest,
-} from '@imtbl/x-client';
-import { TransactionResponse } from '@ethersproject/providers';
+} from "@imtbl/x-client";
+import { TransactionResponse } from "ethers";
 
 export interface IMXProvider {
   /**
@@ -66,7 +66,9 @@ export interface IMXProvider {
    * @param {UnsignedTransferRequest} request The unsigned transfer request
    * @return {Promise<imx.CreateTransferResponseV1>} Returns a promise that resolves with the created Transfer
    */
-  transfer(request: UnsignedTransferRequest): Promise<imx.CreateTransferResponseV1>;
+  transfer(
+    request: UnsignedTransferRequest
+  ): Promise<imx.CreateTransferResponseV1>;
   /**
    * Create a batch of NFT transfer requests
    *
@@ -98,7 +100,9 @@ export interface IMXProvider {
    * @param {TokenAmount} request The token type amount in its corresponding unit
    * @return {Promise<CreateWithdrawalResponse>} Returns a promise that resolves with the created Withdrawal
    */
-  prepareWithdrawal(request: TokenAmount): Promise<imx.CreateWithdrawalResponse>;
+  prepareWithdrawal(
+    request: TokenAmount
+  ): Promise<imx.CreateWithdrawalResponse>;
   /**
    * Completes a Withdrawal
    *

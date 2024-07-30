@@ -1,42 +1,42 @@
 import {
-  ChainId, ChainName, Checkout, GasEstimateType, IMTBLWidgetEvents, WidgetTheme,
-} from '@imtbl/checkout-sdk';
-import {
-  describe, it, cy,
-} from 'local-cypress';
-import { mount } from 'cypress/react18';
-import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
-import { Environment } from '@imtbl/config';
-import { CryptoFiat } from '@imtbl/cryptofiat';
-import WalletWidget from './WalletWidget';
-import { cyIntercept, cySmartGet } from '../../lib/testUtils';
-import { StrongCheckoutWidgetsConfig } from '../../lib/withDefaultWidgetConfig';
-import {
-  ConnectLoaderTestComponent,
-} from '../../context/connect-loader-context/test-components/ConnectLoaderTestComponent';
-import { ConnectionStatus } from '../../context/connect-loader-context/ConnectLoaderContext';
-import { NATIVE } from '../../lib';
-import { WalletConfiguration } from './context/WalletContext';
+  ChainId,
+  ChainName,
+  Checkout,
+  GasEstimateType,
+  IMTBLWidgetEvents,
+  WidgetTheme,
+} from "@imtbl/checkout-sdk";
+import { describe, it, cy } from "local-cypress";
+import { mount } from "cypress/react18";
+import { Eip1193Provider, BrowserProvider } from "ethers";
+import { Environment } from "@imtbl/config";
+import { CryptoFiat } from "@imtbl/cryptofiat";
+import WalletWidget from "./WalletWidget";
+import { cyIntercept, cySmartGet } from "../../lib/testUtils";
+import { StrongCheckoutWidgetsConfig } from "../../lib/withDefaultWidgetConfig";
+import { ConnectLoaderTestComponent } from "../../context/connect-loader-context/test-components/ConnectLoaderTestComponent";
+import { ConnectionStatus } from "../../context/connect-loader-context/ConnectLoaderContext";
+import { NATIVE } from "../../lib";
+import { WalletConfiguration } from "./context/WalletContext";
 
-describe('WalletWidget tests', () => {
+describe("WalletWidget tests", () => {
   beforeEach(() => {
-    cy.viewport('ipad-2');
+    cy.viewport("ipad-2");
     cyIntercept();
   });
 
   const mockProvider = {
-    getSigner: () => ({
-      getAddress: () => Promise.resolve('0xwalletAddress'),
+    getSigner: async () => ({
+      getAddress: () => Promise.resolve("0xwalletAddress"),
     }),
-  } as Web3Provider;
+  } as BrowserProvider;
 
   const mockPassportProvider = {
-    getSigner: () => ({
-      getAddress: () => Promise.resolve('0xwalletAddress'),
+    getSigner: async () => ({
+      getAddress: () => Promise.resolve("0xwalletAddress"),
     }),
-    provider: { isPassport: true } as ExternalProvider,
-  } as Web3Provider;
+    provider: { isPassport: true } as unknown as Eip1193Provider,
+  } as unknown as BrowserProvider;
 
   const connectLoaderState = {
     checkout: new Checkout({
@@ -51,11 +51,10 @@ describe('WalletWidget tests', () => {
     showNetworkMenu: true,
   } as WalletConfiguration;
 
-  describe('WalletWidget initialisation', () => {
-    beforeEach(() => {
-    });
+  describe("WalletWidget initialisation", () => {
+    beforeEach(() => {});
 
-    it('should show loading screen when component is mounted', () => {
+    it("should show loading screen when component is mounted", () => {
       const widgetConfig = {
         theme: WidgetTheme.DARK,
         environment: Environment.SANDBOX,
@@ -65,42 +64,37 @@ describe('WalletWidget tests', () => {
       } as StrongCheckoutWidgetsConfig;
 
       const balanceStub = cy
-        .stub(Checkout.prototype, 'getBalance')
-        .as('balanceNoNetworkStub');
+        .stub(Checkout.prototype, "getBalance")
+        .as("balanceNoNetworkStub");
       balanceStub.rejects({});
       const connectStub = cy
-        .stub(Checkout.prototype, 'connect')
-        .as('connectNoNetworkStub');
+        .stub(Checkout.prototype, "connect")
+        .as("connectNoNetworkStub");
       connectStub.resolves({
         provider: mockProvider,
-        network: { name: '' },
+        network: { name: "" },
       });
-      cy.stub(Checkout.prototype, 'getNetworkInfo')
-        .as('getNetworkInfoStub')
+      cy.stub(Checkout.prototype, "getNetworkInfo")
+        .as("getNetworkInfoStub")
         .resolves({
           chainId: ChainId.SEPOLIA,
           isSupported: true,
           nativeCurrency: {
-            symbol: 'eth',
+            symbol: "eth",
           },
         });
 
       mount(
-        <ConnectLoaderTestComponent
-          initialStateOverride={connectLoaderState}
-        >
-          <WalletWidget
-            config={widgetConfig}
-            walletConfig={walletConfig}
-          />
-        </ConnectLoaderTestComponent>,
+        <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+          <WalletWidget config={widgetConfig} walletConfig={walletConfig} />
+        </ConnectLoaderTestComponent>
       );
 
-      cySmartGet('loading-view').should('be.visible');
-      cySmartGet('wallet-balances').should('be.visible');
+      cySmartGet("loading-view").should("be.visible");
+      cySmartGet("wallet-balances").should("be.visible");
     });
 
-    it('should show error view on error initialising and retry when try again pressed', () => {
+    it("should show error view on error initialising and retry when try again pressed", () => {
       const widgetConfig = {
         theme: WidgetTheme.DARK,
         environment: Environment.SANDBOX,
@@ -112,18 +106,18 @@ describe('WalletWidget tests', () => {
       cyIntercept();
 
       const balanceStub = cy
-        .stub(Checkout.prototype, 'getBalance')
-        .as('balanceNoNetworkStub');
+        .stub(Checkout.prototype, "getBalance")
+        .as("balanceNoNetworkStub");
       balanceStub.rejects({});
       const connectStub = cy
-        .stub(Checkout.prototype, 'connect')
-        .as('connectNoNetworkStub');
+        .stub(Checkout.prototype, "connect")
+        .as("connectNoNetworkStub");
       connectStub.resolves({
         provider: mockProvider,
-        network: { name: '' },
+        network: { name: "" },
       });
-      cy.stub(Checkout.prototype, 'getNetworkInfo')
-        .as('getNetworkInfoStub')
+      cy.stub(Checkout.prototype, "getNetworkInfo")
+        .as("getNetworkInfoStub")
         .onFirstCall()
         .rejects({})
         .onSecondCall()
@@ -131,54 +125,49 @@ describe('WalletWidget tests', () => {
           chainId: ChainId.SEPOLIA,
           isSupported: true,
           nativeCurrency: {
-            symbol: 'eth',
+            symbol: "eth",
           },
         });
       const isSwapAvailableStub = cy
-        .stub(Checkout.prototype, 'isSwapAvailable')
-        .as('isSwapAvailableStub');
+        .stub(Checkout.prototype, "isSwapAvailable")
+        .as("isSwapAvailableStub");
       isSwapAvailableStub.resolves(true);
 
       mount(
-        <ConnectLoaderTestComponent
-          initialStateOverride={connectLoaderState}
-        >
-          <WalletWidget
-            config={widgetConfig}
-            walletConfig={walletConfig}
-          />
-        </ConnectLoaderTestComponent>,
+        <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+          <WalletWidget config={widgetConfig} walletConfig={walletConfig} />
+        </ConnectLoaderTestComponent>
       );
 
-      cySmartGet('error-view').should('be.visible');
-      cySmartGet('footer-button').click();
-      cySmartGet('error-view').should('not.exist');
-      cySmartGet('wallet-balances').should('be.visible');
+      cySmartGet("error-view").should("be.visible");
+      cySmartGet("footer-button").click();
+      cySmartGet("error-view").should("not.exist");
+      cySmartGet("wallet-balances").should("be.visible");
     });
   });
 
-  describe('Connected Wallet', () => {
+  describe("Connected Wallet", () => {
     let getAllBalancesStub;
     beforeEach(() => {
-      cy.stub(Checkout.prototype, 'connect')
-        .as('connectStub')
+      cy.stub(Checkout.prototype, "connect")
+        .as("connectStub")
         .onFirstCall()
         .resolves({
           provider: {
             getSigner: () => ({
-              getAddress: () => Promise.resolve('dss'),
+              getAddress: () => Promise.resolve("dss"),
             }),
             getNetwork: async () => ({
               chainId: ChainId.ETHEREUM,
-              name: 'Ethereum',
+              name: "Ethereum",
             }),
           },
           network: {
             chainId: ChainId.ETHEREUM,
-            name: 'Ethereum',
+            name: "Ethereum",
             nativeCurrency: {
-              name: 'ETH',
-              symbol: 'ETH',
+              name: "ETH",
+              symbol: "ETH",
               decimals: 18,
             },
           },
@@ -187,7 +176,7 @@ describe('WalletWidget tests', () => {
         .resolves({
           provider: {
             getSigner: () => ({
-              getAddress: () => Promise.resolve('dss'),
+              getAddress: () => Promise.resolve("dss"),
             }),
             getNetwork: async () => ({
               chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -198,94 +187,94 @@ describe('WalletWidget tests', () => {
             chainId: ChainId.IMTBL_ZKEVM_TESTNET,
             name: ChainName.IMTBL_ZKEVM_TESTNET,
             nativeCurrency: {
-              name: 'IMX',
-              symbol: 'IMX',
+              name: "IMX",
+              symbol: "IMX",
               decimals: 18,
             },
           },
         });
 
-      cy.stub(Checkout.prototype, 'getNetworkInfo')
-        .as('getNetworkInfoStub')
+      cy.stub(Checkout.prototype, "getNetworkInfo")
+        .as("getNetworkInfoStub")
         .resolves({
           chainId: ChainId.SEPOLIA,
           isSupported: true,
           nativeCurrency: {
-            symbol: 'eth',
+            symbol: "eth",
           },
         });
 
-      cy.stub(Checkout.prototype, 'getNetworkAllowList')
-        .as('getNetworkAllowListStub')
+      cy.stub(Checkout.prototype, "getNetworkAllowList")
+        .as("getNetworkAllowListStub")
         .resolves({
           networks: [
             {
-              name: 'Immutable zkEVM testnet',
+              name: "Immutable zkEVM testnet",
               chainId: ChainId.IMTBL_ZKEVM_TESTNET,
             },
             {
-              name: 'Sepolia',
+              name: "Sepolia",
               chainId: ChainId.SEPOLIA,
             },
           ],
         });
 
       getAllBalancesStub = cy
-        .stub(Checkout.prototype, 'getAllBalances')
-        .as('balanceStub');
+        .stub(Checkout.prototype, "getAllBalances")
+        .as("balanceStub");
       getAllBalancesStub.resolves({
         balances: [
           {
-            balance: BigNumber.from(1),
-            formattedBalance: '12.12',
+            balance: 1n,
+            formattedBalance: "12.12",
             token: {
-              name: 'Ether',
-              symbol: 'ETH',
+              name: "Ether",
+              symbol: "ETH",
               decimals: 18,
             },
           },
           {
-            balance: BigNumber.from(2),
-            formattedBalance: '899',
+            balance: 2n,
+            formattedBalance: "899",
             token: {
-              name: 'Immutable X',
-              symbol: 'IMX',
+              name: "Immutable X",
+              symbol: "IMX",
               decimals: 18,
             },
           },
           {
-            balance: BigNumber.from(3),
-            formattedBalance: '100.2',
+            balance: 3n,
+            formattedBalance: "100.2",
             token: {
-              name: 'Gods Unchained',
-              symbol: 'GODS',
+              name: "Gods Unchained",
+              symbol: "GODS",
               decimals: 18,
             },
           },
         ],
       });
 
-      cy.stub(Checkout.prototype, 'switchNetwork')
-        .as('switchNetworkStub')
+      cy.stub(Checkout.prototype, "switchNetwork")
+        .as("switchNetworkStub")
         .resolves({
           network: {
             chainId: ChainId.IMTBL_ZKEVM_TESTNET,
-            name: 'Immutable zkEVM testnet',
+            name: "Immutable zkEVM testnet",
             nativeCurrency: {
-              name: 'IMX',
-              symbol: 'IMX',
+              name: "IMX",
+              symbol: "IMX",
               decimals: 18,
             },
           },
         });
 
       const signerStub = {
-        getAddress: cy.stub().resolves('0x123'),
+        getAddress: cy.stub().resolves("0x123"),
       };
-      cy.stub(Web3Provider.prototype, 'getSigner').returns(signerStub);
+      cy.stub(BrowserProvider.prototype, "getSigner").returns(signerStub);
 
-      cy.stub(CryptoFiat.prototype, 'convert')
-        .as('cryptoFiatStub')
+      cy.stub(CryptoFiat.prototype, "convert")
+        .as("cryptoFiatStub")
         .resolves({
           eth: {
             usd: 1800,
@@ -298,18 +287,18 @@ describe('WalletWidget tests', () => {
           },
         });
 
-      cy.stub(Checkout.prototype, 'gasEstimate')
-        .as('gasEstimateStub')
+      cy.stub(Checkout.prototype, "gasEstimate")
+        .as("gasEstimateStub")
         .resolves({
           gasEstimateType: GasEstimateType.BRIDGE_TO_L2,
           gasFee: {
-            estimatedAmount: BigNumber.from('10000000000000000'),
+            estimatedAmount: BigInt("10000000000000000"),
           },
         });
     });
 
-    describe('WalletWidget balances', () => {
-      it('should show the network and user balances on that network', () => {
+    describe("WalletWidget balances", () => {
+      it("should show the network and user balances on that network", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -319,38 +308,29 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('@balanceStub').should('have.been.called');
+        cySmartGet("@balanceStub").should("have.been.called");
 
-        cySmartGet('close-button').should('be.visible');
-        cySmartGet('network-heading').should('be.visible');
-        cySmartGet('Sepolia-network-button').should(
-          'include.text',
-          'Sepolia',
+        cySmartGet("close-button").should("be.visible");
+        cySmartGet("network-heading").should("be.visible");
+        cySmartGet("Sepolia-network-button").should("include.text", "Sepolia");
+
+        cySmartGet("total-token-balance").should("exist");
+        cySmartGet("total-token-balance").should(
+          "have.text",
+          "≈ USD $22525.46"
         );
 
-        cySmartGet('total-token-balance').should('exist');
-        cySmartGet('total-token-balance').should(
-          'have.text',
-          '≈ USD $22525.46',
-        );
-
-        cySmartGet('balance-item-ETH').should('exist');
-        cySmartGet('balance-item-GODS').should('exist');
-        cySmartGet('balance-item-IMX').should('exist');
+        cySmartGet("balance-item-ETH").should("exist");
+        cySmartGet("balance-item-GODS").should("exist");
+        cySmartGet("balance-item-IMX").should("exist");
       });
 
-      it('should show the balance details for each token', () => {
+      it("should show the balance details for each token", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -360,39 +340,33 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('@balanceStub').should('have.been.called');
+        cySmartGet("@balanceStub").should("have.been.called");
 
-        cySmartGet('balance-item-ETH').should('exist');
-        cySmartGet('balance-item-ETH').should('include.text', 'ETH');
-        cySmartGet('balance-item-ETH').should('include.text', 'Ether');
-        cySmartGet('balance-item-ETH__price').should('have.text', '12.12');
+        cySmartGet("balance-item-ETH").should("exist");
+        cySmartGet("balance-item-ETH").should("include.text", "ETH");
+        cySmartGet("balance-item-ETH").should("include.text", "Ether");
+        cySmartGet("balance-item-ETH__price").should("have.text", "12.12");
 
-        cySmartGet('balance-item-IMX').should('exist');
-        cySmartGet('balance-item-IMX').should('include.text', 'IMX');
-        cySmartGet('balance-item-IMX').should('include.text', 'Immutable X');
-        cySmartGet('balance-item-IMX__price').should('have.text', '899');
+        cySmartGet("balance-item-IMX").should("exist");
+        cySmartGet("balance-item-IMX").should("include.text", "IMX");
+        cySmartGet("balance-item-IMX").should("include.text", "Immutable X");
+        cySmartGet("balance-item-IMX__price").should("have.text", "899");
 
-        cySmartGet('balance-item-GODS').should('exist');
-        cySmartGet('balance-item-GODS').should('include.text', 'GODS');
-        cySmartGet('balance-item-GODS').should(
-          'include.text',
-          'Gods Unchained',
+        cySmartGet("balance-item-GODS").should("exist");
+        cySmartGet("balance-item-GODS").should("include.text", "GODS");
+        cySmartGet("balance-item-GODS").should(
+          "include.text",
+          "Gods Unchained"
         );
-        cySmartGet('balance-item-GODS__price').should('have.text', '100.20');
+        cySmartGet("balance-item-GODS__price").should("have.text", "100.20");
       });
 
-      it('should show error screen after getAllBalances unrecoverable failure', () => {
+      it("should show error screen after getAllBalances unrecoverable failure", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -408,65 +382,58 @@ describe('WalletWidget tests', () => {
           .resolves({
             balances: [
               {
-                balance: BigNumber.from('10000000000000'),
-                formattedBalance: '0.1',
+                balance: BigInt("10000000000000"),
+                formattedBalance: "0.1",
                 token: {
-                  name: 'ImmutableX',
-                  symbol: 'IMX',
+                  name: "ImmutableX",
+                  symbol: "IMX",
                   decimals: 18,
                   address: NATIVE,
-                  icon: '123',
+                  icon: "123",
                 },
               },
             ],
           });
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('error-view').should('be.visible');
-        cySmartGet('footer-button').click();
-        cySmartGet('error-view').should('not.exist');
-        cySmartGet('wallet-balances').should('be.visible');
+        cySmartGet("error-view").should("be.visible");
+        cySmartGet("footer-button").click();
+        cySmartGet("error-view").should("not.exist");
+        cySmartGet("wallet-balances").should("be.visible");
       });
 
-      it('should show balances after getAllBalances failure', () => {
-        getAllBalancesStub
-          .rejects()
-          .resolves({
-            balances: [
-              {
-                balance: BigNumber.from('1000000000000000000'),
-                formattedBalance: '0.1',
-                token: {
-                  name: 'ETH',
-                  symbol: 'ETH',
-                  decimals: 18,
-                  address: '',
-                  icon: '123',
-                },
+      it("should show balances after getAllBalances failure", () => {
+        getAllBalancesStub.rejects().resolves({
+          balances: [
+            {
+              balance: BigInt("1000000000000000000"),
+              formattedBalance: "0.1",
+              token: {
+                name: "ETH",
+                symbol: "ETH",
+                decimals: 18,
+                address: "",
+                icon: "123",
               },
-              {
-                balance: BigNumber.from('10000000000000'),
-                formattedBalance: '0.1',
-                token: {
-                  name: 'ImmutableX',
-                  symbol: 'IMX',
-                  decimals: 18,
-                  address: NATIVE,
-                  icon: '123',
-                },
+            },
+            {
+              balance: BigInt("10000000000000"),
+              formattedBalance: "0.1",
+              token: {
+                name: "ImmutableX",
+                symbol: "IMX",
+                decimals: 18,
+                address: NATIVE,
+                icon: "123",
               },
-            ],
-          });
+            },
+          ],
+        });
 
         const widgetConfig = {
           theme: WidgetTheme.DARK,
@@ -477,24 +444,18 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('balance-item-IMX').should('exist');
-        cySmartGet('balance-item-ETH').should('exist');
+        cySmartGet("balance-item-IMX").should("exist");
+        cySmartGet("balance-item-ETH").should("exist");
       });
     });
 
-    describe('WalletWidget settings', () => {
-      it('should show the settings view if the settings button is clicked', () => {
+    describe("WalletWidget settings", () => {
+      it("should show the settings view if the settings button is clicked", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -504,24 +465,18 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('settings-button').click();
-        cySmartGet('header-title').should('have.text', 'Settings');
-        cySmartGet('close-button').should('be.visible');
-        cySmartGet('back-button').should('be.visible');
+        cySmartGet("settings-button").click();
+        cySmartGet("header-title").should("have.text", "Settings");
+        cySmartGet("close-button").should("be.visible");
+        cySmartGet("back-button").should("be.visible");
       });
 
-      it('should show correct wallet address on the settings page', () => {
+      it("should show correct wallet address on the settings page", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -531,25 +486,19 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
-        cySmartGet('settings-button').click();
-        cySmartGet('wallet-address').should('have.text', '0xwalletAddress');
+        cySmartGet("settings-button").click();
+        cySmartGet("wallet-address").should("have.text", "0xwalletAddress");
       });
 
-      it('should show a disconnect button for Metamask that fires the right event when clicked', () => {
+      it("should show a disconnect button for Metamask that fires the right event when clicked", () => {
         cy.window().then((window) => {
           window.addEventListener(
             IMTBLWidgetEvents.IMTBL_WALLET_WIDGET_EVENT,
-            cy.stub().as('disconnectEvent'),
+            cy.stub().as("disconnectEvent")
           );
         });
 
@@ -562,30 +511,25 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />
             ,x
-          </ConnectLoaderTestComponent>,
+          </ConnectLoaderTestComponent>
         );
-        cySmartGet('settings-button').click();
-        cySmartGet('disconnect-button').should(
-          'have.text',
-          'Disconnect Wallet',
+        cySmartGet("settings-button").click();
+        cySmartGet("disconnect-button").should(
+          "have.text",
+          "Disconnect Wallet"
         );
-        cySmartGet('disconnect-button').click();
-        cySmartGet('@disconnectEvent').should('have.been.calledOnce');
+        cySmartGet("disconnect-button").click();
+        cySmartGet("@disconnectEvent").should("have.been.calledOnce");
       });
 
-      it('should show a disconnect button for Passport that fires the right event when clicked', () => {
+      it("should show a disconnect button for Passport that fires the right event when clicked", () => {
         cy.window().then((window) => {
           window.addEventListener(
             IMTBLWidgetEvents.IMTBL_WALLET_WIDGET_EVENT,
-            cy.stub().as('disconnectEvent'),
+            cy.stub().as("disconnectEvent")
           );
         });
 
@@ -599,33 +543,28 @@ describe('WalletWidget tests', () => {
 
         mount(
           <ConnectLoaderTestComponent
-            initialStateOverride={
-              {
-                ...connectLoaderState,
-                provider: mockPassportProvider,
-              }
-            }
+            initialStateOverride={{
+              ...connectLoaderState,
+              provider: mockPassportProvider,
+            }}
           >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-          </ConnectLoaderTestComponent>,
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />
+          </ConnectLoaderTestComponent>
         );
-        cySmartGet('settings-button').click();
-        cySmartGet('disconnect-button').should(
-          'have.text',
-          'Disconnect Wallet',
+        cySmartGet("settings-button").click();
+        cySmartGet("disconnect-button").should(
+          "have.text",
+          "Disconnect Wallet"
         );
-        cySmartGet('disconnect-button').click();
-        cySmartGet('@disconnectEvent').should('have.been.calledOnce');
+        cySmartGet("disconnect-button").click();
+        cySmartGet("@disconnectEvent").should("have.been.calledOnce");
       });
 
-      it('should NOT show a disconnect button when wallet config showDisconnectButton is false', () => {
+      it("should NOT show a disconnect button when wallet config showDisconnectButton is false", () => {
         cy.window().then((window) => {
           window.addEventListener(
             IMTBLWidgetEvents.IMTBL_WALLET_WIDGET_EVENT,
-            cy.stub().as('disconnectEvent'),
+            cy.stub().as("disconnectEvent")
           );
         });
 
@@ -638,30 +577,28 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
             <WalletWidget
               config={widgetConfig}
               walletConfig={{ ...walletConfig, showDisconnectButton: false }}
             />
             ,x
-          </ConnectLoaderTestComponent>,
+          </ConnectLoaderTestComponent>
         );
-        cySmartGet('settings-button').click();
-        cySmartGet('disconnect-button').should('not.exist');
-        cySmartGet('@disconnectEvent').should('not.have.been.called');
+        cySmartGet("settings-button").click();
+        cySmartGet("disconnect-button").should("not.exist");
+        cySmartGet("@disconnectEvent").should("not.have.been.called");
       });
     });
 
-    describe('WalletWidget coin info', () => {
+    describe("WalletWidget coin info", () => {
       let signerStub;
       beforeEach(() => {
         signerStub = {
-          getAddress: cy.stub().resolves('0x123'),
+          getAddress: cy.stub().resolves("0x123"),
         };
       });
-      it('should show the coin info view if the coin info icon is clicked', () => {
+      it("should show the coin info view if the coin info icon is clicked", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -671,24 +608,22 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('coin-info-icon').click();
-        cy.get('body').contains('You can switch networks to add coins or move them from one network to another');
-        cy.get('body').contains('Coins and collectibles are native to networks');
-        cySmartGet('back-button').should('be.visible');
+        cySmartGet("coin-info-icon").click();
+        cy.get("body").contains(
+          "You can switch networks to add coins or move them from one network to another"
+        );
+        cy.get("body").contains(
+          "Coins and collectibles are native to networks"
+        );
+        cySmartGet("back-button").should("be.visible");
       });
 
-      it('should show the coin info view if the coin info icon is clicked and provider is passport', () => {
+      it("should show the coin info view if the coin info icon is clicked and provider is passport", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -699,34 +634,34 @@ describe('WalletWidget tests', () => {
         const connectLoaderStateWithPassport = {
           ...connectLoaderState,
           provider: {
-            provider: { isPassport: true } as ExternalProvider,
+            provider: { isPassport: true } as unknown as Eip1193Provider,
             getSigner: () => signerStub,
-          } as any as Web3Provider,
+          } as any as BrowserProvider,
         };
         mount(
           <ConnectLoaderTestComponent
             initialStateOverride={connectLoaderStateWithPassport}
           >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-            ,
-          </ConnectLoaderTestComponent>,
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('coin-info-icon').click();
+        cySmartGet("coin-info-icon").click();
         // eslint-disable-next-line max-len
-        cy.get('body').contains('This network is called Immutable zkEVM. If you have other coins in your Passport and can’t see them here, they might be on another network. ');
-        cy.get('body').contains(' for more info.');
-        cy.get('body').contains('Visit our FAQs');
-        cy.get('body').contains('Coins and collectibles are native to networks');
-        cySmartGet('back-button').should('be.visible');
+        cy.get("body").contains(
+          "This network is called Immutable zkEVM. If you have other coins in your Passport and can’t see them here, they might be on another network. "
+        );
+        cy.get("body").contains(" for more info.");
+        cy.get("body").contains("Visit our FAQs");
+        cy.get("body").contains(
+          "Coins and collectibles are native to networks"
+        );
+        cySmartGet("back-button").should("be.visible");
       });
     });
 
-    describe('Network menu', () => {
-      it('should not show the Network Menu when wallet config showNetworkMenu is false', () => {
+    describe("Network menu", () => {
+      it("should not show the Network Menu when wallet config showNetworkMenu is false", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -736,22 +671,20 @@ describe('WalletWidget tests', () => {
         } as StrongCheckoutWidgetsConfig;
 
         mount(
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
             <WalletWidget
               config={widgetConfig}
               walletConfig={{ ...walletConfig, showNetworkMenu: false }}
             />
-          </ConnectLoaderTestComponent>,
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('wallet-balances').should('exist');
-        cySmartGet('network-menu').should('not.exist');
+        cySmartGet("wallet-balances").should("exist");
+        cySmartGet("network-menu").should("not.exist");
       });
     });
 
-    describe('Passport Wallet Widget', () => {
+    describe("Passport Wallet Widget", () => {
       const passportConnectLoaderState = {
         checkout: new Checkout({
           baseConfig: { environment: Environment.SANDBOX },
@@ -760,7 +693,7 @@ describe('WalletWidget tests', () => {
         connectionStatus: ConnectionStatus.CONNECTED_WITH_NETWORK,
       };
 
-      it('should not show Network Menu when provider is passport', () => {
+      it("should not show Network Menu when provider is passport", () => {
         const widgetConfig = {
           theme: WidgetTheme.DARK,
           environment: Environment.SANDBOX,
@@ -773,15 +706,12 @@ describe('WalletWidget tests', () => {
           <ConnectLoaderTestComponent
             initialStateOverride={passportConnectLoaderState}
           >
-            <WalletWidget
-              config={widgetConfig}
-              walletConfig={walletConfig}
-            />
-          </ConnectLoaderTestComponent>,
+            <WalletWidget config={widgetConfig} walletConfig={walletConfig} />
+          </ConnectLoaderTestComponent>
         );
 
-        cySmartGet('wallet-balances').should('exist');
-        cySmartGet('network-menu').should('not.exist');
+        cySmartGet("wallet-balances").should("exist");
+        cySmartGet("network-menu").should("not.exist");
       });
     });
   });

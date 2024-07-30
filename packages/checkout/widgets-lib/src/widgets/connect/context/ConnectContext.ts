@@ -1,7 +1,11 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { createContext } from 'react';
-import { Checkout, EIP6963ProviderInfo, WalletProviderName } from '@imtbl/checkout-sdk';
-import { Passport } from '@imtbl/passport';
+import { BrowserProvider } from "ethers";
+import { createContext } from "react";
+import {
+  Checkout,
+  EIP6963ProviderInfo,
+  WalletProviderName,
+} from "@imtbl/checkout-sdk";
+import { Passport } from "@imtbl/passport";
 
 export interface ConnectState {
   checkout: Checkout | null;
@@ -38,11 +42,11 @@ type ActionPayload =
   | SetSendCloseEventPayload;
 
 export enum ConnectActions {
-  SET_CHECKOUT = 'SET_CHECKOUT',
-  SET_PROVIDER = 'SET_PROVIDER',
-  SET_PASSPORT = 'SET_PASSPORT',
-  SET_WALLET_PROVIDER_NAME = 'SET_WALLET_PROVIDER_NAME',
-  SET_SEND_CLOSE_EVENT = 'SET_SEND_CLOSE_EVENT',
+  SET_CHECKOUT = "SET_CHECKOUT",
+  SET_PROVIDER = "SET_PROVIDER",
+  SET_PASSPORT = "SET_PASSPORT",
+  SET_WALLET_PROVIDER_NAME = "SET_WALLET_PROVIDER_NAME",
+  SET_SEND_CLOSE_EVENT = "SET_SEND_CLOSE_EVENT",
 }
 
 export interface SetCheckoutPayload {
@@ -76,13 +80,13 @@ export const ConnectContext = createContext<ConnectContextState>({
   connectDispatch: () => {},
 });
 
-ConnectContext.displayName = 'ConnectContext'; // help with debugging Context in browser
+ConnectContext.displayName = "ConnectContext"; // help with debugging Context in browser
 
 export type Reducer<S, A> = (prevState: S, action: A) => S;
 
 export const connectReducer: Reducer<ConnectState, ConnectAction> = (
   state: ConnectState,
-  action: ConnectAction,
+  action: ConnectAction
 ) => {
   switch (action.payload.type) {
     case ConnectActions.SET_CHECKOUT:

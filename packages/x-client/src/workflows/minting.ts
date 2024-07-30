@@ -1,20 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Signer } from '@ethersproject/abstract-signer';
-import { keccak256 } from '@ethersproject/keccak256';
-import { toUtf8Bytes } from '@ethersproject/strings';
+import { keccak256, Signer, toUtf8Bytes } from "ethers";
 import {
   MintRequest,
   MintsApi,
   MintsApiMintTokensRequest,
   MintTokensResponse,
-} from '../types/api';
-import { UnsignedMintRequest } from '../types';
-import { signRaw } from '../utils';
+} from "../types/api";
+import { UnsignedMintRequest } from "../types";
+import { signRaw } from "../utils";
 
 export async function mintingWorkflow(
   signer: Signer,
   request: UnsignedMintRequest,
-  mintsApi: MintsApi,
+  mintsApi: MintsApi
 ): Promise<MintTokensResponse> {
   // TODO: improve this object key rearrangement.
   // object keys should respect this order, but the logic can be improved
@@ -23,28 +21,28 @@ export async function mintingWorkflow(
     tokens: user.tokens.map((token) => ({
       id: token.id,
       blueprint: token.blueprint,
-      ...(token.royalties
-        && token.royalties.length > 0 && {
-        royalties: token.royalties.map((royalty) => ({
-          recipient: royalty.recipient,
-          percentage: royalty.percentage,
-        })),
-      }),
+      ...(token.royalties &&
+        token.royalties.length > 0 && {
+          royalties: token.royalties.map((royalty) => ({
+            recipient: royalty.recipient,
+            percentage: royalty.percentage,
+          })),
+        }),
     })),
   }));
 
   const { royalties } = request;
   const signablePayload = {
     contract_address: request.contract_address,
-    ...(royalties
-      && royalties.length > 0 && {
-      royalties: royalties.map((fee) => ({
-        recipient: fee.recipient,
-        percentage: fee.percentage,
-      })),
-    }),
+    ...(royalties &&
+      royalties.length > 0 && {
+        royalties: royalties.map((fee) => ({
+          recipient: fee.recipient,
+          percentage: fee.percentage,
+        })),
+      }),
     users,
-    auth_signature: '',
+    auth_signature: "",
   };
 
   const hash = keccak256(toUtf8Bytes(JSON.stringify(signablePayload)));

@@ -4,15 +4,15 @@ import {
   NetworkFilterTypes,
   TokenFilterTypes,
   WalletFilterTypes,
-} from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage, WarningMessage } from './messages';
-import LoadingButton from './LoadingButton';
-import { Box } from '@biom3/react';
-import { NetworkInfo } from '@imtbl/checkout-sdk';
-import { WalletInfo } from '@imtbl/checkout-sdk';
-import { TokenInfo } from '@imtbl/checkout-sdk';
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage, WarningMessage } from "./messages";
+import LoadingButton from "./LoadingButton";
+import { Box } from "@biom3/react";
+import { NetworkInfo } from "@imtbl/checkout-sdk";
+import { WalletInfo } from "@imtbl/checkout-sdk";
+import { TokenInfo } from "@imtbl/checkout-sdk";
 
 export interface AllowListProps {
   checkout: Checkout | undefined;
@@ -36,11 +36,11 @@ export default function GetAllowList(props: AllowListProps) {
 
   async function getNetworkAllowList() {
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setErrorNetwork(null);
@@ -49,7 +49,7 @@ export default function GetAllowList(props: AllowListProps) {
       const resp = await checkout.getNetworkAllowList({
         type: NetworkFilterTypes.ALL,
       });
-      console.log(resp)
+      console.log(resp);
       setResultNetwork(resp.networks);
       setLoadingNetwork(false);
     } catch (error: any) {
@@ -64,11 +64,11 @@ export default function GetAllowList(props: AllowListProps) {
 
   async function getWalletsAllowList() {
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setErrorWallet(null);
@@ -91,11 +91,11 @@ export default function GetAllowList(props: AllowListProps) {
 
   async function getTokensAllowList() {
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setErrorToken(null);
@@ -134,9 +134,9 @@ export default function GetAllowList(props: AllowListProps) {
       {!provider && <WarningMessage>Not connected.</WarningMessage>}
       <Box
         sx={{
-          marginTop: 'base.spacing.x4',
-          display: 'flex',
-          gap: 'base.spacing.x4',
+          marginTop: "base.spacing.x4",
+          display: "flex",
+          gap: "base.spacing.x4",
         }}
       >
         <LoadingButton onClick={getNetworkAllowList} loading={loadingNetwork}>
@@ -192,12 +192,12 @@ export default function GetAllowList(props: AllowListProps) {
             <div key={token.name}>
               <Box
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'base.spacing.x2',
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "base.spacing.x2",
                 }}
               >
-                <img src={token.icon} width="15px" /> {token.name} -{' '}
+                <img src={token.icon} width="15px" /> {token.name} -{" "}
                 {token.symbol} - {token.address}
               </Box>
             </div>

@@ -1,5 +1,5 @@
-import { ModuleConfiguration } from '@imtbl/config';
-import { ethers } from 'ethers';
+import { ModuleConfiguration } from "@imtbl/config";
+import { ethers } from "ethers";
 
 /**
  * @typedef {Object} BridgeInstance
@@ -25,8 +25,8 @@ export interface BridgeOverrides {
  * @property {string} symbol - The Symbol of the native token.
  */
 export interface AxelarChainDetails {
-  id: string,
-  symbol: string,
+  id: string;
+  symbol: string;
 }
 
 /**
@@ -67,7 +67,7 @@ export type Address = string;
 /**
  * @typedef {Address | 'NATIVE'} FungibleToken - Represents a fungible token, either an ERC20 token address or the native token.
  */
-export type FungibleToken = Address | 'NATIVE';
+export type FungibleToken = Address | "NATIVE";
 
 /**
  * @typedef {Object} CompletionStatus
@@ -76,9 +76,9 @@ export type FungibleToken = Address | 'NATIVE';
  * @property {string} FAILED - The transaction has failed.
  */
 export enum CompletionStatus {
-  SUCCESS = 'SUCCESS',
-  PENDING = 'PENDING',
-  FAILED = 'FAILED',
+  SUCCESS = "SUCCESS",
+  PENDING = "PENDING",
+  FAILED = "FAILED",
 }
 
 /**
@@ -88,9 +88,9 @@ export enum CompletionStatus {
  * @property {string} FINALISE_WITHDRAWAL - Calculate gas .
  */
 export enum BridgeFeeActions {
-  DEPOSIT = 'DEPOSIT',
-  WITHDRAW = 'WITHDRAW',
-  FINALISE_WITHDRAWAL = 'FINALISE_WITHDRAWAL',
+  DEPOSIT = "DEPOSIT",
+  WITHDRAW = "WITHDRAW",
+  FINALISE_WITHDRAWAL = "FINALISE_WITHDRAWAL",
 }
 
 /**
@@ -113,10 +113,10 @@ export enum BridgeMethodsGasLimit { // @TODO test methods on chain and put corre
 }
 
 export interface FeeData {
-  lastBaseFeePerGas: null | ethers.BigNumber;
-  maxFeePerGas: null | ethers.BigNumber;
-  maxPriorityFeePerGas: null | ethers.BigNumber;
-  gasPrice: null | ethers.BigNumber;
+  lastBaseFeePerGas: null | bigint;
+  maxFeePerGas: null | bigint;
+  maxPriorityFeePerGas: null | bigint;
+  gasPrice: null | bigint;
 }
 
 /**
@@ -124,11 +124,12 @@ export interface FeeData {
  * @dev Union type of DepositFeeRequest|WithdrawFeeRequest|FinaliseFeeRequest|MapTokenFeeRequest
  * ensures the correct params are supplied when trying to calculate the fees
  */
-export type BridgeFeeRequest = DepositNativeFeeRequest
-| DepositERC20FeeRequest
-| WithdrawNativeFeeRequest
-| WithdrawERC20FeeRequest
-| FinaliseFeeRequest;
+export type BridgeFeeRequest =
+  | DepositNativeFeeRequest
+  | DepositERC20FeeRequest
+  | WithdrawNativeFeeRequest
+  | WithdrawERC20FeeRequest
+  | FinaliseFeeRequest;
 
 /**
  * @typedef {Object} DepositNativeFeeRequest
@@ -138,7 +139,7 @@ export type BridgeFeeRequest = DepositNativeFeeRequest
  * @property {string} destinationChainId - The chain ID of the destination chain.
  */
 export interface DepositNativeFeeRequest {
-  action: BridgeFeeActions.DEPOSIT,
+  action: BridgeFeeActions.DEPOSIT;
   gasMultiplier: number | string;
   sourceChainId: string;
   destinationChainId: string;
@@ -151,15 +152,15 @@ export interface DepositNativeFeeRequest {
  * @property {string} sourceChainId - The chain ID of the source chain.
  * @property {string} destinationChainId - The chain ID of the destination chain.
  * @property {FungibleToken} token - The token to be deposited.
- * @property {ethers.BigNumber} amount - The amount to be deposited.
+ * @property {BigInt} amount - The amount to be deposited.
  */
 export interface DepositERC20FeeRequest {
-  action: BridgeFeeActions.DEPOSIT,
+  action: BridgeFeeActions.DEPOSIT;
   gasMultiplier: number | string;
   sourceChainId: string;
   destinationChainId: string;
   token: FungibleToken;
-  amount: ethers.BigNumber;
+  amount: bigint;
 }
 
 /**
@@ -170,7 +171,7 @@ export interface DepositERC20FeeRequest {
  * @property {string} destinationChainId - The chain ID of the destination chain.
  */
 export interface WithdrawNativeFeeRequest {
-  action: BridgeFeeActions.WITHDRAW,
+  action: BridgeFeeActions.WITHDRAW;
   gasMultiplier: number | string;
   sourceChainId: string;
   destinationChainId: string;
@@ -183,15 +184,15 @@ export interface WithdrawNativeFeeRequest {
  * @property {string} sourceChainId - The chain ID of the source chain.
  * @property {string} destinationChainId - The chain ID of the destination chain.
  * @property {FungibleToken} token - The token to be withdrawn.
- * @property {ethers.BigNumber} amount - The amount to be withdrawn.
+ * @property {BigInt} amount - The amount to be withdrawn.
  */
 export interface WithdrawERC20FeeRequest {
-  action: BridgeFeeActions.WITHDRAW,
+  action: BridgeFeeActions.WITHDRAW;
   gasMultiplier: number | string;
   sourceChainId: string;
   destinationChainId: string;
   token: FungibleToken;
-  amount: ethers.BigNumber;
+  amount: bigint;
 }
 
 /**
@@ -200,45 +201,45 @@ export interface WithdrawERC20FeeRequest {
  * @property {string} sourceChainId - The chain ID of the chain we are finalising the withdrawal on. This is ALWAYS the root chain.
  */
 export interface FinaliseFeeRequest {
-  action: BridgeFeeActions.FINALISE_WITHDRAWAL,
+  action: BridgeFeeActions.FINALISE_WITHDRAWAL;
   sourceChainId: string;
 }
 
 /**
  * @typedef {Object} BridgeFeeResponse
- * @property {ethers.BigNumber} sourceChainGas - Gas cost to send tokens to the bridge contract on the source chain.
+ * @property {BigInt} sourceChainGas - Gas cost to send tokens to the bridge contract on the source chain.
  * - priced in the source chain's native token.
- * @property {ethers.BigNumber} approvalFee - Gas cost to approve bridge contract to spend tokens on the source chain.
+ * @property {BigInt} approvalFee - Gas cost to approve bridge contract to spend tokens on the source chain.
  * - priced in the source chain's native token.
- * @property {ethers.BigNumber} bridgeFee - destinationChainGas + validatorFee.
+ * @property {BigInt} bridgeFee - destinationChainGas + validatorFee.
  * This will be added to the tx.value of the bridge transaction and forwarded to the Axelar Gas Service contract.
  * - priced in the source chain's native token.
- * @property {ethers.BigNumber} imtblFee - The fee charged by Immutable to facilitate the bridge.
+ * @property {BigInt} imtblFee - The fee charged by Immutable to facilitate the bridge.
  * - priced in the source chain's native token.
- * @property {ethers.BigNumber} totalFees - The total fees the user will be charged which is;
+ * @property {BigInt} totalFees - The total fees the user will be charged which is;
  * sourceChainGas + approvalFee + bridgeFee + imtblFee.
  * - priced in the source chain's native token.
  */
 export interface BridgeFeeResponse {
-  sourceChainGas: ethers.BigNumber,
-  approvalFee: ethers.BigNumber,
-  bridgeFee: ethers.BigNumber,
-  imtblFee: ethers.BigNumber,
-  totalFees: ethers.BigNumber,
+  sourceChainGas: bigint;
+  approvalFee: bigint;
+  bridgeFee: bigint;
+  imtblFee: bigint;
+  totalFees: bigint;
 }
 
 /**
  * @typedef {Object} ApproveBridgeRequest
  * @property {string} senderAddress - The address of the depositor.
  * @property {FungibleToken} token - The token to be approved.
- * @property {ethers.BigNumber} amount - The amount to be approved for deposit.
+ * @property {BigInt} amount - The amount to be approved for deposit.
  * @property {string} sourceChainId - The chain ID of the source chain.
  * @property {string} destinationChainId - The chain ID of the destination chain.
  */
 export interface ApproveBridgeRequest {
   senderAddress: Address;
   token: FungibleToken;
-  amount: ethers.BigNumber;
+  amount: bigint;
   sourceChainId: string;
   destinationChainId: string;
 }
@@ -249,7 +250,7 @@ export interface ApproveBridgeRequest {
  * or null if no approval is required.
  */
 export interface ApproveBridgeResponse {
-  contractToApprove: string | null,
+  contractToApprove: string | null;
   unsignedTx: ethers.providers.TransactionRequest | null;
 }
 
@@ -258,15 +259,15 @@ export interface ApproveBridgeResponse {
  * @property {Address} senderAddress - The address of the depositor.
  * @property {Address} recipientAddress - The address of the recipient.
  * @property {FungibleToken} token - The token to be deposited.
- * @property {ethers.BigNumber} amount - The amount to be deposited.
+ * @property {BigInt} amount - The amount to be deposited.
  * @property {string} sourceChainId - The chain ID of the source chain.
  * @property {string} destinationChainId - The chain ID of the destination chain.
-*/
+ */
 export interface BridgeTxRequest {
   senderAddress: Address;
   recipientAddress: Address;
   token: FungibleToken;
-  amount: ethers.BigNumber;
+  amount: bigint;
   sourceChainId: string;
   destinationChainId: string;
   gasMultiplier: number;
@@ -278,7 +279,7 @@ export interface BridgeTxRequest {
  * @property {ethers.providers.TransactionRequest} unsignedTx - The unsigned transaction for the deposit.
  */
 export interface BridgeTxResponse {
-  feeData: BridgeFeeResponse,
+  feeData: BridgeFeeResponse;
   unsignedTx: ethers.providers.TransactionRequest;
 }
 
@@ -287,15 +288,15 @@ export interface BridgeTxResponse {
  * @property {Address} senderAddress - The address of the depositor.
  * @property {Address} recipientAddress - The address of the recipient.
  * @property {FungibleToken} token - The token to be deposited.
- * @property {ethers.BigNumber} amount - The amount to be deposited.
+ * @property {BigInt} amount - The amount to be deposited.
  * @property {string} sourceChainId - The chain ID of the source chain.
  * @property {string} destinationChainId - The chain ID of the destination chain.
-*/
+ */
 export interface BridgeBundledTxRequest {
   senderAddress: Address;
   recipientAddress: Address;
   token: FungibleToken;
-  amount: ethers.BigNumber;
+  amount: bigint;
   sourceChainId: string;
   destinationChainId: string;
   gasMultiplier: number | string;
@@ -310,8 +311,8 @@ export interface BridgeBundledTxRequest {
  * @property {ethers.providers.TransactionRequest} unsignedBridgeTx - The unsigned transaction for the deposit / withdrawal.
  */
 export interface BridgeBundledTxResponse {
-  feeData: BridgeFeeResponse,
-  contractToApprove: string | null,
+  feeData: BridgeFeeResponse;
+  contractToApprove: string | null;
   unsignedApprovalTx: ethers.providers.TransactionRequest | null;
   unsignedBridgeTx: ethers.providers.TransactionRequest;
 }
@@ -322,14 +323,14 @@ export interface BridgeBundledTxResponse {
  * @property {Array<TxStatusRequestItem>} transactions - The transaction items to query the status for.
  */
 export interface TxStatusRequest {
-  transactions: Array<TxStatusRequestItem>
+  transactions: Array<TxStatusRequestItem>;
   sourceChainId: string;
 }
 
 /**
  * @typedef {Object} TxStatusRequestItem
  * @property {string} txHash - The transaction hash on the source chain of the bridge transaction.
-*/
+ */
 export interface TxStatusRequestItem {
   txHash: string;
 }
@@ -339,7 +340,7 @@ export interface TxStatusRequestItem {
  * @property {Array<TxStatusResponseItem>} transactions - The status items of the requested transactions.
  */
 export interface TxStatusResponse {
-  transactions: Array<TxStatusResponseItem>
+  transactions: Array<TxStatusResponseItem>;
 }
 
 /**
@@ -348,8 +349,8 @@ export interface TxStatusResponse {
  * @property {Array<string>} uniqueReceivers - The unique receivers to look up in the flow rate queue.
  */
 export interface AxelarStatusResponse {
-  txStatusItems: Array<TxStatusResponseItem>,
-  uniqueReceivers: Array<string>,
+  txStatusItems: Array<TxStatusResponseItem>;
+  uniqueReceivers: Array<string>;
 }
 
 /**
@@ -358,34 +359,34 @@ export interface AxelarStatusResponse {
  * @property {Address} sender - The address of the sender on the source chain.
  * @property {Address} recipient - The address of the recipient on the destination chain.
  * @property {FungibleToken} token - The token being bridged.
- * @property {ethers.BigNumber} amount - The amount of the transaction.
+ * @property {BigInt} amount - The amount of the transaction.
  * @property {StatusResponse} status - The status of the transaction.
  * @property {any} data - Any extra data relevant to the transaction.
-*/
+ */
 export interface TxStatusResponseItem {
   txHash: string;
   sender: Address;
   recipient: Address;
   token: FungibleToken;
-  amount: ethers.BigNumber;
+  amount: bigint;
   status: StatusResponse;
   data: any;
 }
 
 export enum StatusResponse {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETE = 'COMPLETE',
-  RETRY = 'RETRY',
-  ERROR = 'ERROR',
-  NOT_ENOUGH_GAS = 'NOT_ENOUGH_GAS',
-  FLOW_RATE_CONTROLLED = 'FLOW_RATE_CONTROLLED',
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETE = "COMPLETE",
+  RETRY = "RETRY",
+  ERROR = "ERROR",
+  NOT_ENOUGH_GAS = "NOT_ENOUGH_GAS",
+  FLOW_RATE_CONTROLLED = "FLOW_RATE_CONTROLLED",
 }
 
 /**
  * @typedef {Object} FlowRateInfoRequest
  * @property {FungibleToken} token - Optional param to filter the flowRate info by. If not specified info for all tokens will be returned.
-*/
+ */
 export interface FlowRateInfoRequest {
   tokens: Array<FungibleToken>;
 }
@@ -395,11 +396,11 @@ export interface FlowRateInfoRequest {
  * @property {boolean} withdrawalQueueActivated - True if the withdrawal queue has been activated across all tokens.
  * @property {number} withdrawalDelay - Delay in seconds before queued withdrawal can be procesed.
  * @property {Record<FungibleToken, FlowRateInfoItem>} tokens - The information on the flow rate for each bridgeable token.
-*/
+ */
 export interface FlowRateInfoResponse {
   withdrawalQueueActivated: boolean;
   withdrawalDelay: number;
-  tokens: Record<FungibleToken, FlowRateInfoItem>
+  tokens: Record<FungibleToken, FlowRateInfoItem>;
 }
 
 /**
@@ -410,11 +411,11 @@ export interface FlowRateInfoResponse {
  * @property {string} refillRate - The number of tokens added per second.
  */
 export interface FlowRateInfoItem {
-  capacity: ethers.BigNumber;
-  depth: ethers.BigNumber;
+  capacity: bigint;
+  depth: bigint;
   refillTime: number;
-  refillRate: ethers.BigNumber;
-  largeTransferThreshold: ethers.BigNumber;
+  refillRate: bigint;
+  largeTransferThreshold: bigint;
 }
 
 /**
@@ -435,20 +436,20 @@ export interface PendingWithdrawalsResponse {
 }
 
 export interface PendingWithdrawal {
-  canWithdraw: boolean,
-  withdrawer: Address,
-  recipient: Address,
-  token: FungibleToken,
-  amount: ethers.BigNumber,
-  timeoutStart: number,
-  timeoutEnd: number,
+  canWithdraw: boolean;
+  withdrawer: Address;
+  recipient: Address;
+  token: FungibleToken;
+  amount: bigint;
+  timeoutStart: number;
+  timeoutEnd: number;
 }
 
 export interface RootBridgePendingWithdrawal {
-  withdrawer: Address,
-  token: FungibleToken,
-  amount: ethers.BigNumber,
-  timestamp: ethers.BigNumber,
+  withdrawer: Address;
+  token: FungibleToken;
+  amount: bigint;
+  timestamp: bigint;
 }
 
 /**
@@ -466,7 +467,7 @@ export interface FlowRateWithdrawRequest {
  * @property {ethers.providers.TransactionRequest} unsignedTx - The unsigned transaction for the flow rate withdrawal.
  */
 export interface FlowRateWithdrawResponse {
-  pendingWithdrawal: PendingWithdrawal,
+  pendingWithdrawal: PendingWithdrawal;
   unsignedTx: ethers.providers.TransactionRequest | null;
 }
 
@@ -491,12 +492,12 @@ export interface TokenMappingResponse {
 }
 
 export interface DynamicGasEstimatesResponse {
-  approvalGas: number,
-  sourceChainGas: number,
+  approvalGas: number;
+  sourceChainGas: number;
 }
 
 export interface BridgeDirection {
-  action: BridgeFeeActions.DEPOSIT | BridgeFeeActions.WITHDRAW,
-  sourceChainId: string,
-  destinationChainId: string,
+  action: BridgeFeeActions.DEPOSIT | BridgeFeeActions.WITHDRAW;
+  sourceChainId: string;
+  destinationChainId: string;
 }

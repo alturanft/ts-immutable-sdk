@@ -1,8 +1,8 @@
 import {
   TransactionReceipt,
   TransactionRequest,
-  Web3Provider,
-} from '@ethersproject/providers';
+  BrowserProvider,
+} from 'ethers';
 import { CheckoutError, CheckoutErrorType } from '../../errors';
 import {
   SignTransactionResult, SignTransactionStatusType, SignedMessage, UnsignedMessage,
@@ -10,7 +10,7 @@ import {
 import { sendTransaction } from '../../transaction';
 
 export const signApprovalTransactions = async (
-  provider: Web3Provider,
+  provider: BrowserProvider,
   approvalTransactions: TransactionRequest[],
 ): Promise<SignTransactionResult> => {
   let receipts: TransactionReceipt[] = [];

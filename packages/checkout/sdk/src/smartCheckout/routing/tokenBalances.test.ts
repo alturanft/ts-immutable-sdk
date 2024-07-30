@@ -1,20 +1,23 @@
-import { Environment } from '@imtbl/config';
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
-import { getAllTokenBalances } from './tokenBalances';
-import { CheckoutConfiguration, getL1ChainId, getL2ChainId } from '../../config';
-import { ChainId } from '../../types';
-import { getAllBalances } from '../../balances';
-import { CheckoutErrorType } from '../../errors';
-import { TokenBalanceResult } from './types';
-import { HttpClient } from '../../api/http';
+import { Environment } from "@imtbl/config";
+import { JsonRpcProvider } from "ethers";
+import { getAllTokenBalances } from "./tokenBalances";
+import {
+  CheckoutConfiguration,
+  getL1ChainId,
+  getL2ChainId,
+} from "../../config";
+import { ChainId } from "../../types";
+import { getAllBalances } from "../../balances";
+import { CheckoutErrorType } from "../../errors";
+import { TokenBalanceResult } from "./types";
+import { HttpClient } from "../../api/http";
 
-jest.mock('../../balances');
-jest.mock('../../config');
+jest.mock("../../balances");
+jest.mock("../../config");
 
-describe('tokenBalances', () => {
+describe("tokenBalances", () => {
   let mockConfig: CheckoutConfiguration;
-  const ownerAddress = '0x123';
+  const ownerAddress = "0x123";
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -22,12 +25,15 @@ describe('tokenBalances', () => {
     (getL1ChainId as jest.Mock).mockReturnValue(ChainId.SEPOLIA);
     (getL2ChainId as jest.Mock).mockReturnValue(ChainId.IMTBL_ZKEVM_TESTNET);
     const mockedHttpClient = new HttpClient() as jest.Mocked<HttpClient>;
-    mockConfig = new CheckoutConfiguration({
-      baseConfig: { environment: Environment.SANDBOX },
-    }, mockedHttpClient);
+    mockConfig = new CheckoutConfiguration(
+      {
+        baseConfig: { environment: Environment.SANDBOX },
+      },
+      mockedHttpClient
+    );
   });
 
-  it('should return multiple chain balances', async () => {
+  it("should return multiple chain balances", async () => {
     const availableRoutingOptions = {
       onRamp: true,
       swap: true,
@@ -40,18 +46,17 @@ describe('tokenBalances', () => {
     ]);
 
     const getBalancesResult = {
-      balances:
-        [
-          {
-            balance: BigNumber.from(1),
-            formattedBalance: '1',
-            token: {
-              name: 'IMX',
-              symbol: 'IMX',
-              decimals: 18,
-            },
+      balances: [
+        {
+          balance: 1n,
+          formattedBalance: "1",
+          token: {
+            name: "IMX",
+            symbol: "IMX",
+            decimals: 18,
           },
-        ],
+        },
+      ],
     };
     (getAllBalances as jest.Mock).mockResolvedValue(getBalancesResult);
 
@@ -59,17 +64,20 @@ describe('tokenBalances', () => {
       mockConfig,
       readonlyProviders,
       ownerAddress,
-      availableRoutingOptions,
+      availableRoutingOptions
     );
     expect(tokenBalances.size).toEqual(2);
-    expect(tokenBalances.get(ChainId.SEPOLIA)).toEqual({ success: true, balances: getBalancesResult.balances });
+    expect(tokenBalances.get(ChainId.SEPOLIA)).toEqual({
+      success: true,
+      balances: getBalancesResult.balances,
+    });
     expect(tokenBalances.get(ChainId.IMTBL_ZKEVM_TESTNET)).toEqual({
       success: true,
       balances: getBalancesResult.balances,
     });
   });
 
-  it('should return L2 balances only when bridge option is disabled', async () => {
+  it("should return L2 balances only when bridge option is disabled", async () => {
     const availableRoutingOptions = {
       onRamp: true,
       swap: true,
@@ -82,18 +90,17 @@ describe('tokenBalances', () => {
     ]);
 
     const getBalancesResult = {
-      balances:
-        [
-          {
-            balance: BigNumber.from(1),
-            formattedBalance: '1',
-            token: {
-              name: 'IMX',
-              symbol: 'IMX',
-              decimals: 18,
-            },
+      balances: [
+        {
+          balance: 1n,
+          formattedBalance: "1",
+          token: {
+            name: "IMX",
+            symbol: "IMX",
+            decimals: 18,
           },
-        ],
+        },
+      ],
     };
     (getAllBalances as jest.Mock).mockResolvedValue(getBalancesResult);
 
@@ -101,7 +108,7 @@ describe('tokenBalances', () => {
       mockConfig,
       readonlyProviders,
       ownerAddress,
-      availableRoutingOptions,
+      availableRoutingOptions
     );
 
     expect(tokenBalances.size).toEqual(1);
@@ -111,7 +118,7 @@ describe('tokenBalances', () => {
     });
   });
 
-  it('should return failed for both chains if no providers are available', async () => {
+  it("should return failed for both chains if no providers are available", async () => {
     const availableRoutingOptions = {
       onRamp: true,
       swap: true,
@@ -124,22 +131,30 @@ describe('tokenBalances', () => {
       mockConfig,
       readonlyProviders,
       ownerAddress,
-      availableRoutingOptions,
+      availableRoutingOptions
     );
 
     expect(tokenBalances.size).toEqual(2);
-    const balanceResultL1 = tokenBalances.get(ChainId.SEPOLIA) as TokenBalanceResult;
+    const balanceResultL1 = tokenBalances.get(
+      ChainId.SEPOLIA
+    ) as TokenBalanceResult;
     expect(balanceResultL1.success).toEqual(false);
     expect(balanceResultL1.balances).toEqual([]);
-    expect(balanceResultL1.error?.type).toEqual(CheckoutErrorType.PROVIDER_ERROR);
+    expect(balanceResultL1.error?.type).toEqual(
+      CheckoutErrorType.PROVIDER_ERROR
+    );
 
-    const balanceResultL2 = tokenBalances.get(ChainId.IMTBL_ZKEVM_TESTNET) as TokenBalanceResult;
+    const balanceResultL2 = tokenBalances.get(
+      ChainId.IMTBL_ZKEVM_TESTNET
+    ) as TokenBalanceResult;
     expect(balanceResultL2.success).toEqual(false);
     expect(balanceResultL2.balances).toEqual([]);
-    expect(balanceResultL2.error?.type).toEqual(CheckoutErrorType.PROVIDER_ERROR);
+    expect(balanceResultL2.error?.type).toEqual(
+      CheckoutErrorType.PROVIDER_ERROR
+    );
   });
 
-  it('should return L1 failed when no L1 provider is available', async () => {
+  it("should return L1 failed when no L1 provider is available", async () => {
     const availableRoutingOptions = {
       onRamp: true,
       swap: true,
@@ -151,18 +166,17 @@ describe('tokenBalances', () => {
     ]);
 
     const getBalancesResult = {
-      balances:
-        [
-          {
-            balance: BigNumber.from(1),
-            formattedBalance: '1',
-            token: {
-              name: 'IMX',
-              symbol: 'IMX',
-              decimals: 18,
-            },
+      balances: [
+        {
+          balance: 1n,
+          formattedBalance: "1",
+          token: {
+            name: "IMX",
+            symbol: "IMX",
+            decimals: 18,
           },
-        ],
+        },
+      ],
     };
     (getAllBalances as jest.Mock).mockResolvedValue(getBalancesResult);
 
@@ -170,21 +184,25 @@ describe('tokenBalances', () => {
       mockConfig,
       readonlyProviders,
       ownerAddress,
-      availableRoutingOptions,
+      availableRoutingOptions
     );
 
     expect(tokenBalances.size).toEqual(2);
-    const balanceResultL1 = tokenBalances.get(ChainId.SEPOLIA) as TokenBalanceResult;
+    const balanceResultL1 = tokenBalances.get(
+      ChainId.SEPOLIA
+    ) as TokenBalanceResult;
     expect(balanceResultL1.success).toEqual(false);
     expect(balanceResultL1.balances).toEqual([]);
-    expect(balanceResultL1.error?.type).toEqual(CheckoutErrorType.PROVIDER_ERROR);
+    expect(balanceResultL1.error?.type).toEqual(
+      CheckoutErrorType.PROVIDER_ERROR
+    );
     expect(tokenBalances.get(ChainId.IMTBL_ZKEVM_TESTNET)).toEqual({
       success: true,
       balances: getBalancesResult.balances,
     });
   });
 
-  it('should return L2 failed when no L2 provider is available', async () => {
+  it("should return L2 failed when no L2 provider is available", async () => {
     const availableRoutingOptions = {
       onRamp: true,
       swap: true,
@@ -196,18 +214,17 @@ describe('tokenBalances', () => {
     ]);
 
     const getBalancesResult = {
-      balances:
-        [
-          {
-            balance: BigNumber.from(1),
-            formattedBalance: '1',
-            token: {
-              name: 'IMX',
-              symbol: 'IMX',
-              decimals: 18,
-            },
+      balances: [
+        {
+          balance: 1n,
+          formattedBalance: "1",
+          token: {
+            name: "IMX",
+            symbol: "IMX",
+            decimals: 18,
           },
-        ],
+        },
+      ],
     };
     (getAllBalances as jest.Mock).mockResolvedValue(getBalancesResult);
 
@@ -215,14 +232,21 @@ describe('tokenBalances', () => {
       mockConfig,
       readonlyProviders,
       ownerAddress,
-      availableRoutingOptions,
+      availableRoutingOptions
     );
 
     expect(tokenBalances.size).toEqual(2);
-    expect(tokenBalances.get(ChainId.SEPOLIA)).toEqual({ success: true, balances: getBalancesResult.balances });
-    const balanceResultL2 = tokenBalances.get(ChainId.IMTBL_ZKEVM_TESTNET) as TokenBalanceResult;
+    expect(tokenBalances.get(ChainId.SEPOLIA)).toEqual({
+      success: true,
+      balances: getBalancesResult.balances,
+    });
+    const balanceResultL2 = tokenBalances.get(
+      ChainId.IMTBL_ZKEVM_TESTNET
+    ) as TokenBalanceResult;
     expect(balanceResultL2.success).toEqual(false);
     expect(balanceResultL2.balances).toEqual([]);
-    expect(balanceResultL2.error?.type).toEqual(CheckoutErrorType.PROVIDER_ERROR);
+    expect(balanceResultL2.error?.type).toEqual(
+      CheckoutErrorType.PROVIDER_ERROR
+    );
   });
 });

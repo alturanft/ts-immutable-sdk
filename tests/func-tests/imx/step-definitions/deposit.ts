@@ -1,15 +1,18 @@
-import { strict as assert } from 'assert';
-import { formatEther, parseEther } from '@ethersproject/units';
+import { strict as assert } from "assert";
+import { formatEther, parseEther } from "ethers";
 import {
   IMXClient,
   ImxModuleConfiguration,
   GenericIMXProvider,
   ProviderConfiguration,
-} from '@imtbl/sdk/x';
-import { StepSharedState, configuration } from './stepSharedState';
+} from "@imtbl/sdk/x";
+import { StepSharedState, configuration } from "./stepSharedState";
 import {
-  env, getProvider, repeatCheck600, waitForTransactionResponse,
-} from '../common';
+  env,
+  getProvider,
+  repeatCheck600,
+  waitForTransactionResponse,
+} from "../common";
 
 // @binding([StepSharedState])
 export class DepositEth {
@@ -32,10 +35,14 @@ export class DepositEth {
   public async bankerDepositEth(amount: string) {
     // TODO: need to make sure this addressVar has ETH on L1 to deposit
     const banker = await this.stepSharedState.getBanker();
-    const imxProvider = new GenericIMXProvider(this.providerConfig, banker.ethSigner, banker.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      banker.ethSigner,
+      banker.starkSigner
+    );
 
     const transactionResponse = await imxProvider.deposit({
-      type: 'ETH',
+      type: "ETH",
       amount: parseEther(amount).toString(),
     });
 
@@ -47,8 +54,8 @@ export class DepositEth {
     const banker = await this.stepSharedState.getBanker();
     const onChainBalance = await banker.ethSigner.getBalance();
     if (onChainBalance.lt(parseEther(amountEth))) {
-      console.log('Banker balance', onChainBalance.toString());
-      console.log('Amount', parseEther(amountEth).toString());
+      console.log("Banker balance", onChainBalance.toString());
+      console.log("Amount", parseEther(amountEth).toString());
     }
     assert.ok(onChainBalance.gte(parseEther(amountEth)));
   }
@@ -60,7 +67,7 @@ export class DepositEth {
 
     const response = await this.client.getBalance({
       owner: ownerAddress,
-      address: StepSharedState.getTokenAddress('ETH'),
+      address: StepSharedState.getTokenAddress("ETH"),
     });
     this.stepSharedState.bankerBalances[bankerBalanceVar] = response;
   }
@@ -71,13 +78,20 @@ export class DepositEth {
     const ownerAddress = await banker.ethSigner.getAddress();
     const response = await this.client.getBalance({
       owner: ownerAddress.toLowerCase(),
-      address: StepSharedState.getTokenAddress('ETH'),
+      address: StepSharedState.getTokenAddress("ETH"),
     });
     this.stepSharedState.bankerBalances[bankerBalanceVar] = response;
-    if (parseEther(response.balance!).lt(parseEther(amount))) {
-      console.log('Banker address', ownerAddress, 'Banker balance:', response.balance, 'amount:', amount);
+    if (parseEther(response.balance!) < parseEther(amount)) {
+      console.log(
+        "Banker address",
+        ownerAddress,
+        "Banker balance:",
+        response.balance,
+        "amount:",
+        amount
+      );
     }
-    assert.ok(parseEther(response.balance!).gte(parseEther(amount)));
+    assert.ok(parseEther(response.balance!) >= parseEther(amount));
   }
 
   // check the banker's ETH balance on L1
@@ -94,19 +108,19 @@ export class DepositEth {
   // )
   public async accountBalanceShouldEqual(
     bankerBalanceVar: string,
-    balanceDiff: string,
+    balanceDiff: string
   ) {
     const banker = await this.stepSharedState.getBanker();
     const bankerAddress = await banker.ethSigner.getAddress();
     const prevBalance = this.stepSharedState.bankerBalances[bankerBalanceVar];
-    const expected = parseEther(formatEther(prevBalance.balance!).toString()).add(
-      parseEther(balanceDiff),
-    );
+    const expected =
+      parseEther(formatEther(prevBalance.balance!).toString()) +
+      parseEther(balanceDiff);
 
     await repeatCheck600(async () => {
       const response = await this.client.getBalance({
         owner: bankerAddress,
-        address: StepSharedState.getTokenAddress('ETH'),
+        address: StepSharedState.getTokenAddress("ETH"),
       });
       assert.equal(response.balance!, expected.toString());
     });

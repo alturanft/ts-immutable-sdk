@@ -1,10 +1,10 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 import {
   SaleItem,
   FundingStep,
   FundingItem,
   SmartCheckoutResult,
-} from '@imtbl/checkout-sdk';
+} from "@imtbl/checkout-sdk";
 
 export type SignedOrderProduct = {
   productId: string;
@@ -72,18 +72,18 @@ export type ExecuteOrderResponse = {
 };
 
 export enum SaleErrorTypes {
-  DEFAULT = 'DEFAULT_ERROR',
-  INVALID_PARAMETERS = 'INVALID_PARAMETERS',
-  TRANSACTION_FAILED = 'TRANSACTION_FAILED',
-  SERVICE_BREAKDOWN = 'SERVICE_BREAKDOWN',
-  PRODUCT_NOT_FOUND = 'PRODUCT_NOT_FOUND',
-  INSUFFICIENT_STOCK = 'INSUFFICIENT_STOCK',
-  TRANSAK_FAILED = 'TRANSAK_FAILED',
-  WALLET_FAILED = 'WALLET_FAILED',
-  WALLET_REJECTED = 'WALLET_REJECTED',
-  WALLET_REJECTED_NO_FUNDS = 'WALLET_REJECTED_NO_FUNDS',
-  WALLET_POPUP_BLOCKED = 'WALLET_POPUP_BLOCKED',
-  FUNDING_ROUTE_EXECUTE_ERROR = 'FUNDING_ROUTE_EXECUTE_ERROR',
+  DEFAULT = "DEFAULT_ERROR",
+  INVALID_PARAMETERS = "INVALID_PARAMETERS",
+  TRANSACTION_FAILED = "TRANSACTION_FAILED",
+  SERVICE_BREAKDOWN = "SERVICE_BREAKDOWN",
+  PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND",
+  INSUFFICIENT_STOCK = "INSUFFICIENT_STOCK",
+  TRANSAK_FAILED = "TRANSAK_FAILED",
+  WALLET_FAILED = "WALLET_FAILED",
+  WALLET_REJECTED = "WALLET_REJECTED",
+  WALLET_REJECTED_NO_FUNDS = "WALLET_REJECTED_NO_FUNDS",
+  WALLET_POPUP_BLOCKED = "WALLET_POPUP_BLOCKED",
+  FUNDING_ROUTE_EXECUTE_ERROR = "FUNDING_ROUTE_EXECUTE_ERROR",
 }
 
 export type OrderQuoteCurrency = {
@@ -109,19 +109,19 @@ export type OrderQuoteProduct = {
 export type OrderQuote = {
   config: {
     contractId: string;
-  },
+  };
   currencies: Array<OrderQuoteCurrency>;
   products: Record<string, OrderQuoteProduct>;
   totalAmount: Record<string, OrderQuotePricing>;
 };
 
 export enum SignPaymentTypes {
-  CRYPTO = 'crypto',
-  FIAT = 'fiat',
+  CRYPTO = "crypto",
+  FIAT = "fiat",
 }
 
 export enum FundingBalanceType {
-  SUFFICIENT = 'SUFFICIENT',
+  SUFFICIENT = "SUFFICIENT",
 }
 
 export type SufficientFundingStep = {
@@ -137,7 +137,7 @@ export type FundingBalanceResult = {
 };
 
 export enum ExecuteTransactionStep {
-  BEFORE = 'before',
-  PENDING = 'pending',
-  AFTER = 'after',
+  BEFORE = "before",
+  PENDING = "pending",
+  AFTER = "after",
 }

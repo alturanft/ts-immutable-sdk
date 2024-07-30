@@ -1,44 +1,42 @@
-import { Body, Box, Heading } from '@biom3/react';
-import {
-  ReactNode, useContext, useEffect, useState,
-} from 'react';
-import { StandardAnalyticsControlTypes } from '@imtbl/react-analytics';
+import { Body, Box, Heading } from "@biom3/react";
+import { ReactNode, useContext, useEffect, useState } from "react";
+import { StandardAnalyticsControlTypes } from "@imtbl/react-analytics";
 import {
   Checkout,
   GasEstimateBridgeToL2Result,
   GasEstimateType,
   IMTBLWidgetEvents,
-} from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
-import { Web3Provider } from '@ethersproject/providers';
-import { useTranslation } from 'react-i18next';
-import { $Dictionary } from 'i18next/typescript/helpers';
+} from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
+import { BrowserProvider } from "ethers";
+import { useTranslation } from "react-i18next";
+import { $Dictionary } from "i18next/typescript/helpers";
 import {
   UserJourney,
   useAnalytics,
-} from '../../context/analytics-provider/SegmentAnalyticsProvider';
-import { DEFAULT_TOKEN_SYMBOLS } from '../../context/crypto-fiat-context/CryptoFiatProvider';
-import { BridgeWidgetViews } from '../../context/view-context/BridgeViewContextTypes';
-import { useMount } from '../../hooks/useMount';
-import { HeaderNavigation } from '../../components/Header/HeaderNavigation';
-import { SimpleLayout } from '../../components/SimpleLayout/SimpleLayout';
+} from "../../context/analytics-provider/SegmentAnalyticsProvider";
+import { DEFAULT_TOKEN_SYMBOLS } from "../../context/crypto-fiat-context/CryptoFiatProvider";
+import { BridgeWidgetViews } from "../../context/view-context/BridgeViewContextTypes";
+import { useMount } from "../../hooks/useMount";
+import { HeaderNavigation } from "../../components/Header/HeaderNavigation";
+import { SimpleLayout } from "../../components/SimpleLayout/SimpleLayout";
 import {
   ViewActions,
   ViewContext,
-} from '../../context/view-context/ViewContext';
-import { orchestrationEvents } from '../../lib/orchestrationEvents';
-import { SwapWidgetViews } from '../../context/view-context/SwapViewContextTypes';
+} from "../../context/view-context/ViewContext";
+import { orchestrationEvents } from "../../lib/orchestrationEvents";
+import { SwapWidgetViews } from "../../context/view-context/SwapViewContextTypes";
 import {
   getBridgeFeeEstimation,
   getOnRampFeeEstimation,
-} from '../../lib/feeEstimation';
+} from "../../lib/feeEstimation";
 import {
   CryptoFiatActions,
   CryptoFiatContext,
-} from '../../context/crypto-fiat-context/CryptoFiatContext';
-import { OnRampWidgetViews } from '../../context/view-context/OnRampViewContextTypes';
-import { EventTargetContext } from '../../context/event-target-context/EventTargetContext';
-import { TopUpMenuItem, TopUpMenuItemProps } from './TopUpMenuItem';
+} from "../../context/crypto-fiat-context/CryptoFiatContext";
+import { OnRampWidgetViews } from "../../context/view-context/OnRampViewContextTypes";
+import { EventTargetContext } from "../../context/event-target-context/EventTargetContext";
+import { TopUpMenuItem, TopUpMenuItemProps } from "./TopUpMenuItem";
 
 interface TopUpViewProps {
   widgetEvent: IMTBLWidgetEvents;
@@ -68,8 +66,8 @@ type TopUpFeatures = Partial<TopUpMenuItemProps> & {
 };
 
 export const TOOLKIT_BASE_URL = {
-  [Environment.SANDBOX]: 'https://checkout-playground.sandbox.immutable.com',
-  [Environment.PRODUCTION]: 'https://toolkit.immutable.com',
+  [Environment.SANDBOX]: "https://checkout-playground.sandbox.immutable.com",
+  [Environment.PRODUCTION]: "https://toolkit.immutable.com",
 };
 
 export function TopUpView({
@@ -102,12 +100,12 @@ export function TopUpView({
     eventTargetState: { eventTarget },
   } = useContext(EventTargetContext);
 
-  const [onRampFeesPercentage, setOnRampFeesPercentage] = useState('-.--');
-  const swapFeesInFiat = '0.05';
-  const [, setBridgeFeesInFiat] = useState('-.--');
+  const [onRampFeesPercentage, setOnRampFeesPercentage] = useState("-.--");
+  const swapFeesInFiat = "0.05";
+  const [, setBridgeFeesInFiat] = useState("-.--");
   const [isSwapAvailable, setIsSwapAvailable] = useState(true);
 
-  const title = heading ? t(...heading) : t('views.TOP_UP_VIEW.header.title');
+  const title = heading ? t(...heading) : t("views.TOP_UP_VIEW.header.title");
   const description = subheading ? t(...subheading) : null;
 
   const { page, track } = useAnalytics();
@@ -115,7 +113,7 @@ export function TopUpView({
   useMount(() => {
     page({
       userJourney,
-      screen: 'TopUp',
+      screen: "TopUp",
     });
   });
 
@@ -139,7 +137,7 @@ export function TopUpView({
 
       const est = await getBridgeFeeEstimation(
         bridgeEstimate as GasEstimateBridgeToL2Result,
-        conversions,
+        conversions
       );
       setBridgeFeesInFiat(est);
     })();
@@ -166,11 +164,11 @@ export function TopUpView({
   const localTrack = (
     control: string,
     extras: any,
-    controlType: StandardAnalyticsControlTypes = 'Button',
+    controlType: StandardAnalyticsControlTypes = "Button"
   ) => {
     track({
       userJourney,
-      screen: 'TopUp',
+      screen: "TopUp",
       control,
       controlType,
       extras,
@@ -180,9 +178,9 @@ export function TopUpView({
   const onClickSwap = () => {
     if (widgetEvent === IMTBLWidgetEvents.IMTBL_SWAP_WIDGET_EVENT) {
       const data = {
-        toTokenAddress: '',
-        fromAmount: '',
-        fromTokenAddress: '',
+        toTokenAddress: "",
+        fromAmount: "",
+        fromTokenAddress: "",
       };
 
       viewDispatch({
@@ -194,24 +192,24 @@ export function TopUpView({
           },
         },
       });
-      localTrack('Swap', { ...data, widgetEvent });
+      localTrack("Swap", { ...data, widgetEvent });
       return;
     }
 
     const data = {
-      fromTokenAddress: '',
-      toTokenAddress: tokenAddress ?? '',
-      amount: '',
+      fromTokenAddress: "",
+      toTokenAddress: tokenAddress ?? "",
+      amount: "",
     };
     orchestrationEvents.sendRequestSwapEvent(eventTarget, widgetEvent, data);
-    localTrack('Swap', { ...data, widgetEvent });
+    localTrack("Swap", { ...data, widgetEvent });
   };
 
   const onClickBridge = () => {
     if (widgetEvent === IMTBLWidgetEvents.IMTBL_BRIDGE_WIDGET_EVENT) {
       const data = {
-        fromTokenAddress: '',
-        fromAmount: '',
+        fromTokenAddress: "",
+        fromAmount: "",
       };
 
       viewDispatch({
@@ -223,23 +221,23 @@ export function TopUpView({
           },
         },
       });
-      localTrack('Bridge', { ...data, widgetEvent });
+      localTrack("Bridge", { ...data, widgetEvent });
       return;
     }
 
     const data = {
-      tokenAddress: '',
-      amount: '',
+      tokenAddress: "",
+      amount: "",
     };
     orchestrationEvents.sendRequestBridgeEvent(eventTarget, widgetEvent, data);
-    localTrack('Bridge', { ...data, widgetEvent });
+    localTrack("Bridge", { ...data, widgetEvent });
   };
 
   const onClickOnRamp = () => {
     if (widgetEvent === IMTBLWidgetEvents.IMTBL_ONRAMP_WIDGET_EVENT) {
       const data = {
-        tokenAddress: '',
-        amount: '',
+        tokenAddress: "",
+        amount: "",
       };
 
       viewDispatch({
@@ -251,35 +249,35 @@ export function TopUpView({
           },
         },
       });
-      localTrack('OnRamp', { ...data, widgetEvent });
+      localTrack("OnRamp", { ...data, widgetEvent });
       return;
     }
 
     const data = {
-      tokenAddress: tokenAddress ?? '',
-      amount: amount ?? '',
+      tokenAddress: tokenAddress ?? "",
+      amount: amount ?? "",
     };
     orchestrationEvents.sendRequestOnrampEvent(eventTarget, widgetEvent, data);
-    localTrack('OnRamp', { ...data, widgetEvent });
+    localTrack("OnRamp", { ...data, widgetEvent });
   };
 
   const onClickAdvancedOptions = () => {
     const toolkitBaseUrl = TOOLKIT_BASE_URL[environment];
     const data = {
-      tokenAddress: tokenAddress ?? '',
-      amount: amount ?? '',
+      tokenAddress: tokenAddress ?? "",
+      amount: amount ?? "",
     };
 
-    localTrack('AdvancedOptions', { ...data, widgetEvent });
+    localTrack("AdvancedOptions", { ...data, widgetEvent });
 
-    window.open(`${toolkitBaseUrl}/faster-bridge/`, '_blank');
+    window.open(`${toolkitBaseUrl}/faster-bridge/`, "_blank");
   };
 
   const renderFees = (txt: string): ReactNode => (
     <Box
       sx={{
-        fontSize: 'base.text.caption.small.regular.fontSize',
-        c: 'base.color.translucent.standard.600',
+        fontSize: "base.text.caption.small.regular.fontSize",
+        c: "base.color.translucent.standard.600",
       }}
     >
       {txt}
@@ -288,62 +286,65 @@ export function TopUpView({
 
   const topUpFeatures: TopUpFeatures[] = [
     {
-      testId: 'onramp',
-      icon: 'BankCard',
-      iconVariant: 'bold',
-      textConfigKey: 'views.TOP_UP_VIEW.topUpOptions.debit',
+      testId: "onramp",
+      icon: "BankCard",
+      iconVariant: "bold",
+      textConfigKey: "views.TOP_UP_VIEW.topUpOptions.debit",
       onClickEvent: onClickOnRamp,
-      fee: () => renderFees(
-        `${t(
-          'views.TOP_UP_VIEW.topUpOptions.debit.subcaption',
-        )} ≈ ${onRampFeesPercentage}%`,
-      ),
+      fee: () =>
+        renderFees(
+          `${t(
+            "views.TOP_UP_VIEW.topUpOptions.debit.subcaption"
+          )} ≈ ${onRampFeesPercentage}%`
+        ),
       isAvailable: true,
       isEnabled: showOnrampOption,
     },
     {
-      testId: 'onramp',
-      icon: 'BankCard',
-      textConfigKey: 'views.TOP_UP_VIEW.topUpOptions.credit',
+      testId: "onramp",
+      icon: "BankCard",
+      textConfigKey: "views.TOP_UP_VIEW.topUpOptions.credit",
       onClickEvent: onClickOnRamp,
-      fee: () => renderFees(
-        `${t(
-          'views.TOP_UP_VIEW.topUpOptions.credit.subcaption',
-        )} ≈ ${onRampFeesPercentage}%`,
-      ),
+      fee: () =>
+        renderFees(
+          `${t(
+            "views.TOP_UP_VIEW.topUpOptions.credit.subcaption"
+          )} ≈ ${onRampFeesPercentage}%`
+        ),
       isAvailable: true,
       isEnabled: showOnrampOption,
     },
     {
-      testId: 'advanced',
-      icon: 'Minting',
-      iconVariant: 'bold',
-      intentIcon: 'JumpTo',
-      textConfigKey: 'views.TOP_UP_VIEW.topUpOptions.advanced',
+      testId: "advanced",
+      icon: "Minting",
+      iconVariant: "bold",
+      intentIcon: "JumpTo",
+      textConfigKey: "views.TOP_UP_VIEW.topUpOptions.advanced",
       onClickEvent: onClickAdvancedOptions,
-      fee: () => renderFees(''),
+      fee: () => renderFees(""),
       isAvailable: true,
       isEnabled: true,
     },
     {
-      testId: 'swap',
-      icon: 'Swap',
-      textConfigKey: 'views.TOP_UP_VIEW.topUpOptions.swap',
+      testId: "swap",
+      icon: "Swap",
+      textConfigKey: "views.TOP_UP_VIEW.topUpOptions.swap",
       onClickEvent: onClickSwap,
-      fee: () => renderFees(
-        `${t(
-          'views.TOP_UP_VIEW.topUpOptions.swap.subcaption',
-        )} ≈ $${swapFeesInFiat} ${fiatSymbol.toUpperCase()}`,
-      ),
+      fee: () =>
+        renderFees(
+          `${t(
+            "views.TOP_UP_VIEW.topUpOptions.swap.subcaption"
+          )} ≈ $${swapFeesInFiat} ${fiatSymbol.toUpperCase()}`
+        ),
       isAvailable: isSwapAvailable,
       isEnabled: showSwapOption,
     },
     {
-      testId: 'bridge',
-      icon: 'ArrowForward',
-      textConfigKey: 'views.TOP_UP_VIEW.topUpOptions.bridge',
+      testId: "bridge",
+      icon: "ArrowForward",
+      textConfigKey: "views.TOP_UP_VIEW.topUpOptions.bridge",
       onClickEvent: onClickBridge,
-      fee: () => renderFees(''),
+      fee: () => renderFees(""),
       isAvailable: true,
       isEnabled: showBridgeOption,
     },
@@ -351,43 +352,44 @@ export function TopUpView({
 
   return (
     <SimpleLayout
-      header={(
+      header={
         <HeaderNavigation
           onBackButtonClick={onBackButtonClick}
           onCloseButtonClick={onCloseButtonClick}
           showBack
         />
-      )}
+      }
     >
-      <Box sx={{ paddingX: 'base.spacing.x4', paddingY: 'base.spacing.x4' }}>
+      <Box sx={{ paddingX: "base.spacing.x4", paddingY: "base.spacing.x4" }}>
         <Heading size="small">{title}</Heading>
         {description && (
-          <Body size="small" sx={{ color: 'base.color.text.body.secondary' }}>
+          <Body size="small" sx={{ color: "base.color.text.body.secondary" }}>
             {description}
           </Body>
         )}
-        <Box sx={{ paddingY: 'base.spacing.x4' }}>
+        <Box sx={{ paddingY: "base.spacing.x4" }}>
           {topUpFeatures
             .sort((a, b) => Number(b.isAvailable) - Number(a.isAvailable))
             .map(
-              (element) => element.isEnabled && (
-              <TopUpMenuItem
-                key={t(`${element.textConfigKey}.heading`).toLowerCase()}
-                testId={element.testId}
-                icon={element.icon!}
-                iconVariant={element.iconVariant}
-                intentIcon={element.intentIcon}
-                heading={t(`${element.textConfigKey}.heading`)}
-                caption={
+              (element) =>
+                element.isEnabled && (
+                  <TopUpMenuItem
+                    key={t(`${element.textConfigKey}.heading`).toLowerCase()}
+                    testId={element.testId}
+                    icon={element.icon!}
+                    iconVariant={element.iconVariant}
+                    intentIcon={element.intentIcon}
+                    heading={t(`${element.textConfigKey}.heading`)}
+                    caption={
                       !element.isAvailable
                         ? t(`${element.textConfigKey}.disabledCaption`)
                         : t(`${element.textConfigKey}.caption`)
                     }
-                onClick={element.onClickEvent}
-                renderFeeFunction={element.fee}
-                isDisabled={!element.isAvailable}
-              />
-              ),
+                    onClick={element.onClickEvent}
+                    renderFeeFunction={element.fee}
+                    isDisabled={!element.isAvailable}
+                  />
+                )
             )}
         </Box>
       </Box>

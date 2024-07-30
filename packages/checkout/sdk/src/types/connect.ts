@@ -1,4 +1,4 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 
 /**
  * Interface representing the params of {@link Checkout.connect}.
@@ -6,8 +6,8 @@ import { Web3Provider } from '@ethersproject/providers';
  * @property {boolean | undefined} requestWalletPermissions - A boolean that will trigger a permission request for wallet connection.
  */
 export interface ConnectParams {
-  provider: Web3Provider
-  requestWalletPermissions?: boolean
+  provider: Web3Provider;
+  requestWalletPermissions?: boolean;
 }
 
 /**
@@ -23,7 +23,7 @@ export interface ConnectResult {
  * @property {Web3Provider} provider - The provider used to connect to the network.
  */
 export interface CheckConnectionParams {
-  provider: Web3Provider
+  provider: Web3Provider;
 }
 
 /**

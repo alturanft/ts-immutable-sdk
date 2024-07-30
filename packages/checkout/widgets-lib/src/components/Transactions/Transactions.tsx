@@ -1,57 +1,53 @@
-import {
-  useCallback, useContext, useEffect, useMemo, useState,
-} from 'react';
-import { Box } from '@biom3/react';
-import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Box } from "@biom3/react";
+import { JsonRpcProvider, BrowserProvider } from "ethers";
 import {
   TokenFilterTypes,
-  TokenInfo, WalletProviderRdns,
-} from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
-import { useTranslation } from 'react-i18next';
-import { HeaderNavigation } from '../Header/HeaderNavigation';
-import { SimpleLayout } from '../SimpleLayout/SimpleLayout';
-import { FooterLogo } from '../Footer/FooterLogo';
-import { EventTargetContext } from '../../context/event-target-context/EventTargetContext';
-import {
-  connectToProvider,
-  isPassportProvider,
-} from '../../lib/provider';
+  TokenInfo,
+  WalletProviderRdns,
+} from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
+import { useTranslation } from "react-i18next";
+import { HeaderNavigation } from "../Header/HeaderNavigation";
+import { SimpleLayout } from "../SimpleLayout/SimpleLayout";
+import { FooterLogo } from "../Footer/FooterLogo";
+import { EventTargetContext } from "../../context/event-target-context/EventTargetContext";
+import { connectToProvider, isPassportProvider } from "../../lib/provider";
 import {
   DEFAULT_TRANSACTIONS_RETRY_POLICY,
   getL1ChainId,
   getL2ChainId,
-} from '../../lib';
-import { CheckoutApi, Transaction, TransactionType } from '../../lib/clients';
-import { retry } from '../../lib/retry';
-import { getChainSlugById } from '../../lib/chains';
+} from "../../lib";
+import { CheckoutApi, Transaction, TransactionType } from "../../lib/clients";
+import { retry } from "../../lib/retry";
+import { getChainSlugById } from "../../lib/chains";
 import {
   CryptoFiatActions,
   CryptoFiatContext,
-} from '../../context/crypto-fiat-context/CryptoFiatContext';
+} from "../../context/crypto-fiat-context/CryptoFiatContext";
 import {
   UserJourney,
   useAnalytics,
-} from '../../context/analytics-provider/SegmentAnalyticsProvider';
+} from "../../context/analytics-provider/SegmentAnalyticsProvider";
 import {
   BridgeActions,
   BridgeContext,
-} from '../../widgets/bridge/context/BridgeContext';
-import { WalletDrawer } from '../WalletDrawer/WalletDrawer';
-import { sendBridgeWidgetCloseEvent } from '../../widgets/bridge/BridgeWidgetEvents';
-import { Shimmer } from './Shimmer';
+} from "../../widgets/bridge/context/BridgeContext";
+import { WalletDrawer } from "../WalletDrawer/WalletDrawer";
+import { sendBridgeWidgetCloseEvent } from "../../widgets/bridge/BridgeWidgetEvents";
+import { Shimmer } from "./Shimmer";
 import {
   supportBoxContainerStyle,
   transactionsContainerStyle,
   transactionsListContainerStyle,
-} from './TransactionsStyles';
-import { EmptyStateNotConnected } from './EmptyStateNotConnected';
-import { SupportMessage } from './SupportMessage';
-import { KnownNetworkMap } from './transactionsType';
-import { TransactionList } from './TransactionList';
-import { NoTransactions } from './NoTransactions';
-import { useInjectedProviders } from '../../lib/hooks/useInjectedProviders';
-import { WalletChangeEvent } from '../WalletDrawer/WalletDrawerEvents';
+} from "./TransactionsStyles";
+import { EmptyStateNotConnected } from "./EmptyStateNotConnected";
+import { SupportMessage } from "./SupportMessage";
+import { KnownNetworkMap } from "./transactionsType";
+import { TransactionList } from "./TransactionList";
+import { NoTransactions } from "./NoTransactions";
+import { useInjectedProviders } from "../../lib/hooks/useInjectedProviders";
+import { WalletChangeEvent } from "../WalletDrawer/WalletDrawerEvents";
 
 type TransactionsProps = {
   defaultTokenImage: string;
@@ -77,7 +73,7 @@ export function Transactions({
 
   const [loading, setLoading] = useState(true);
   const [knownTokenMap, setKnownTokenMap] = useState<
-  KnownNetworkMap | undefined
+    KnownNetworkMap | undefined
   >(undefined);
   const [txs, setTxs] = useState<Transaction[]>([]);
   const [showWalletDrawer, setShowWalletDrawer] = useState(false);
@@ -93,12 +89,13 @@ export function Transactions({
 
     const rootChainId = getL1ChainId(checkout.config);
     try {
-      const tokens = (
-        await checkout.getTokenAllowList({
-          type: TokenFilterTypes.BRIDGE,
-          chainId: rootChainId,
-        })
-      ).tokens ?? [];
+      const tokens =
+        (
+          await checkout.getTokenAllowList({
+            type: TokenFilterTypes.BRIDGE,
+            chainId: rootChainId,
+          })
+        ).tokens ?? [];
       return tokens.reduce((out, current) => {
         // eslint-disable-next-line no-param-reassign
         out[current.address!.toLowerCase()] = current;
@@ -155,18 +152,19 @@ export function Transactions({
     const missingTokens: { [k: string]: string } = {};
     Object.entries(tokensWithChainSlug).forEach(([key, value]) => {
       if (
-        (tokensWithChainSlug[key] === rootChainName && !rootData[key])
-        || (tokensWithChainSlug[key] === childChainName && !childData[key])
-      ) missingTokens[key] = value;
+        (tokensWithChainSlug[key] === rootChainName && !rootData[key]) ||
+        (tokensWithChainSlug[key] === childChainName && !childData[key])
+      )
+        missingTokens[key] = value;
     });
     // Root provider is always L1
     const rootProvider = new JsonRpcProvider(
-      checkout.config.networkMap.get(getL1ChainId(checkout.config))?.rpcUrls[0],
+      checkout.config.networkMap.get(getL1ChainId(checkout.config))?.rpcUrls[0]
     );
 
     // Child provider is always L2
     const childProvider = new JsonRpcProvider(
-      checkout.config.networkMap.get(getL2ChainId(checkout.config))?.rpcUrls[0],
+      checkout.config.networkMap.get(getL2ChainId(checkout.config))?.rpcUrls[0]
     );
 
     const rootTokenInfoPromises: Promise<TokenInfo | undefined>[] = [];
@@ -179,7 +177,7 @@ export function Transactions({
           checkout.getTokenInfo({
             provider: rootProvider,
             tokenAddress,
-          }),
+          })
         );
       } else {
         // child provider
@@ -187,7 +185,7 @@ export function Transactions({
           checkout.getTokenInfo({
             provider: childProvider,
             tokenAddress,
-          }),
+          })
         );
       }
     });
@@ -196,7 +194,7 @@ export function Transactions({
 
     (
       rootTokenInfo.filter(
-        (result) => result.status === 'fulfilled',
+        (result) => result.status === "fulfilled"
       ) as PromiseFulfilledResult<TokenInfo>[]
     ).forEach((result) => {
       const resp = result;
@@ -205,7 +203,7 @@ export function Transactions({
 
     (
       childTokenInfo.filter(
-        (result) => result.status === 'fulfilled',
+        (result) => result.status === "fulfilled"
       ) as PromiseFulfilledResult<TokenInfo>[]
     ).forEach((result) => {
       const resp = result;
@@ -213,8 +211,12 @@ export function Transactions({
     });
 
     const allTokenSymbols: string[] = [];
-    Object.values(rootData).forEach((token) => allTokenSymbols.push((token as TokenInfo).symbol.toLowerCase()));
-    Object.values(childData).forEach((token) => allTokenSymbols.push((token as TokenInfo).symbol.toLowerCase()));
+    Object.values(rootData).forEach((token) =>
+      allTokenSymbols.push((token as TokenInfo).symbol.toLowerCase())
+    );
+    Object.values(childData).forEach((token) =>
+      allTokenSymbols.push((token as TokenInfo).symbol.toLowerCase())
+    );
 
     cryptoFiatDispatch({
       payload: {
@@ -234,16 +236,16 @@ export function Transactions({
         fromAddress: address,
       });
     },
-    [],
+    []
   );
 
   const handleWalletChange = useCallback(
     async (event: WalletChangeEvent) => {
       track({
         userJourney: UserJourney.BRIDGE,
-        screen: 'EmptyStateNotConnected',
-        control: 'WalletProvider',
-        controlType: 'Select',
+        screen: "EmptyStateNotConnected",
+        control: "WalletProvider",
+        controlType: "Select",
         extras: {
           walletProviderName: event.providerDetail.info.name,
         },
@@ -254,8 +256,12 @@ export function Transactions({
         if (event.providerDetail.info.rdns === WalletProviderRdns.METAMASK) {
           changeAccount = true;
         }
-        const web3Provider = new Web3Provider(event.provider as any);
-        const connectedProvider = await connectToProvider(checkout, web3Provider, changeAccount);
+        const web3Provider = new BrowserProvider(event.provider as any);
+        const connectedProvider = await connectToProvider(
+          checkout,
+          web3Provider,
+          changeAccount
+        );
         const network = await connectedProvider.getNetwork();
         const address = await connectedProvider.getSigner().getAddress();
 
@@ -281,7 +287,7 @@ export function Transactions({
         setShowWalletDrawer(false);
       }
     },
-    [checkout],
+    [checkout]
   );
 
   const handleBackButtonClick = () => {
@@ -302,7 +308,7 @@ export function Transactions({
         payload: {
           type: BridgeActions.SET_TOKEN_AND_AMOUNT,
           token: null,
-          amount: '',
+          amount: "",
         },
       });
     }
@@ -315,12 +321,13 @@ export function Transactions({
 
     const localTxs = await getTransactionsDetails(
       checkout.config.environment,
-      from?.walletAddress,
+      from?.walletAddress
     );
 
     const tokensWithChainSlug: { [k: string]: string } = {};
     localTxs.result.forEach((txn) => {
-      tokensWithChainSlug[txn.details.from_token_address] = txn.details.from_chain;
+      tokensWithChainSlug[txn.details.from_token_address] =
+        txn.details.from_chain;
     });
 
     return {
@@ -362,21 +369,21 @@ export function Transactions({
   useEffect(() => {
     page({
       userJourney: UserJourney.BRIDGE,
-      screen: 'Transactions',
+      screen: "Transactions",
     });
   }, []);
 
   return (
     <SimpleLayout
       testId="bridge-view"
-      header={(
+      header={
         <HeaderNavigation
           showBack
           onBackButtonClick={handleBackButtonClick}
-          title={t('views.TRANSACTIONS.layoutHeading')}
+          title={t("views.TRANSACTIONS.layoutHeading")}
           onCloseButtonClick={() => sendBridgeWidgetCloseEvent(eventTarget)}
         />
-      )}
+      }
       footer={<FooterLogo />}
     >
       <Box sx={transactionsContainerStyle}>
@@ -387,10 +394,10 @@ export function Transactions({
             />
           )}
           {from?.web3Provider && loading && <Shimmer />}
-          {from?.web3Provider
-            && !loading
-            && txs.length > 0
-            && knownTokenMap && (
+          {from?.web3Provider &&
+            !loading &&
+            txs.length > 0 &&
+            knownTokenMap && (
               <TransactionList
                 checkout={checkout}
                 transactions={txs}
@@ -399,7 +406,7 @@ export function Transactions({
                 defaultTokenImage={defaultTokenImage}
                 changeWallet={() => setShowWalletDrawer(true)}
               />
-          )}
+            )}
           {from?.web3Provider && !loading && txs.length === 0 && (
             <NoTransactions
               checkout={checkout}
@@ -416,7 +423,7 @@ export function Transactions({
         <WalletDrawer
           testId="select-wallet-drawer"
           drawerText={{
-            heading: t('views.TRANSACTIONS.walletSelection.heading'),
+            heading: t("views.TRANSACTIONS.walletSelection.heading"),
           }}
           showWalletSelectorTarget={false}
           walletOptions={walletOptions}

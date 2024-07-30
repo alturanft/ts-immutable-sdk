@@ -7,7 +7,7 @@
   "dependencies": {
     "@imtbl/config": "0.0.0",
     "@jest/globals": "^29.5.0",
-    "ethers": "^5.7.2"
+    "ethers": "^6.11.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",

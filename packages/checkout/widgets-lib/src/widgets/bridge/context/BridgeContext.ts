@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { TokenBridge } from '@imtbl/bridge-sdk';
+import { BrowserProvider } from "ethers";
+import { TokenBridge } from "@imtbl/bridge-sdk";
 import {
   WalletProviderName,
   GetBalanceResult,
@@ -7,8 +7,8 @@ import {
   Checkout,
   ChainId,
   EIP6963ProviderInfo,
-} from '@imtbl/checkout-sdk';
-import { createContext } from 'react';
+} from "@imtbl/checkout-sdk";
+import { createContext } from "react";
 
 export type WalletAndNetworkDetails = {
   web3Provider: Web3Provider;
@@ -30,7 +30,7 @@ export interface BridgeState {
   amount: string;
 }
 
-export const initialBridgeState: Omit<BridgeState, 'checkout'> = {
+export const initialBridgeState: Omit<BridgeState, "checkout"> = {
   web3Provider: null,
   walletProviderName: null,
   from: null,
@@ -39,7 +39,7 @@ export const initialBridgeState: Omit<BridgeState, 'checkout'> = {
   tokenBalances: [],
   allowedTokens: [],
   token: null,
-  amount: '0',
+  amount: "0",
 };
 
 export interface BridgeContextState {
@@ -61,13 +61,13 @@ type ActionPayload =
   | SetWalletsAndNetworksPayload;
 
 export enum BridgeActions {
-  SET_WALLETS_AND_NETWORKS = 'SET_WALLETS_AND_NETWORKS',
-  SET_WALLET_PROVIDER_NAME = 'SET_WALLET_PROVIDER_NAME',
-  SET_PROVIDER = 'SET_PROVIDER',
-  SET_TOKEN_BRIDGE = 'SET_TOKEN_BRIDGE',
-  SET_TOKEN_BALANCES = 'SET_TOKEN_BALANCES',
-  SET_ALLOWED_TOKENS = 'SET_ALLOWED_TOKENS',
-  SET_TOKEN_AND_AMOUNT = 'SET_TOKEN_AND_AMOUNT',
+  SET_WALLETS_AND_NETWORKS = "SET_WALLETS_AND_NETWORKS",
+  SET_WALLET_PROVIDER_NAME = "SET_WALLET_PROVIDER_NAME",
+  SET_PROVIDER = "SET_PROVIDER",
+  SET_TOKEN_BRIDGE = "SET_TOKEN_BRIDGE",
+  SET_TOKEN_BALANCES = "SET_TOKEN_BALANCES",
+  SET_ALLOWED_TOKENS = "SET_ALLOWED_TOKENS",
+  SET_TOKEN_AND_AMOUNT = "SET_TOKEN_AND_AMOUNT",
 }
 
 export interface SetWalletProviderNamePayload {
@@ -113,13 +113,13 @@ export const BridgeContext = createContext<BridgeContextState>({
   bridgeDispatch: () => {},
 });
 
-BridgeContext.displayName = 'BridgeContext'; // help with debugging Context in browser
+BridgeContext.displayName = "BridgeContext"; // help with debugging Context in browser
 
 export type Reducer<S, A> = (prevState: S, action: A) => S;
 
 export const bridgeReducer: Reducer<BridgeState, BridgeAction> = (
   state: BridgeState,
-  action: BridgeAction,
+  action: BridgeAction
 ) => {
   switch (action.payload.type) {
     case BridgeActions.SET_WALLETS_AND_NETWORKS:

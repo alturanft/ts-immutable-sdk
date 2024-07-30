@@ -1,6 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { BigNumber, Contract, utils } from 'ethers';
-import { HttpStatusCode } from 'axios';
+import { BrowserProvider, Contract, formatUnits } from "ethers";
+import { HttpStatusCode } from "axios";
 import {
   ChainId,
   GetAllBalancesResult,
@@ -8,84 +7,82 @@ import {
   GetBalancesResult,
   TokenFilterTypes,
   TokenInfo,
-} from '../types';
-import { CheckoutError, CheckoutErrorType, withCheckoutError } from '../errors';
-import { getNetworkInfo } from '../network';
-import { getERC20TokenInfo, getTokenAllowList } from '../tokens';
-import { CheckoutConfiguration, getL1ChainId } from '../config';
+} from "../types";
+import { CheckoutError, CheckoutErrorType, withCheckoutError } from "../errors";
+import { getNetworkInfo } from "../network";
+import { getERC20TokenInfo, getTokenAllowList } from "../tokens";
+import { CheckoutConfiguration, getL1ChainId } from "../config";
 import {
   Blockscout,
   BlockscoutToken,
   BlockscoutTokens,
   BlockscoutTokenType,
-} from '../api/blockscout';
-import {
-  DEFAULT_TOKEN_DECIMALS, ERC20ABI, NATIVE,
-} from '../env';
-import { measureAsyncExecution } from '../logger/debugLogger';
-import { isMatchingAddress } from '../utils/utils';
+} from "../api/blockscout";
+import { DEFAULT_TOKEN_DECIMALS, ERC20ABI, NATIVE } from "../env";
+import { measureAsyncExecution } from "../logger/debugLogger";
+import { isMatchingAddress } from "../utils/utils";
 
 export const getBalance = async (
   config: CheckoutConfiguration,
-  web3Provider: Web3Provider,
-  walletAddress: string,
-): Promise<GetBalanceResult> => await withCheckoutError<GetBalanceResult>(
-  async () => {
-    const networkInfo = await getNetworkInfo(config, web3Provider);
+  browserProvider: BrowserProvider,
+  walletAddress: string
+): Promise<GetBalanceResult> =>
+  await withCheckoutError<GetBalanceResult>(
+    async () => {
+      const networkInfo = await getNetworkInfo(config, browserProvider);
 
-    if (!networkInfo.isSupported) {
-      throw new CheckoutError(
-        `Chain:${networkInfo.chainId} is not a supported chain`,
-        CheckoutErrorType.CHAIN_NOT_SUPPORTED_ERROR,
-        { chainName: networkInfo.name },
-      );
-    }
+      if (!networkInfo.isSupported) {
+        throw new CheckoutError(
+          `Chain:${networkInfo.chainId} is not a supported chain`,
+          CheckoutErrorType.CHAIN_NOT_SUPPORTED_ERROR,
+          { chainName: networkInfo.name }
+        );
+      }
 
-    const balance = await web3Provider.getBalance(walletAddress);
-    return {
-      balance,
-      formattedBalance: utils.formatUnits(
+      const balance = await browserProvider.getBalance(walletAddress);
+      return {
         balance,
-        networkInfo.nativeCurrency.decimals,
-      ),
-      token: networkInfo.nativeCurrency,
-    };
-  },
-  { type: CheckoutErrorType.GET_BALANCE_ERROR },
-);
+        formattedBalance: formatUnits(
+          balance,
+          networkInfo.nativeCurrency.decimals
+        ),
+        token: networkInfo.nativeCurrency,
+      };
+    },
+    { type: CheckoutErrorType.GET_BALANCE_ERROR }
+  );
 
 export async function getERC20Balance(
-  web3Provider: Web3Provider,
+  browserProvider: BrowserProvider,
   walletAddress: string,
-  tokenAddress: string,
+  tokenAddress: string
 ) {
   return await withCheckoutError<GetBalanceResult>(
     async () => {
       const contract = new Contract(
         tokenAddress,
         JSON.stringify(ERC20ABI),
-        web3Provider,
+        browserProvider
       );
 
       return Promise.all([
-        getERC20TokenInfo(web3Provider, tokenAddress),
+        getERC20TokenInfo(browserProvider, tokenAddress),
         contract.balanceOf(walletAddress),
-      ])
-        .then(([tokenInfo, balance]) => {
-          const formattedBalance = utils.formatUnits(balance, tokenInfo.decimals);
-          return {
-            balance,
-            formattedBalance,
-            token: {
-              name: tokenInfo.name,
-              symbol: tokenInfo.symbol,
-              decimals: tokenInfo.decimals,
-              address: tokenAddress,
-            },
-          } as GetBalanceResult;
-        });
+      ]).then(([tokenInfo, balance]) => {
+        const formattedBalance = formatUnits(balance, tokenInfo.decimals);
+        return {
+          balance,
+          formattedBalance,
+          token: {
+            name: tokenInfo.name,
+            symbol: tokenInfo.symbol,
+            decimals: tokenInfo.decimals,
+            address: tokenAddress,
+          },
+        } as GetBalanceResult;
+      });
     },
-    { type: CheckoutErrorType.GET_ERC20_BALANCE_ERROR },
+    { type: CheckoutErrorType.GET_ERC20_BALANCE_ERROR }
   );
 }
 
@@ -100,14 +97,14 @@ export const getIndexerBalance = async (
   config: CheckoutConfiguration,
   walletAddress: string,
   chainId: ChainId,
-  filterTokens: TokenInfo[] | undefined,
+  filterTokens: TokenInfo[] | undefined
 ): Promise<GetAllBalancesResult> => {
   // Shuffle the mapping of the tokens configuration so it is a hashmap
   // for faster access to tokens config objects.
   const shouldFilter = filterTokens !== undefined;
   const mapFilterTokens = Object.assign(
     {},
-    ...((filterTokens ?? []).map((t) => ({ [t.address || NATIVE]: t }))),
+    ...(filterTokens ?? []).map((t) => ({ [t.address || NATIVE]: t }))
   );
 
   // Get blockscout client for the given chain
@@ -129,7 +126,7 @@ export const getIndexerBalance = async (
     let resp: BlockscoutTokens | undefined;
     try {
       do {
-      // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop
         resp = await client.getTokensByWalletAddress({
           walletAddress,
           tokenType,
@@ -147,9 +144,9 @@ export const getIndexerBalance = async (
       // or simply an incorrect wallet address was provided.
       if (err?.code !== HttpStatusCode.NotFound) {
         throw new CheckoutError(
-          err.message || 'InternalServerError | getTokensByWalletAddress',
+          err.message || "InternalServerError | getTokensByWalletAddress",
           CheckoutErrorType.GET_INDEXER_BALANCE_ERROR,
-          { error: err },
+          { error: err }
         );
       }
     }
@@ -157,7 +154,9 @@ export const getIndexerBalance = async (
 
   const nativeBalances = async (client: Blockscout) => {
     try {
-      const respNative = await client.getNativeTokenByWalletAddress({ walletAddress });
+      const respNative = await client.getNativeTokenByWalletAddress({
+        walletAddress,
+      });
       respNative.token.address ||= NATIVE;
       items.push(respNative);
     } catch (err: any) {
@@ -170,9 +169,9 @@ export const getIndexerBalance = async (
       // or simply an incorrect wallet address was provided.
       if (err?.code !== HttpStatusCode.NotFound) {
         throw new CheckoutError(
-          err.message || 'InternalServerError | getNativeTokenByWalletAddress',
+          err.message || "InternalServerError | getNativeTokenByWalletAddress",
           CheckoutErrorType.GET_INDEXER_BALANCE_ERROR,
-          { error: err },
+          { error: err }
         );
       }
     }
@@ -191,7 +190,7 @@ export const getIndexerBalance = async (
     const tokenData = item.token || {};
 
     if (item.value == null) return;
-    const balance = BigNumber.from(item.value);
+    const balance = BigInt(item.value);
 
     let decimals = parseInt(tokenData.decimals, 10);
     if (Number.isNaN(decimals)) decimals = DEFAULT_TOKEN_DECIMALS;
@@ -201,7 +200,7 @@ export const getIndexerBalance = async (
       decimals,
     };
 
-    const formattedBalance = utils.formatUnits(item.value, token.decimals);
+    const formattedBalance = formatUnits(item.value, token.decimals);
 
     balances.push({ balance, formattedBalance, token } as GetBalanceResult);
   });
@@ -211,38 +210,39 @@ export const getIndexerBalance = async (
 
 export const getBalances = async (
   config: CheckoutConfiguration,
-  web3Provider: Web3Provider,
+  browserProvider: BrowserProvider,
   walletAddress: string,
-  tokens: TokenInfo[],
+  tokens: TokenInfo[]
 ): Promise<GetBalancesResult> => {
   const allBalancePromises: Promise<GetBalanceResult>[] = [];
-  tokens
-    .forEach((token: TokenInfo) => {
-      // For some reason isNativeToken always returns undefined.
-      // We have spent way too much time figuring out why this is happening.
-      // That we have given up -- keep it as it is for now.
-      if (!token.address || isMatchingAddress(token.address, NATIVE)) {
-        allBalancePromises.push(
-          getBalance(config, web3Provider, walletAddress),
-        );
-      } else {
-        allBalancePromises.push(
-          getERC20Balance(web3Provider, walletAddress, token.address!),
-        );
-      }
-    });
+  tokens.forEach((token: TokenInfo) => {
+    // For some reason isNativeToken always returns undefined.
+    // We have spent way too much time figuring out why this is happening.
+    // That we have given up -- keep it as it is for now.
+    if (!token.address || isMatchingAddress(token.address, NATIVE)) {
+      allBalancePromises.push(
+        getBalance(config, browserProvider, walletAddress)
+      );
+    } else {
+      allBalancePromises.push(
+        getERC20Balance(browserProvider, walletAddress, token.address!)
+      );
+    }
+  });
 
   const balanceResults = await Promise.allSettled(allBalancePromises);
-  const balances = (balanceResults.filter(
-    (result) => result.status === 'fulfilled',
-  ) as PromiseFulfilledResult<GetBalanceResult>[]
+  const balances = (
+    balanceResults.filter(
+      (result) => result.status === "fulfilled"
+    ) as PromiseFulfilledResult<GetBalanceResult>[]
   ).map((result) => {
     const resp = result;
     const { token } = resp.value;
     // For some reason isNativeToken always returns undefined.
     // We have spent way too much time figuring out why this is happening.
     // That we have given up -- keep it as it is for now.
-    if (!token.address || isMatchingAddress(token.address, NATIVE)) resp.value.token.address = NATIVE;
+    if (!token.address || isMatchingAddress(token.address, NATIVE))
+      resp.value.token.address = NATIVE;
     return resp.value;
   });
 
@@ -251,15 +251,15 @@ export const getBalances = async (
 
 const getTokenBalances = async (
   config: CheckoutConfiguration,
-  web3Provider: Web3Provider | undefined,
+  browserProvider: BrowserProvider | undefined,
   walletAddress: string | undefined,
   chainId: ChainId,
-  filterTokens: TokenInfo[],
+  filterTokens: TokenInfo[]
 ): Promise<GetAllBalancesResult> => {
-  if (!web3Provider) {
+  if (!browserProvider) {
     throw new CheckoutError(
-      'indexer is disabled for this chain, you must provide a provider.',
-      CheckoutErrorType.MISSING_PARAMS,
+      "indexer is disabled for this chain, you must provide a provider.",
+      CheckoutErrorType.MISSING_PARAMS
     );
   }
 
@@ -267,42 +267,40 @@ const getTokenBalances = async (
   // Fails in fetching data from the RCP calls might result in some
   // missing data.
   let address = walletAddress;
-  if (!address) address = await web3Provider?.getSigner().getAddress();
+  if (!address)
+    address = await (await browserProvider.getSigner()).getAddress();
   return await measureAsyncExecution<GetBalancesResult>(
     config,
     `Time to fetch balances using RPC for ${chainId}`,
-    getBalances(config, web3Provider, address, filterTokens),
+    getBalances(config, browserProvider, address, filterTokens)
   );
 };
 
 export const getAllBalances = async (
   config: CheckoutConfiguration,
-  web3Provider: Web3Provider | undefined,
+  browserProvider: BrowserProvider | undefined,
   walletAddress: string | undefined,
   chainId: ChainId,
-  forceFetch: boolean = false,
+  forceFetch: boolean = false
 ): Promise<GetAllBalancesResult> => {
-  if (!walletAddress && !web3Provider) {
+  if (!walletAddress && !browserProvider) {
     throw new CheckoutError(
-      'both walletAddress and provider are missing. At least one must be provided.',
-      CheckoutErrorType.MISSING_PARAMS,
+      "both walletAddress and provider are missing. At least one must be provided.",
+      CheckoutErrorType.MISSING_PARAMS
     );
   }
 
   if (!config.networkMap.get(chainId)) {
     throw new CheckoutError(
       `chain ID ${chainId} not supported by the environment`,
-      CheckoutErrorType.CHAIN_NOT_SUPPORTED_ERROR,
+      CheckoutErrorType.CHAIN_NOT_SUPPORTED_ERROR
     );
   }
 
-  const { tokens } = await getTokenAllowList(
-    config,
-    {
-      type: TokenFilterTypes.ALL,
-      chainId,
-    },
-  );
+  const { tokens } = await getTokenAllowList(config, {
+    type: TokenFilterTypes.ALL,
+    chainId,
+  });
 
   // In order to prevent unnecessary RPC calls
   // let's use the Indexer if available for the
@@ -327,23 +325,45 @@ export const getAllBalances = async (
     // Please remove this hack once https://immutable.atlassian.net/browse/WT-1710
     // is done.
     const isL1Chain = getL1ChainId(config) === chainId;
-    if (!address) address = await web3Provider?.getSigner().getAddress();
+    if (!address)
+      address = await (await browserProvider!.getSigner()).getAddress();
     try {
       return await measureAsyncExecution<GetAllBalancesResult>(
         config,
         `Time to fetch balances using blockscout for ${chainId}`,
-        getIndexerBalance(config, address!, chainId, isL1Chain ? tokens : undefined),
+        getIndexerBalance(
+          config,
+          address!,
+          chainId,
+          isL1Chain ? tokens : undefined
+        )
       );
     } catch (error) {
       // Blockscout rate limiting, fallback to RPC node
-      if ((error as CheckoutError).type === CheckoutErrorType.GET_INDEXER_BALANCE_ERROR
-        && (error as CheckoutError).data?.error?.code === HttpStatusCode.TooManyRequests) {
-        return getTokenBalances(config, web3Provider, walletAddress, chainId, tokens);
+      if (
+        (error as CheckoutError).type ===
+          CheckoutErrorType.GET_INDEXER_BALANCE_ERROR &&
+        (error as CheckoutError).data?.error?.code ===
+          HttpStatusCode.TooManyRequests
+      ) {
+        return getTokenBalances(
+          config,
+          browserProvider,
+          walletAddress,
+          chainId,
+          tokens
+        );
       }
       throw error;
     }
   }
 
   // Blockscout not supported, fallback to RPC node
-  return getTokenBalances(config, web3Provider, walletAddress, chainId, tokens);
+  return getTokenBalances(
+    config,
+    browserProvider,
+    walletAddress,
+    chainId,
+    tokens
+  );
 };

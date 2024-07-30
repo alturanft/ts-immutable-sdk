@@ -1,4 +1,4 @@
-import { Signer as EthSigner } from '@ethersproject/abstract-signer';
+import { Signer as EthSigner } from "ethers";
 
 export { EthSigner };
 

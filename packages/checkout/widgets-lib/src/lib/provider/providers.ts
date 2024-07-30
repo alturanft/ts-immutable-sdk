@@ -1,10 +1,14 @@
-import { Checkout, CheckoutErrorType, WalletProviderName } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
+import {
+  Checkout,
+  CheckoutErrorType,
+  WalletProviderName,
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
 
 export async function connectToProvider(
   checkout: Checkout,
   provider: Web3Provider,
-  changeAccount?: boolean,
+  changeAccount?: boolean
 ): Promise<Web3Provider> {
   let connected = false;
   let web3Provider: Web3Provider = provider;
@@ -28,7 +32,7 @@ export async function connectToProvider(
     } catch (error: any) {
       if (error.type === CheckoutErrorType.USER_REJECTED_REQUEST_ERROR) {
         // eslint-disable-next-line no-console
-        console.log('User rejected request');
+        console.log("User rejected request");
       }
       // eslint-disable-next-line no-console
       console.error(error);
@@ -42,7 +46,7 @@ export async function connectToProvider(
 export async function createAndConnectToProvider(
   checkout: Checkout,
   walletProviderName: WalletProviderName,
-  changeAccount?: boolean,
+  changeAccount?: boolean
 ): Promise<Web3Provider> {
   let provider: Web3Provider;
   try {

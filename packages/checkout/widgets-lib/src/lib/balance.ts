@@ -1,28 +1,28 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 import {
   ChainId,
   Checkout,
   GetBalanceResult,
   GetTokenAllowListResult,
   TokenFilterTypes,
-} from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
-import { RetryType, retry } from './retry';
-import { DEFAULT_BALANCE_RETRY_POLICY, NATIVE } from './constants';
-import { getTokenImageByAddress, isNativeToken } from './utils';
+} from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
+import { RetryType, retry } from "./retry";
+import { DEFAULT_BALANCE_RETRY_POLICY, NATIVE } from "./constants";
+import { getTokenImageByAddress, isNativeToken } from "./utils";
 
 export type GetAllowedBalancesParamsType = {
-  checkout: Checkout,
-  provider: Web3Provider,
-  allowTokenListType: TokenFilterTypes,
-  allowZero?: boolean,
-  retryPolicy?: RetryType,
-  chainId?: ChainId
+  checkout: Checkout;
+  provider: Web3Provider;
+  allowTokenListType: TokenFilterTypes;
+  allowZero?: boolean;
+  retryPolicy?: RetryType;
+  chainId?: ChainId;
 };
 
 export type GetAllowedBalancesResultType = {
-  allowList: GetTokenAllowListResult
-  allowedBalances: GetBalanceResult[]
+  allowList: GetTokenAllowListResult;
+  allowedBalances: GetBalanceResult[];
 };
 
 export const getAllowedBalances = async ({
@@ -32,17 +32,21 @@ export const getAllowedBalances = async ({
   chainId,
   allowZero = false,
   retryPolicy = DEFAULT_BALANCE_RETRY_POLICY,
-}: GetAllowedBalancesParamsType): Promise<GetAllowedBalancesResultType | undefined> => {
-  const currentChainId = chainId || (await checkout.getNetworkInfo({ provider })).chainId;
+}: GetAllowedBalancesParamsType): Promise<
+  GetAllowedBalancesResultType | undefined
+> => {
+  const currentChainId =
+    chainId || (await checkout.getNetworkInfo({ provider })).chainId;
 
   const walletAddress = await provider.getSigner().getAddress();
   const tokenBalances = await retry(
-    () => checkout.getAllBalances({
-      provider,
-      walletAddress,
-      chainId: currentChainId,
-    }),
-    { ...retryPolicy },
+    () =>
+      checkout.getAllBalances({
+        provider,
+        walletAddress,
+        chainId: currentChainId,
+      }),
+    { ...retryPolicy }
   );
 
   // Why is this needed?
@@ -62,33 +66,38 @@ export const getAllowedBalances = async ({
   });
 
   const tokensAddresses = new Map();
-  allowList.tokens.forEach((token) => tokensAddresses.set(token.address?.toLowerCase() || NATIVE, true));
+  allowList.tokens.forEach((token) =>
+    tokensAddresses.set(token.address?.toLowerCase() || NATIVE, true)
+  );
 
-  const allowedBalances = tokenBalances.balances
-    .filter((balance) => {
-      // Balance is <= 0 and it is not allow to have zeros
-      if (balance.balance.lte(0) && !allowZero) return false;
-      return tokensAddresses.get(balance.token.address?.toLowerCase() || NATIVE);
-    })
-    .map((balanceResult) => ({
-      ...balanceResult,
-      token: {
-        ...balanceResult.token,
-        icon: getTokenImageByAddress(
-          checkout.config.environment as Environment,
-          isNativeToken(balanceResult.token.address)
-            ? balanceResult.token.symbol
-            : balanceResult.token.address ?? '',
-        ),
-      },
-    })) ?? [];
+  const allowedBalances =
+    tokenBalances.balances
+      .filter((balance) => {
+        // Balance is <= 0 and it is not allow to have zeros
+        if (balance.balance.lte(0) && !allowZero) return false;
+        return tokensAddresses.get(
+          balance.token.address?.toLowerCase() || NATIVE
+        );
+      })
+      .map((balanceResult) => ({
+        ...balanceResult,
+        token: {
+          ...balanceResult.token,
+          icon: getTokenImageByAddress(
+            checkout.config.environment as Environment,
+            isNativeToken(balanceResult.token.address)
+              ? balanceResult.token.symbol
+              : balanceResult.token.address ?? ""
+          ),
+        },
+      })) ?? [];
 
   // Map token icon assets to allowlist
   allowList.tokens = allowList.tokens.map((token) => ({
     ...token,
     icon: getTokenImageByAddress(
       checkout.config.environment as Environment,
-      isNativeToken(token.address) ? token.symbol : token.address ?? '',
+      isNativeToken(token.address) ? token.symbol : token.address ?? ""
     ),
   }));
 

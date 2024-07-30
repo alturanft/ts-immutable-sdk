@@ -1,9 +1,9 @@
-import { Checkout } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import LoadingButton from './LoadingButton';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage } from './messages';
-import { Box, Checkbox, FormControl, TextInput } from '@biom3/react';
+import { Checkout } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import LoadingButton from "./LoadingButton";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage } from "./messages";
+import { Box, Checkbox, FormControl, TextInput } from "@biom3/react";
 
 interface CancelProps {
   checkout: Checkout;
@@ -11,24 +11,25 @@ interface CancelProps {
 }
 
 export default function Cancel({ checkout, provider }: CancelProps) {
-  const [orderId, setOrderId] = useState<string>('');
+  const [orderId, setOrderId] = useState<string>("");
   const [orderIdError, setOrderIdError] = useState<any>(null);
   const [useGaslessCancel, setUseGaslessCancel] = useState<boolean>(false);
-  const [waitFulfillmentSettlements, setWaitFulfillmentSettlements] = useState<boolean>(true);
+  const [waitFulfillmentSettlements, setWaitFulfillmentSettlements] =
+    useState<boolean>(true);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   async function cancelClick() {
     if (!orderId) {
-      setOrderIdError('Please enter an order ID');
+      setOrderIdError("Please enter an order ID");
       return;
     }
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setError(null);
@@ -40,9 +41,9 @@ export default function Cancel({ checkout, provider }: CancelProps) {
         overrides: {
           useGaslessCancel,
           waitFulfillmentSettlements,
-        }
+        },
       });
-      console.log('Cancel result', result);
+      console.log("Cancel result", result);
       setLoading(false);
     } catch (err: any) {
       setError(err);
@@ -56,16 +57,16 @@ export default function Cancel({ checkout, provider }: CancelProps) {
 
   const updateOrderId = (event: any) => {
     setOrderId(event.target.value);
-    setOrderIdError('');
-  }
+    setOrderIdError("");
+  };
 
   const updateUseGasless = (event: any) => {
     setUseGaslessCancel(event.target.checked);
-  }
+  };
 
   const updateWaitFulfillmentSettlements = (event: any) => {
     setWaitFulfillmentSettlements(event.target.checked);
-  }
+  };
 
   useEffect(() => {
     setError(null);
@@ -74,7 +75,7 @@ export default function Cancel({ checkout, provider }: CancelProps) {
 
   return (
     <Box>
-      <FormControl validationStatus={orderIdError ? 'error' : 'success'} >
+      <FormControl validationStatus={orderIdError ? "error" : "success"}>
         <FormControl.Label>Order ID</FormControl.Label>
         <TextInput onChange={updateOrderId} />
         {orderIdError && (
@@ -84,10 +85,7 @@ export default function Cancel({ checkout, provider }: CancelProps) {
       <br />
       <FormControl>
         <FormControl.Label>Use gasless cancel</FormControl.Label>
-        <Checkbox
-          checked={useGaslessCancel}
-          onChange={updateUseGasless}
-        />
+        <Checkbox checked={useGaslessCancel} onChange={updateUseGasless} />
       </FormControl>
       <br />
       <FormControl>

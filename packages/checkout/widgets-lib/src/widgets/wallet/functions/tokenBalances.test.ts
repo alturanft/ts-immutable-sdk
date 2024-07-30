@@ -3,76 +3,79 @@ import {
   Checkout,
   GetBalanceResult,
   TokenInfo,
-} from '@imtbl/checkout-sdk';
-import { BigNumber } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
-import { Environment } from '@imtbl/config';
-import { getTokenBalances, mapTokenBalancesWithConversions } from './tokenBalances';
+} from "@imtbl/checkout-sdk";
+import { BigNumber } from "ethers";
+import { BrowserProvider } from "ethers";
+import { Environment } from "@imtbl/config";
+import {
+  getTokenBalances,
+  mapTokenBalancesWithConversions,
+} from "./tokenBalances";
 
-describe('token balance tests', () => {
-  it('should return balances for all tokens', async () => {
+describe("token balance tests", () => {
+  it("should return balances for all tokens", async () => {
     const balances: GetBalanceResult[] = [
       {
         balance: BigNumber.from(1),
-        token: { symbol: 'QQQ', name: 'QQQ', address: '0xQ' } as TokenInfo,
-        formattedBalance: '12.34',
+        token: { symbol: "QQQ", name: "QQQ", address: "0xQ" } as TokenInfo,
+        formattedBalance: "12.34",
       },
       {
         balance: BigNumber.from(2),
-        token: { symbol: 'AAA', name: 'AAA' } as TokenInfo,
-        formattedBalance: '26.34',
+        token: { symbol: "AAA", name: "AAA" } as TokenInfo,
+        formattedBalance: "26.34",
       },
     ];
 
     const conversions = new Map<string, number>([
-      ['aaa', 10.1234],
-      ['qqq', 5.125],
+      ["aaa", 10.1234],
+      ["qqq", 5.125],
     ]);
 
     const mockProvider = {
       getSigner: jest.fn().mockReturnValue({
-        getAddress: jest.fn().mockResolvedValue('0xaddress'),
+        getAddress: jest.fn().mockResolvedValue("0xaddress"),
       }),
     };
     const checkout = new Checkout({
       baseConfig: { environment: Environment.PRODUCTION },
     });
     const chainId = ChainId.SEPOLIA;
-    jest.spyOn(checkout, 'getAllBalances').mockResolvedValue({ balances });
+    jest.spyOn(checkout, "getAllBalances").mockResolvedValue({ balances });
 
     const actualResult = mapTokenBalancesWithConversions(
       chainId,
       await getTokenBalances(
         checkout,
         mockProvider as unknown as Web3Provider,
-        chainId,
+        chainId
       ),
-      conversions,
+      conversions
     );
 
     expect(actualResult.length).toBe(2);
     expect(actualResult).toEqual([
       {
-        id: '11155111-aaa',
-        description: 'AAA',
-        balance: '26.34',
-        symbol: 'AAA',
-        fiatAmount: '266.65',
-        icon: 'https://checkout-cdn.immutable.com/v1/blob/img/tokens/aaa.svg',
+        id: "11155111-aaa",
+        description: "AAA",
+        balance: "26.34",
+        symbol: "AAA",
+        fiatAmount: "266.65",
+        icon: "https://checkout-cdn.immutable.com/v1/blob/img/tokens/aaa.svg",
       },
       {
-        id: '11155111-qqq-0xq',
-        description: 'QQQ',
-        balance: '12.34',
-        symbol: 'QQQ',
-        fiatAmount: '63.24',
-        address: '0xQ',
-        icon: 'https://checkout-cdn.immutable.com/v1/blob/img/tokens/0xq.svg',
+        id: "11155111-qqq-0xq",
+        description: "QQQ",
+        balance: "12.34",
+        symbol: "QQQ",
+        fiatAmount: "63.24",
+        address: "0xQ",
+        icon: "https://checkout-cdn.immutable.com/v1/blob/img/tokens/0xq.svg",
       },
     ]);
   });
 
-  it('should return empty array when any argument is missing', async () => {
+  it("should return empty array when any argument is missing", async () => {
     const checkout = new Checkout({
       baseConfig: { environment: Environment.PRODUCTION },
     });
@@ -85,9 +88,9 @@ describe('token balance tests', () => {
       await getTokenBalances(
         checkout,
         null as unknown as Web3Provider,
-        chainId,
+        chainId
       ),
-      conversions,
+      conversions
     );
 
     expect(actualResult.length).toBe(0);

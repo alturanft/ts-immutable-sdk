@@ -1,33 +1,43 @@
-import { TransactionRequest, Web3Provider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { TransactionRequest, BrowserProvider } from "ethers";
 import {
-  FulfillmentTransaction, GasAmount, GasTokenType, ItemRequirement, ItemType, TransactionOrGasType,
-} from '../../types';
-import { InsufficientERC1155, InsufficientERC20, InsufficientERC721 } from '../allowance/types';
-import { CheckoutError, CheckoutErrorType } from '../../errors';
-import { getGasPriceInWei } from '../../gasEstimate';
+  FulfillmentTransaction,
+  GasAmount,
+  GasTokenType,
+  ItemRequirement,
+  ItemType,
+  TransactionOrGasType,
+} from "../../types";
+import {
+  InsufficientERC1155,
+  InsufficientERC20,
+  InsufficientERC721,
+} from "../allowance/types";
+import { CheckoutError, CheckoutErrorType } from "../../errors";
+import { getGasPriceInWei } from "../../gasEstimate";
 
 export const estimateGas = async (
-  provider: Web3Provider,
-  transaction: TransactionRequest,
-): Promise<BigNumber> => {
+  provider: BrowserProvider,
+  transaction: TransactionRequest
+): Promise<bigint> => {
   try {
     return await provider.estimateGas(transaction);
   } catch (err: any) {
     throw new CheckoutError(
-      'Failed to estimate gas for transaction',
+      "Failed to estimate gas for transaction",
       CheckoutErrorType.UNPREDICTABLE_GAS_LIMIT,
-      { error: err },
+      { error: err }
     );
   }
 };
 
 export const getGasItemRequirement = (
-  gas: BigNumber,
-  transactionOrGas: FulfillmentTransaction | GasAmount,
+  gas: bigint,
+  transactionOrGas: FulfillmentTransaction | GasAmount
 ): ItemRequirement => {
-  if (transactionOrGas.type === TransactionOrGasType.TRANSACTION
-    || transactionOrGas.gasToken.type === GasTokenType.NATIVE) {
+  if (
+    transactionOrGas.type === TransactionOrGasType.TRANSACTION ||
+    transactionOrGas.gasToken.type === GasTokenType.NATIVE
+  ) {
     return {
       type: ItemType.NATIVE,
       amount: gas,
@@ -38,17 +48,21 @@ export const getGasItemRequirement = (
     type: ItemType.ERC20,
     amount: gas,
     tokenAddress: transactionOrGas.gasToken.tokenAddress,
-    spenderAddress: '',
+    spenderAddress: "",
   };
 };
 
 export const gasCalculator = async (
-  provider: Web3Provider,
-  insufficientItems: (InsufficientERC20 | InsufficientERC721 | InsufficientERC1155)[],
-  transactionOrGas: FulfillmentTransaction | GasAmount,
+  provider: BrowserProvider,
+  insufficientItems: (
+    | InsufficientERC20
+    | InsufficientERC721
+    | InsufficientERC1155
+  )[],
+  transactionOrGas: FulfillmentTransaction | GasAmount
 ): Promise<ItemRequirement | null> => {
   const estimateGasPromises = [];
-  let totalGas = BigNumber.from(0);
+  let totalGas = 0n;
 
   // Get all the gas estimate promises for the approval transactions
   for (const item of insufficientItems) {
@@ -59,22 +73,24 @@ export const gasCalculator = async (
   // If the transaction is a fulfillment transaction get the estimate gas promise
   // Otherwise use the gas amount with the limit to estimate the gas
   if (transactionOrGas.type === TransactionOrGasType.TRANSACTION) {
-    estimateGasPromises.push(estimateGas(provider, transactionOrGas.transaction));
+    estimateGasPromises.push(
+      estimateGas(provider, transactionOrGas.transaction)
+    );
   } else {
     const feeData = await provider.getFeeData();
     const gasPrice = getGasPriceInWei(feeData);
     if (gasPrice !== null) {
-      const gas = gasPrice?.mul(transactionOrGas.gasToken.limit);
-      if (gas) totalGas = totalGas.add(gas);
+      const gas = gasPrice * transactionOrGas.gasToken.limit;
+      if (gas) totalGas = totalGas + gas;
     }
   }
 
   // Get the gas estimates for all the transactions and calculate the total gas
   const gasEstimatePromises = await Promise.all(estimateGasPromises);
   gasEstimatePromises.forEach((gasEstimate) => {
-    totalGas = totalGas.add(gasEstimate);
+    totalGas = totalGas + gasEstimate;
   });
 
-  if (totalGas.eq(0)) return null;
+  if (totalGas === 0n) return null;
   return getGasItemRequirement(totalGas, transactionOrGas);
 };

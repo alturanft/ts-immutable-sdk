@@ -1,20 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Web3Provider } from '@ethersproject/providers';
-import {
-  WalletAction, CheckConnectionResult,
-} from '../types';
-import { CheckoutError, CheckoutErrorType, withCheckoutError } from '../errors';
+import { BrowserProvider } from "ethers";
+import { WalletAction, CheckConnectionResult } from "../types";
+import { CheckoutError, CheckoutErrorType, withCheckoutError } from "../errors";
 
 export async function checkIsWalletConnected(
-  web3Provider: Web3Provider,
+  web3Provider: Web3Provider
 ): Promise<CheckConnectionResult> {
   if (!web3Provider?.provider?.request) {
     throw new CheckoutError(
-      'Check wallet connection request failed',
+      "Check wallet connection request failed",
       CheckoutErrorType.PROVIDER_REQUEST_FAILED_ERROR,
       {
         rpcMethod: WalletAction.CHECK_CONNECTION,
-      },
+      }
     );
   }
   let accounts = [];
@@ -25,28 +23,30 @@ export async function checkIsWalletConnected(
     });
   } catch (err: any) {
     throw new CheckoutError(
-      'Check wallet connection request failed',
+      "Check wallet connection request failed",
       CheckoutErrorType.PROVIDER_REQUEST_FAILED_ERROR,
       {
         error: err,
         rpcMethod: WalletAction.CHECK_CONNECTION,
-      },
+      }
     );
   }
   // accounts[0] will have the active account if connected.
 
   return {
     isConnected: accounts && accounts.length > 0,
-    walletAddress: accounts[0] ?? '',
+    walletAddress: accounts[0] ?? "",
   };
 }
 
-export async function connectSite(web3Provider: Web3Provider): Promise<Web3Provider> {
+export async function connectSite(
+  web3Provider: Web3Provider
+): Promise<Web3Provider> {
   if (!web3Provider || !web3Provider.provider?.request) {
     throw new CheckoutError(
-      'Incompatible provider',
+      "Incompatible provider",
       CheckoutErrorType.PROVIDER_REQUEST_MISSING_ERROR,
-      { details: 'Attempting to connect with an incompatible provider' },
+      { details: "Attempting to connect with an incompatible provider" }
     );
   }
 
@@ -59,18 +59,20 @@ export async function connectSite(web3Provider: Web3Provider): Promise<Web3Provi
         params: [],
       });
     },
-    { type: CheckoutErrorType.USER_REJECTED_REQUEST_ERROR },
+    { type: CheckoutErrorType.USER_REJECTED_REQUEST_ERROR }
   );
 
   return web3Provider;
 }
 
-export async function requestPermissions(web3Provider: Web3Provider): Promise<Web3Provider> {
+export async function requestPermissions(
+  web3Provider: Web3Provider
+): Promise<Web3Provider> {
   if (!web3Provider || !web3Provider.provider?.request) {
     throw new CheckoutError(
-      'Incompatible provider',
+      "Incompatible provider",
       CheckoutErrorType.PROVIDER_REQUEST_MISSING_ERROR,
-      { details: 'Attempting to connect with an incompatible provider' },
+      { details: "Attempting to connect with an incompatible provider" }
     );
   }
 
@@ -84,7 +86,7 @@ export async function requestPermissions(web3Provider: Web3Provider): Promise<We
         params: [{ eth_accounts: {} }],
       });
     },
-    { type: CheckoutErrorType.USER_REJECTED_REQUEST_ERROR },
+    { type: CheckoutErrorType.USER_REJECTED_REQUEST_ERROR }
   );
 
   return web3Provider;

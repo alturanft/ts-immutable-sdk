@@ -1,14 +1,14 @@
-import { imx } from '@imtbl/generated-clients';
+import { imx } from "@imtbl/generated-clients";
 import {
   Contracts,
   ERC721Token,
   EthSigner,
   ImmutableXConfiguration,
-} from '@imtbl/x-client';
-import { TransactionResponse } from '@ethersproject/providers';
-import { validateChain } from '../helpers';
-import { Signers } from '../types';
-import { ProviderConfiguration } from '../../config';
+} from "@imtbl/x-client";
+import { TransactionResponse } from "ethers";
+import { validateChain } from "../helpers";
+import { Signers } from "../types";
+import { ProviderConfiguration } from "../../config";
 
 interface ERC721TokenData {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -29,18 +29,19 @@ async function executeDepositERC721(
   assetType: string,
   starkPublicKey: string,
   vaultId: number,
-  config: ImmutableXConfiguration,
+  config: ImmutableXConfiguration
 ): Promise<TransactionResponse> {
   const coreContract = Contracts.CoreV4.connect(
     config.ethConfiguration.coreContractAddress,
-    ethSigner,
+    ethSigner
   );
-  const populatedTransaction = await coreContract.populateTransaction.depositNft(
-    starkPublicKey,
-    assetType,
-    vaultId,
-    tokenId,
-  );
+  const populatedTransaction =
+    await coreContract.populateTransaction.depositNft(
+      starkPublicKey,
+      assetType,
+      vaultId,
+      tokenId
+    );
 
   return ethSigner.sendTransaction(populatedTransaction);
 }
@@ -62,7 +63,7 @@ export async function depositERC721({
     token_id: deposit.tokenId,
   };
 
-  const amount = '1';
+  const amount = "1";
 
   const getSignableDepositRequest = {
     user,
@@ -79,7 +80,7 @@ export async function depositERC721({
 
   // Perform encoding on asset details to get an assetType (required for stark contract request)
   const encodingResult = await encodingApi.encodeAsset({
-    assetType: 'asset',
+    assetType: "asset",
     encodeAssetRequest: {
       token: {
         type: deposit.type,
@@ -98,7 +99,7 @@ export async function depositERC721({
   // Approve whether an amount of token from an account can be spent by a third-party account
   const tokenContract = Contracts.IERC721.connect(
     deposit.tokenAddress,
-    ethSigner,
+    ethSigner
   );
   const operator = immutableXConfig.ethConfiguration.coreContractAddress;
   const isApprovedForAll = await tokenContract.isApprovedForAll(user, operator);
@@ -112,6 +113,6 @@ export async function depositERC721({
     assetType,
     starkPublicKey,
     vaultId,
-    immutableXConfig,
+    immutableXConfig
   );
 }

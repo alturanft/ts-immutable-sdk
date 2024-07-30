@@ -1,12 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import BN from 'bn.js';
+import BN from "bn.js";
 // @ts-ignore
-import elliptic from 'elliptic';
-import * as encUtils from 'enc-utils';
-import { Signer } from '@ethersproject/abstract-signer';
-import { utils } from 'ethers';
-import { StarkSigner } from '../../types';
-import { starkEcOrder } from '../stark/starkCurve';
+import elliptic from "elliptic";
+import * as encUtils from "enc-utils";
+import { Signer, solidityPackedKeccak256 } from "ethers";
+import { StarkSigner } from "../../types";
+import { starkEcOrder } from "../stark/starkCurve";
 
 type SignatureOptions = {
   r: BN;
@@ -19,9 +18,9 @@ function serializeEthSignature(sig: SignatureOptions): string {
   // This is because golang appends a recovery param
   // https://github.com/ethers-io/ethers.js/issues/823
   return encUtils.addHexPrefix(
-    encUtils.padLeft(sig.r.toString(16), 64)
-      + encUtils.padLeft(sig.s.toString(16), 64)
-      + encUtils.padLeft(sig.recoveryParam?.toString(16) || '', 2),
+    encUtils.padLeft(sig.r.toString(16), 64) +
+      encUtils.padLeft(sig.s.toString(16), 64) +
+      encUtils.padLeft(sig.recoveryParam?.toString(16) || "", 2)
   );
 }
 
@@ -39,15 +38,15 @@ function deserializeSignature(sig: string, size = 64): SignatureOptions {
   // eslint-disable-next-line no-param-reassign
   sig = encUtils.removeHexPrefix(sig);
   return {
-    r: new BN(sig.substring(0, size), 'hex'),
-    s: new BN(sig.substring(size, size * 2), 'hex'),
+    r: new BN(sig.substring(0, size), "hex"),
+    s: new BN(sig.substring(size, size * 2), "hex"),
     recoveryParam: importRecoveryParam(sig.substring(size * 2, size * 2 + 2)),
   };
 }
 
 export async function signRaw(
   payload: string,
-  signer: Signer,
+  signer: Signer
 ): Promise<string> {
   const signature = deserializeSignature(await signer.signMessage(payload));
   return serializeEthSignature(signature);
@@ -59,7 +58,7 @@ type IMXAuthorisationHeaders = {
 };
 
 export async function generateIMXAuthorisationHeaders(
-  ethSigner: Signer,
+  ethSigner: Signer
 ): Promise<IMXAuthorisationHeaders> {
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const signature = await signRaw(timestamp, ethSigner);
@@ -72,7 +71,7 @@ export async function generateIMXAuthorisationHeaders(
 
 export async function signMessage(
   message: string,
-  signer: Signer,
+  signer: Signer
 ): Promise<{ message: string; ethAddress: string; ethSignature: string }> {
   const ethAddress = await signer.getAddress();
   const ethSignature = await signRaw(message, signer);
@@ -87,32 +86,32 @@ export function serializePackedSignature(
   // elliptic signature object
   // eslint-disable-line @typescript-eslint/no-explicit-any
   sig: any,
-  pubY: string,
+  pubY: string
 ): string {
   return encUtils.sanitizeHex(
-    encUtils.padLeft(sig.r.toString(16), 64)
-    + encUtils.padLeft(sig.s.toString(16), 64, '0')
-    + encUtils.padLeft(
-      new BN(encUtils.removeHexPrefix(pubY), 'hex').toString(16),
-      64,
-      '0',
-    ),
+    encUtils.padLeft(sig.r.toString(16), 64) +
+      encUtils.padLeft(sig.s.toString(16), 64, "0") +
+      encUtils.padLeft(
+        new BN(encUtils.removeHexPrefix(pubY), "hex").toString(16),
+        64,
+        "0"
+      )
   );
 }
 
 export async function signRegisterEthAddress(
   starkSigner: StarkSigner,
   ethAddress: string,
-  starkPublicKey: string,
+  starkPublicKey: string
 ): Promise<string> {
-  const hash: string = utils.solidityKeccak256(
-    ['string', 'address', 'uint256'],
-    ['UserRegistration:', ethAddress, starkPublicKey],
+  const hash: string = solidityPackedKeccak256(
+    ["string", "address", "uint256"],
+    ["UserRegistration:", ethAddress, starkPublicKey]
   );
   const msgHash: BN = new BN(encUtils.removeHexPrefix(hash), 16);
   const modMsgHash: BN = msgHash.mod(starkEcOrder);
   const sigString: string = await starkSigner.signMessage(
-    modMsgHash.toString(16),
+    modMsgHash.toString(16)
   );
   const signature: elliptic.ec.Signature = deserializeSignature(sigString);
   const pubY: string = encUtils.sanitizeHex(await starkSigner.getYCoordinate());

@@ -1,4 +1,4 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 // import { Passport } from '@imtbl/passport';
 
 /**
@@ -7,7 +7,7 @@ import { Web3Provider } from '@ethersproject/providers';
  * @property {string} ONRAMP - The exchange type for transacting.
  */
 export enum ExchangeType {
-  ONRAMP = 'onramp',
+  ONRAMP = "onramp",
 }
 
 /**

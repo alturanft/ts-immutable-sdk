@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-underscore-dangle */
-import { TransactionRequest, Web3Provider } from '@ethersproject/providers';
+import { TransactionRequest, BrowserProvider } from 'ethers';
 import { TypedDataDomain } from 'ethers';
 import { signApprovalTransactions, signFulfillmentTransactions, signMessage } from './signActions';
 import { CheckoutErrorType } from '../../errors';
@@ -9,7 +9,7 @@ import { IMMUTABLE_ZKVEM_GAS_OVERRIDES } from '../../env';
 import { ChainId, NetworkInfo } from '../../types';
 
 describe('signActions', () => {
-  let mockProvider: Web3Provider;
+  let mockProvider: BrowserProvider;
 
   describe('signApprovalTransactions', () => {
     it('should sign approval transactions', async () => {
@@ -24,7 +24,7 @@ describe('signActions', () => {
             }),
           }),
         }),
-      } as unknown as Web3Provider;
+      } as unknown as BrowserProvider;
 
       const approvalTransactions: TransactionRequest[] = [
         {

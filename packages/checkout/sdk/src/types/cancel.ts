@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { CancelOverrides } from './smartCheckout';
+import { BrowserProvider } from "ethers";
+import { CancelOverrides } from "./smartCheckout";
 
 /**
  * Interface representing the parameters for {@link Checkout.cancel}

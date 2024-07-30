@@ -1,32 +1,42 @@
+import { useCallback, useContext, useEffect, useState } from "react";
+import { BrowserProvider } from "ethers";
+import { useTranslation } from "react-i18next";
+import { isWalletConnectProvider } from "../../../lib/provider";
+import { SimpleTextBody } from "../../../components/Body/SimpleTextBody";
+import { FooterButton } from "../../../components/Footer/FooterButton";
+import { HeaderNavigation } from "../../../components/Header/HeaderNavigation";
+import { SimpleLayout } from "../../../components/SimpleLayout/SimpleLayout";
+import { ConnectWidgetViews } from "../../../context/view-context/ConnectViewContextTypes";
+import { ConnectActions, ConnectContext } from "../context/ConnectContext";
 import {
-  useCallback, useContext, useEffect, useState,
-} from 'react';
-import { Web3Provider } from '@ethersproject/providers';
-import { useTranslation } from 'react-i18next';
-import { isWalletConnectProvider } from '../../../lib/provider';
-import { SimpleTextBody } from '../../../components/Body/SimpleTextBody';
-import { FooterButton } from '../../../components/Footer/FooterButton';
-import { HeaderNavigation } from '../../../components/Header/HeaderNavigation';
-import { SimpleLayout } from '../../../components/SimpleLayout/SimpleLayout';
-import { ConnectWidgetViews } from '../../../context/view-context/ConnectViewContextTypes';
-import { ConnectActions, ConnectContext } from '../context/ConnectContext';
-import { ViewContext, ViewActions } from '../../../context/view-context/ViewContext';
-import { addChainChangedListener, getL2ChainId, removeChainChangedListener } from '../../../lib';
-import { ImmutablePlanetHero } from '../../../components/Hero/ImmutablePlanetHero';
-import { UserJourney, useAnalytics } from '../../../context/analytics-provider/SegmentAnalyticsProvider';
+  ViewContext,
+  ViewActions,
+} from "../../../context/view-context/ViewContext";
+import {
+  addChainChangedListener,
+  getL2ChainId,
+  removeChainChangedListener,
+} from "../../../lib";
+import { ImmutablePlanetHero } from "../../../components/Hero/ImmutablePlanetHero";
+import {
+  UserJourney,
+  useAnalytics,
+} from "../../../context/analytics-provider/SegmentAnalyticsProvider";
 
 export function SwitchNetworkZkEVM() {
   const { t } = useTranslation();
   const { viewDispatch } = useContext(ViewContext);
   const { connectDispatch, connectState } = useContext(ConnectContext);
   const { checkout, provider, sendCloseEvent } = connectState;
-  const [buttonTextKey, setButtonTextKey] = useState(t('views.SWITCH_NETWORK.zkEVM.button.text'));
+  const [buttonTextKey, setButtonTextKey] = useState(
+    t("views.SWITCH_NETWORK.zkEVM.button.text")
+  );
   const { page, track } = useAnalytics();
 
   useEffect(() => {
     page({
       userJourney: UserJourney.CONNECT,
-      screen: 'SwitchNetworkZkEVM',
+      screen: "SwitchNetworkZkEVM",
     });
   }, []);
 
@@ -34,7 +44,10 @@ export function SwitchNetworkZkEVM() {
     if (!provider || !checkout) return;
 
     const checkCorrectNetwork = async () => {
-      const currentChainId = await provider.provider.request!({ method: 'eth_chainId', params: [] });
+      const currentChainId = await provider.provider.request!({
+        method: "eth_chainId",
+        params: [],
+      });
       // eslint-disable-next-line radix
       const parsedChainId = parseInt(currentChainId.toString());
       if (parsedChainId === getL2ChainId(checkout.config)) {
@@ -69,14 +82,17 @@ export function SwitchNetworkZkEVM() {
 
     track({
       userJourney: UserJourney.CONNECT,
-      screen: 'SwitchNetworkZkEVM',
-      control: 'Switch',
-      controlType: 'Button',
+      screen: "SwitchNetworkZkEVM",
+      control: "Switch",
+      controlType: "Button",
     });
 
     if (!provider.provider.request) return;
 
-    const currentChainId = provider.provider.request({ method: 'eth_chainId', params: [] });
+    const currentChainId = provider.provider.request({
+      method: "eth_chainId",
+      params: [],
+    });
     // eslint-disable-next-line radix
     const parsedChainId = parseInt(currentChainId.toString());
 
@@ -101,11 +117,13 @@ export function SwitchNetworkZkEVM() {
     }
 
     try {
-      let walletName = '';
+      let walletName = "";
       if (isWalletConnectProvider(provider)) {
-        walletName = (provider.provider as any)?.session?.peer?.metadata?.name.toLowerCase();
+        walletName = (
+          provider.provider as any
+        )?.session?.peer?.metadata?.name.toLowerCase();
       }
-      if (walletName.includes('metamask')) {
+      if (walletName.includes("metamask")) {
         try {
           await checkout.addNetwork({
             provider,
@@ -129,7 +147,7 @@ export function SwitchNetworkZkEVM() {
           return;
         } catch {
           // eslint-disable-next-line no-console
-          console.warn('Failed to add network to wallet, skipping add network');
+          console.warn("Failed to add network to wallet, skipping add network");
         }
       }
 
@@ -153,34 +171,29 @@ export function SwitchNetworkZkEVM() {
         },
       });
     } catch (err: any) {
-      setButtonTextKey(t('views.SWITCH_NETWORK.zkEVM.button.retryText'));
+      setButtonTextKey(t("views.SWITCH_NETWORK.zkEVM.button.retryText"));
     }
   }, [provider, checkout]);
 
   return (
     <SimpleLayout
       testId="switch-network-view"
-      header={(
-        <HeaderNavigation
-          transparent
-          onCloseButtonClick={sendCloseEvent}
-        />
-      )}
-      footer={(
+      header={
+        <HeaderNavigation transparent onCloseButtonClick={sendCloseEvent} />
+      }
+      footer={
         <FooterButton
           actionText={buttonTextKey}
           onActionClick={switchNetwork}
         />
-      )}
+      }
       heroContent={<ImmutablePlanetHero />}
       floatHeader
     >
-      <SimpleTextBody
-        heading={t('views.SWITCH_NETWORK.zkEVM.heading')}
-      >
-        {isWalletConnectProvider(provider) ? (
-          t('views.SWITCH_NETWORK.zkEVM.bodyWalletConnect')) : (
-          t('views.SWITCH_NETWORK.zkEVM.body'))}
+      <SimpleTextBody heading={t("views.SWITCH_NETWORK.zkEVM.heading")}>
+        {isWalletConnectProvider(provider)
+          ? t("views.SWITCH_NETWORK.zkEVM.bodyWalletConnect")
+          : t("views.SWITCH_NETWORK.zkEVM.body")}
       </SimpleTextBody>
     </SimpleLayout>
   );

@@ -7,7 +7,7 @@
     "@imtbl/passport": "0.0.0",
     "@imtbl/x-client": "0.0.0",
     "@imtbl/x-provider": "0.0.0",
-    "ethers": "^5.7.2"
+    "ethers": "^6.11.1"
   },
   "devDependencies": {
     "eslint": "^8.40.0",

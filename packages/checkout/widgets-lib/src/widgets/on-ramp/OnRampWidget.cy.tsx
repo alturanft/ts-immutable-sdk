@@ -1,20 +1,16 @@
-import { cy, describe, it } from 'local-cypress';
-import { mount } from 'cypress/react18';
-import { Environment } from '@imtbl/config';
-import {
-  ChainId, ChainName, Checkout, WidgetTheme,
-} from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { cySmartGet } from '../../lib/testUtils';
-import OnRampWidget, { OnRampWidgetInputs } from './OnRampWidget';
-import { StrongCheckoutWidgetsConfig } from '../../lib/withDefaultWidgetConfig';
-import {
-  ConnectLoaderTestComponent,
-} from '../../context/connect-loader-context/test-components/ConnectLoaderTestComponent';
-import { ConnectionStatus } from '../../context/connect-loader-context/ConnectLoaderContext';
-import { AnalyticsProvider } from '../../context/analytics-provider/SegmentAnalyticsProvider';
+import { cy, describe, it } from "local-cypress";
+import { mount } from "cypress/react18";
+import { Environment } from "@imtbl/config";
+import { ChainId, ChainName, Checkout, WidgetTheme } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { cySmartGet } from "../../lib/testUtils";
+import OnRampWidget, { OnRampWidgetInputs } from "./OnRampWidget";
+import { StrongCheckoutWidgetsConfig } from "../../lib/withDefaultWidgetConfig";
+import { ConnectLoaderTestComponent } from "../../context/connect-loader-context/test-components/ConnectLoaderTestComponent";
+import { ConnectionStatus } from "../../context/connect-loader-context/ConnectLoaderContext";
+import { AnalyticsProvider } from "../../context/analytics-provider/SegmentAnalyticsProvider";
 
-describe('OnRampWidget tests', () => {
+describe("OnRampWidget tests", () => {
   const widgetsConfig: StrongCheckoutWidgetsConfig = {
     environment: Environment.SANDBOX,
     theme: WidgetTheme.DARK,
@@ -25,7 +21,7 @@ describe('OnRampWidget tests', () => {
 
   const mockProvider = {
     getSigner: () => ({
-      getAddress: () => Promise.resolve('0xwalletAddress'),
+      getAddress: () => Promise.resolve("0xwalletAddress"),
     }),
     getNetwork: async () => ({
       chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -44,39 +40,33 @@ describe('OnRampWidget tests', () => {
     connectionStatus: ConnectionStatus.CONNECTED_WITH_NETWORK,
   };
 
-  describe('OnRamp screen', () => {
-    it('should have title', () => {
+  describe("OnRamp screen", () => {
+    it("should have title", () => {
       const params = {} as OnRampWidgetInputs;
       mount(
         <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
           <AnalyticsProvider>
-            <OnRampWidget
-              {...params}
-              config={widgetsConfig}
-            />
+            <OnRampWidget {...params} config={widgetsConfig} />
           </AnalyticsProvider>
-        </ConnectLoaderTestComponent>,
+        </ConnectLoaderTestComponent>
       );
 
-      cySmartGet('header-title').should('have.text', 'Add coins');
+      cySmartGet("header-title").should("have.text", "Add coins");
     });
 
-    it('should show the loading screen before the on ramp iframe', () => {
+    it("should show the loading screen before the on ramp iframe", () => {
       const params = {} as OnRampWidgetInputs;
       mount(
         <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
           <AnalyticsProvider>
-            <OnRampWidget
-              {...params}
-              config={widgetsConfig}
-            />
+            <OnRampWidget {...params} config={widgetsConfig} />
           </AnalyticsProvider>
-        </ConnectLoaderTestComponent>,
+        </ConnectLoaderTestComponent>
       );
 
-      cySmartGet('loading-view').should('be.visible');
+      cySmartGet("loading-view").should("be.visible");
       cy.wait(1000);
-      cySmartGet('header-title').should('have.text', 'Add coins');
+      cySmartGet("header-title").should("have.text", "Add coins");
     });
   });
 });

@@ -1,7 +1,7 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { identifyUser } from './identifyUser';
+import { BrowserProvider } from "ethers";
+import { identifyUser } from "./identifyUser";
 
-describe('identifyUser', () => {
+describe("identifyUser", () => {
   let provider;
   let identify;
   beforeEach(() => {
@@ -10,10 +10,10 @@ describe('identifyUser', () => {
     identify = jest.fn().mockReturnValue({});
   });
 
-  it('should identify a user by their wallet address and add properties isMetaMask and isPassportWallet', async () => {
+  it("should identify a user by their wallet address and add properties isMetaMask and isPassportWallet", async () => {
     provider = {
       getSigner: jest.fn().mockReturnValue({
-        getAddress: jest.fn().mockResolvedValue('0xtest'),
+        getAddress: jest.fn().mockResolvedValue("0xtest"),
       }),
       provider: {
         isMetaMask: true,
@@ -22,13 +22,16 @@ describe('identifyUser', () => {
     } as any as Web3Provider;
 
     await identifyUser(identify, provider);
-    expect(identify).toBeCalledWith('0xtest', { isMetaMask: true, isPassportWallet: false });
+    expect(identify).toBeCalledWith("0xtest", {
+      isMetaMask: true,
+      isPassportWallet: false,
+    });
   });
 
-  it('should correctly identify users wallet as Passport', async () => {
+  it("should correctly identify users wallet as Passport", async () => {
     provider = {
       getSigner: jest.fn().mockReturnValue({
-        getAddress: jest.fn().mockResolvedValue('0xtest'),
+        getAddress: jest.fn().mockResolvedValue("0xtest"),
       }),
       provider: {
         isPassport: true,
@@ -36,6 +39,9 @@ describe('identifyUser', () => {
       },
     } as any as Web3Provider;
     await identifyUser(identify, provider);
-    expect(identify).toBeCalledWith('0xtest', { isMetaMask: false, isPassportWallet: true });
+    expect(identify).toBeCalledWith("0xtest", {
+      isMetaMask: false,
+      isPassportWallet: true,
+    });
   });
 });

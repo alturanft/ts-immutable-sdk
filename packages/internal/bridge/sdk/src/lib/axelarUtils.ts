@@ -1,11 +1,10 @@
-import { Provider } from '@ethersproject/providers';
-import { ethers, utils } from 'ethers';
-import { Address } from '../types';
-import { WITHDRAW_SIG, NATIVE } from '../constants/bridges';
-import { CHILD_ERC20 } from '../contracts/ABIs/ChildERC20';
-import { withBridgeError, BridgeErrorType } from '../errors';
-import { createContract } from '../contracts/createContract';
-import { isWrappedIMX, getRootIMX } from './utils';
+import { AbiCoder, Contract, Provider, keccak256 } from "ethers";
+import { Address } from "../types";
+import { WITHDRAW_SIG, NATIVE } from "../constants/bridges";
+import { CHILD_ERC20 } from "../contracts/ABIs/ChildERC20";
+import { withBridgeError, BridgeErrorType } from "../errors";
+import { createContract } from "../contracts/createContract";
+import { isWrappedIMX, getRootIMX } from "./utils";
 
 /**
  * We need the Axelar command ID to be unique, otherwise the simulation could fail.
@@ -15,8 +14,11 @@ import { isWrappedIMX, getRootIMX } from './utils';
  * @returns hash of payload and current time.
  */
 export function genUniqueAxelarCommandId(payload: string) {
-  return utils.keccak256(
-    utils.defaultAbiCoder.encode(['bytes', 'uint256'], [payload, new Date().getTime()]),
+  return keccak256(
+    AbiCoder.defaultAbiCoder().encode(
+      ["bytes", "uint256"],
+      [payload, new Date().getTime()]
+    )
   );
 }
 
@@ -28,18 +30,18 @@ export function genAxelarWithdrawPayload(
   rootToken: string,
   sender: string,
   recipient: string,
-  amount: string,
+  amount: string
 ) {
-  return utils.defaultAbiCoder.encode(
-    ['bytes32', 'address', 'address', 'address', 'uint256'],
-    [WITHDRAW_SIG, rootToken, sender, recipient, amount],
+  return AbiCoder.defaultAbiCoder().encode(
+    ["bytes32", "address", "address", "address", "uint256"],
+    [WITHDRAW_SIG, rootToken, sender, recipient, amount]
   );
 }
 
 export async function createChildErc20Contract(
   token: string,
-  childProvider: Provider,
-): Promise<ethers.Contract> {
+  childProvider: Provider
+): Promise<Contract> {
   return createContract(token, CHILD_ERC20, childProvider);
 }
 
@@ -50,14 +52,22 @@ export async function createChildErc20Contract(
 export async function getWithdrawRootToken(
   childToken: string,
   destinationChainId: string,
-  childProvider: ethers.providers.Provider,
+  childProvider: Provider
 ): Promise<string> {
-  if (childToken.toUpperCase() === NATIVE
-    || isWrappedIMX(childToken, destinationChainId)) {
+  if (
+    childToken.toUpperCase() === NATIVE ||
+    isWrappedIMX(childToken, destinationChainId)
+  ) {
     return getRootIMX(destinationChainId);
   }
   // Find root token
-  const erc20Contract: ethers.Contract = await createChildErc20Contract(childToken, childProvider);
+  const erc20Contract: Contract = await createChildErc20Contract(
+    childToken,
+    childProvider
+  );
 
-  return withBridgeError<Address>(() => erc20Contract.rootToken(), BridgeErrorType.PROVIDER_ERROR);
+  return withBridgeError<Address>(
+    () => erc20Contract.rootToken(),
+    BridgeErrorType.PROVIDER_ERROR
+  );
 }

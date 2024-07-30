@@ -1,5 +1,5 @@
-import { Signer } from '@ethersproject/abstract-signer';
-import axios, { AxiosResponse } from 'axios';
+import { Signer } from "ethers";
+import axios, { AxiosResponse } from "axios";
 import {
   CollectionsApi,
   ExchangesApi,
@@ -14,23 +14,23 @@ import {
   CreateMetadataRefreshRequest,
   MetadataSchemaRequest,
   PrimarySalesApiSignableCreatePrimarySaleRequest,
-} from '../types/api';
+} from "../types/api";
 import {
   UnsignedMintRequest,
   WalletConnection,
   EthSigner,
   UnsignedExchangeTransferRequest,
   StarkExContractVersion,
-} from '../types';
-import { mintingWorkflow } from './minting';
-import { generateIMXAuthorisationHeaders } from '../utils';
-import { ImmutableXConfiguration } from '../config';
-import { exchangeTransfersWorkflow } from './exchangeTransfers';
+} from "../types";
+import { mintingWorkflow } from "./minting";
+import { generateIMXAuthorisationHeaders } from "../utils";
+import { ImmutableXConfiguration } from "../config";
+import { exchangeTransfersWorkflow } from "./exchangeTransfers";
 import {
   CreatePrimarySaleWorkflow,
   AcceptPrimarySalesWorkflow,
   RejectPrimarySalesWorkflow,
-} from './primarySales';
+} from "./primarySales";
 
 export class Workflows {
   private readonly mintsApi: MintsApi;
@@ -59,7 +59,7 @@ export class Workflows {
     metadataRefreshesApi: MetadataRefreshesApi,
     mintsApi: MintsApi,
     primarySalesApi: PrimarySalesApi,
-    projectsApi: ProjectsApi,
+    projectsApi: ProjectsApi
   ) {
     this.config = config;
     this.collectionsApi = collectionsApi;
@@ -72,20 +72,23 @@ export class Workflows {
   }
 
   private async validateChain(signer: Signer) {
-    const chainID = await signer.getChainId();
+    const network = await signer.provider!.getNetwork();
+    const chainID = network.chainId;
 
-    if (!this.isChainValid(chainID)) {
+    if (!this.isChainValid(Number(chainID))) {
       throw new Error(
-        'The wallet used for this operation is not from the correct network.',
+        "The wallet used for this operation is not from the correct network."
       );
     }
   }
 
-  private async getStarkExContractVersion(): Promise<AxiosResponse<StarkExContractVersion>> {
+  private async getStarkExContractVersion(): Promise<
+    AxiosResponse<StarkExContractVersion>
+  > {
     const options = {
       baseURL: `${this.config.apiConfiguration.basePath}/v1`,
     };
-    return axios.get('/starkex-contract-version', options);
+    return axios.get("/starkex-contract-version", options);
   }
 
   public async mint(signer: Signer, request: UnsignedMintRequest) {
@@ -96,7 +99,7 @@ export class Workflows {
 
   public async exchangeTransfer(
     walletConnection: WalletConnection,
-    request: UnsignedExchangeTransferRequest,
+    request: UnsignedExchangeTransferRequest
   ) {
     await this.validateChain(walletConnection.ethSigner);
 
@@ -119,7 +122,7 @@ export class Workflows {
 
   public async createCollection(
     ethSigner: EthSigner,
-    createCollectionRequest: CreateCollectionRequest,
+    createCollectionRequest: CreateCollectionRequest
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
 
@@ -133,7 +136,7 @@ export class Workflows {
   public async updateCollection(
     ethSigner: EthSigner,
     address: string,
-    updateCollectionRequest: UpdateCollectionRequest,
+    updateCollectionRequest: UpdateCollectionRequest
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
 
@@ -148,7 +151,7 @@ export class Workflows {
   public async addMetadataSchemaToCollection(
     ethSigner: EthSigner,
     address: string,
-    addMetadataSchemaToCollectionRequest: AddMetadataSchemaToCollectionRequest,
+    addMetadataSchemaToCollectionRequest: AddMetadataSchemaToCollectionRequest
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
 
@@ -164,7 +167,7 @@ export class Workflows {
     ethSigner: EthSigner,
     address: string,
     name: string,
-    metadataSchemaRequest: MetadataSchemaRequest,
+    metadataSchemaRequest: MetadataSchemaRequest
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
 
@@ -181,7 +184,7 @@ export class Workflows {
     ethSigner: EthSigner,
     collectionAddress?: string,
     pageSize?: number,
-    cursor?: string,
+    cursor?: string
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
     const ethAddress = await ethSigner.getAddress();
@@ -200,7 +203,7 @@ export class Workflows {
     ethSigner: EthSigner,
     refreshId: string,
     pageSize?: number,
-    cursor?: string,
+    cursor?: string
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
     const ethAddress = await ethSigner.getAddress();
@@ -217,7 +220,7 @@ export class Workflows {
 
   public async getMetadataRefreshResults(
     ethSigner: EthSigner,
-    refreshId: string,
+    refreshId: string
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
     const ethAddress = await ethSigner.getAddress();
@@ -232,7 +235,7 @@ export class Workflows {
 
   public async createMetadataRefresh(
     ethSigner: EthSigner,
-    request: CreateMetadataRefreshRequest,
+    request: CreateMetadataRefreshRequest
   ) {
     const imxAuthHeaders = await generateIMXAuthorisationHeaders(ethSigner);
     const ethAddress = await ethSigner.getAddress();
@@ -247,7 +250,7 @@ export class Workflows {
 
   public async createPrimarySale(
     walletConnection: WalletConnection,
-    request: PrimarySalesApiSignableCreatePrimarySaleRequest,
+    request: PrimarySalesApiSignableCreatePrimarySaleRequest
   ) {
     await this.validateChain(walletConnection.ethSigner);
 

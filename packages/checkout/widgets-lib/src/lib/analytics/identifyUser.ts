@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { isMetaMaskProvider, isPassportProvider } from '../provider';
+import { BrowserProvider } from "ethers";
+import { isMetaMaskProvider, isPassportProvider } from "../provider";
 
 /**
  * identifyUser - function to identify a user by their wallet address and call the function to raise analytics
@@ -8,7 +8,7 @@ import { isMetaMaskProvider, isPassportProvider } from '../provider';
  */
 export async function identifyUser(
   identify: (id: string, attributes: Record<string, any>) => void,
-  provider: Web3Provider,
+  provider: Web3Provider
 ) {
   // WT-1698 Analytics - Identify user here then progress to widget
   const walletAddress = (await provider.getSigner().getAddress()).toLowerCase();
@@ -19,6 +19,8 @@ export async function identifyUser(
       isMetaMask,
       isPassportWallet: isPassport,
     });
-  // eslint-disable-next-line no-console
-  } catch (error: any) { console.error('analytics: unable to identify user: ', error); }
+    // eslint-disable-next-line no-console
+  } catch (error: any) {
+    console.error("analytics: unable to identify user: ", error);
+  }
 }

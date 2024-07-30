@@ -1,24 +1,26 @@
 import {
-  Checkout, WalletProviderName, TokenInfo, ChainId, ChainName,
+  Checkout,
+  WalletProviderName,
+  TokenInfo,
+  ChainId,
+  ChainName,
   WidgetTheme,
-} from '@imtbl/checkout-sdk';
-import { describe, it, cy } from 'local-cypress';
-import { mount } from 'cypress/react18';
-import { BigNumber } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
-import { Environment } from '@imtbl/config';
-import { ViewContextTestComponent } from '../../../context/view-context/test-components/ViewContextTestComponent';
-import { WalletBalances } from './WalletBalances';
-import { WalletContext, WalletState } from '../context/WalletContext';
-import { cyIntercept, cySmartGet } from '../../../lib/testUtils';
-import { WalletWidgetTestComponent } from '../test-components/WalletWidgetTestComponent';
-import { ConnectionStatus } from '../../../context/connect-loader-context/ConnectLoaderContext';
-import {
-  ConnectLoaderTestComponent,
-} from '../../../context/connect-loader-context/test-components/ConnectLoaderTestComponent';
-import { NATIVE } from '../../../lib';
+} from "@imtbl/checkout-sdk";
+import { describe, it, cy } from "local-cypress";
+import { mount } from "cypress/react18";
+import { BigNumber } from "ethers";
+import { BrowserProvider } from "ethers";
+import { Environment } from "@imtbl/config";
+import { ViewContextTestComponent } from "../../../context/view-context/test-components/ViewContextTestComponent";
+import { WalletBalances } from "./WalletBalances";
+import { WalletContext, WalletState } from "../context/WalletContext";
+import { cyIntercept, cySmartGet } from "../../../lib/testUtils";
+import { WalletWidgetTestComponent } from "../test-components/WalletWidgetTestComponent";
+import { ConnectionStatus } from "../../../context/connect-loader-context/ConnectLoaderContext";
+import { ConnectLoaderTestComponent } from "../../../context/connect-loader-context/test-components/ConnectLoaderTestComponent";
+import { NATIVE } from "../../../lib";
 
-describe('WalletBalances', () => {
+describe("WalletBalances", () => {
   const config = {
     environment: Environment.SANDBOX,
     theme: WidgetTheme.DARK,
@@ -28,7 +30,7 @@ describe('WalletBalances', () => {
   };
 
   beforeEach(() => {
-    cy.viewport('ipad-2');
+    cy.viewport("ipad-2");
     cyIntercept();
   });
 
@@ -38,7 +40,7 @@ describe('WalletBalances', () => {
     }),
     provider: {
       getSigner: () => ({
-        getAddress: async () => Promise.resolve(''),
+        getAddress: async () => Promise.resolve(""),
       }),
       getNetwork: async () => ({
         chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -51,30 +53,33 @@ describe('WalletBalances', () => {
     connectionStatus: ConnectionStatus.CONNECTED_WITH_NETWORK,
   };
 
-  const cryptoConversions = new Map<string, number>([['eth', 1800], ['imx', 0.75]]);
+  const cryptoConversions = new Map<string, number>([
+    ["eth", 1800],
+    ["imx", 0.75],
+  ]);
 
-  describe('balances', () => {
+  describe("balances", () => {
     const balancesMock = [
       {
-        balance: BigNumber.from('1000000000000000000'),
-        formattedBalance: '0.1',
+        balance: BigNumber.from("1000000000000000000"),
+        formattedBalance: "0.1",
         token: {
-          name: 'ETH',
-          symbol: 'ETH',
+          name: "ETH",
+          symbol: "ETH",
           decimals: 18,
-          address: '',
-          icon: '123',
+          address: "",
+          icon: "123",
         },
       },
       {
-        balance: BigNumber.from('10000000000000'),
-        formattedBalance: '0.1',
+        balance: BigNumber.from("10000000000000"),
+        formattedBalance: "0.1",
         token: {
-          name: 'ImmutableX',
-          symbol: 'IMX',
+          name: "ImmutableX",
+          symbol: "IMX",
           decimals: 18,
           address: NATIVE,
-          icon: '123',
+          icon: "123",
         },
       },
     ];
@@ -95,91 +100,99 @@ describe('WalletBalances', () => {
       },
     };
 
-    it('should show balances', () => {
+    it("should show balances", () => {
       mount(
         <ViewContextTestComponent theme={config.theme}>
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
             <WalletWidgetTestComponent
               initialStateOverride={baseWalletState}
               cryptoConversionsOverride={cryptoConversions}
             >
-              <WalletBalances balancesLoading={false} theme={WidgetTheme.DARK} showNetworkMenu />
+              <WalletBalances
+                balancesLoading={false}
+                theme={WidgetTheme.DARK}
+                showNetworkMenu
+              />
             </WalletWidgetTestComponent>
           </ConnectLoaderTestComponent>
-        </ViewContextTestComponent>,
+        </ViewContextTestComponent>
       );
 
-      cySmartGet('balance-item-IMX').should('exist');
-      cySmartGet('balance-item-ETH').should('exist');
+      cySmartGet("balance-item-IMX").should("exist");
+      cySmartGet("balance-item-ETH").should("exist");
     });
 
-    it('should show shimmer while waiting for balances to load', () => {
+    it("should show shimmer while waiting for balances to load", () => {
       mount(
         <ViewContextTestComponent theme={config.theme}>
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
             <WalletWidgetTestComponent
               initialStateOverride={baseWalletState}
               cryptoConversionsOverride={cryptoConversions}
             >
-              <WalletBalances balancesLoading theme={WidgetTheme.DARK} showNetworkMenu />
+              <WalletBalances
+                balancesLoading
+                theme={WidgetTheme.DARK}
+                showNetworkMenu
+              />
             </WalletWidgetTestComponent>
           </ConnectLoaderTestComponent>
-        </ViewContextTestComponent>,
+        </ViewContextTestComponent>
       );
 
-      cySmartGet('balance-item-shimmer--1__shimmer').should('be.visible');
-      cySmartGet('balance-item-shimmer--2__shimmer').should('be.visible');
-      cySmartGet('balance-item-shimmer--3__shimmer').should('be.visible');
-      cySmartGet('total-token-balance-value__shimmer').should('be.visible');
+      cySmartGet("balance-item-shimmer--1__shimmer").should("be.visible");
+      cySmartGet("balance-item-shimmer--2__shimmer").should("be.visible");
+      cySmartGet("balance-item-shimmer--3__shimmer").should("be.visible");
+      cySmartGet("total-token-balance-value__shimmer").should("be.visible");
     });
 
-    it('should not show shimmers once balances has loaded', () => {
+    it("should not show shimmers once balances has loaded", () => {
       mount(
         <ViewContextTestComponent theme={config.theme}>
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
             <WalletWidgetTestComponent
               initialStateOverride={baseWalletState}
               cryptoConversionsOverride={cryptoConversions}
             >
-              <WalletBalances balancesLoading={false} theme={WidgetTheme.DARK} showNetworkMenu />
+              <WalletBalances
+                balancesLoading={false}
+                theme={WidgetTheme.DARK}
+                showNetworkMenu
+              />
             </WalletWidgetTestComponent>
           </ConnectLoaderTestComponent>
-        </ViewContextTestComponent>,
+        </ViewContextTestComponent>
       );
 
-      cySmartGet('balance-item-shimmer--1__shimmer').should('not.exist');
-      cySmartGet('balance-item-shimmer--2__shimmer').should('not.exist');
-      cySmartGet('balance-item-shimmer--3__shimmer').should('not.exist');
-      cySmartGet('total-token-balance-value__shimmer').should('not.exist');
+      cySmartGet("balance-item-shimmer--1__shimmer").should("not.exist");
+      cySmartGet("balance-item-shimmer--2__shimmer").should("not.exist");
+      cySmartGet("balance-item-shimmer--3__shimmer").should("not.exist");
+      cySmartGet("total-token-balance-value__shimmer").should("not.exist");
     });
 
-    it('should show no balances', () => {
+    it("should show no balances", () => {
       mount(
         <ViewContextTestComponent theme={config.theme}>
-          <ConnectLoaderTestComponent
-            initialStateOverride={connectLoaderState}
-          >
+          <ConnectLoaderTestComponent initialStateOverride={connectLoaderState}>
             <WalletWidgetTestComponent
               initialStateOverride={{ ...baseWalletState, tokenBalances: [] }}
               cryptoConversionsOverride={cryptoConversions}
             >
-              <WalletBalances balancesLoading={false} theme={WidgetTheme.DARK} showNetworkMenu />
+              <WalletBalances
+                balancesLoading={false}
+                theme={WidgetTheme.DARK}
+                showNetworkMenu
+              />
             </WalletWidgetTestComponent>
           </ConnectLoaderTestComponent>
-        </ViewContextTestComponent>,
+        </ViewContextTestComponent>
       );
 
-      cySmartGet('no-tokens-found').should('exist');
+      cySmartGet("no-tokens-found").should("exist");
     });
   });
 
-  describe('add coins button', () => {
+  describe("add coins button", () => {
     const baseWalletState: WalletState = {
       network: {
         chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -196,7 +209,7 @@ describe('WalletBalances', () => {
       },
     };
 
-    it('should show add coins button on zkEVM when topUps are supported', () => {
+    it("should show add coins button on zkEVM when topUps are supported", () => {
       const topUpFeatureTestCases = [
         {
           isOnRampEnabled: true,
@@ -228,19 +241,26 @@ describe('WalletBalances', () => {
                 initialStateOverride={connectLoaderState}
               >
                 <WalletContext.Provider
-                  value={{ walletState: testWalletState, walletDispatch: () => {} }}
+                  value={{
+                    walletState: testWalletState,
+                    walletDispatch: () => {},
+                  }}
                 >
-                  <WalletBalances balancesLoading={false} theme={WidgetTheme.DARK} showNetworkMenu />
+                  <WalletBalances
+                    balancesLoading={false}
+                    theme={WidgetTheme.DARK}
+                    showNetworkMenu
+                  />
                 </WalletContext.Provider>
               </ConnectLoaderTestComponent>
             </ViewContextTestComponent>
-          </ViewContextTestComponent>,
+          </ViewContextTestComponent>
         );
-        cySmartGet('add-coins').should('exist');
+        cySmartGet("add-coins").should("exist");
       });
     });
 
-    it('should NOT show add coins on zkEVM when all supportedTopUps are disabled', () => {
+    it("should NOT show add coins on zkEVM when all supportedTopUps are disabled", () => {
       const testWalletState = {
         ...baseWalletState,
         supportedTopUps: {
@@ -256,22 +276,29 @@ describe('WalletBalances', () => {
               initialStateOverride={connectLoaderState}
             >
               <WalletContext.Provider
-                value={{ walletState: testWalletState, walletDispatch: () => {} }}
+                value={{
+                  walletState: testWalletState,
+                  walletDispatch: () => {},
+                }}
               >
-                <WalletBalances balancesLoading={false} theme={WidgetTheme.DARK} showNetworkMenu />
+                <WalletBalances
+                  balancesLoading={false}
+                  theme={WidgetTheme.DARK}
+                  showNetworkMenu
+                />
               </WalletContext.Provider>
             </ConnectLoaderTestComponent>
           </ViewContextTestComponent>
-        </ViewContextTestComponent>,
+        </ViewContextTestComponent>
       );
-      cySmartGet('add-coins').should('not.exist');
+      cySmartGet("add-coins").should("not.exist");
     });
 
-    it('should NOT show add coins button on Sepolia', () => {
+    it("should NOT show add coins button on Sepolia", () => {
       const walletState: WalletState = {
         network: {
           chainId: ChainId.SEPOLIA,
-          name: 'Sepolia',
+          name: "Sepolia",
           nativeCurrency: {} as unknown as TokenInfo,
           isSupported: true,
         },
@@ -296,13 +323,17 @@ describe('WalletBalances', () => {
               <WalletContext.Provider
                 value={{ walletState, walletDispatch: () => {} }}
               >
-                <WalletBalances balancesLoading={false} theme={WidgetTheme.DARK} showNetworkMenu />
+                <WalletBalances
+                  balancesLoading={false}
+                  theme={WidgetTheme.DARK}
+                  showNetworkMenu
+                />
               </WalletContext.Provider>
             </ConnectLoaderTestComponent>
           </ViewContextTestComponent>
-        </ViewContextTestComponent>,
+        </ViewContextTestComponent>
       );
-      cySmartGet('add-coins').should('not.exist');
+      cySmartGet("add-coins").should("not.exist");
     });
   });
 });

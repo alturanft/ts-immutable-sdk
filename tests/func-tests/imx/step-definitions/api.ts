@@ -1,12 +1,12 @@
-import { strict as assert } from 'assert';
-import { parseEther } from '@ethersproject/units';
+import { strict as assert } from "assert";
+import { parseEther } from "ethers";
 import {
   IMXClient,
   ImxModuleConfiguration,
   ProviderConfiguration,
-} from '@imtbl/sdk/x';
-import { configuration, StepSharedState } from './stepSharedState';
-import { env, getProvider, repeatCheck20 } from '../common';
+} from "@imtbl/sdk/x";
+import { configuration, StepSharedState } from "./stepSharedState";
+import { env, getProvider, repeatCheck20 } from "../common";
 
 // @binding([StepSharedState])
 export class Trading {
@@ -66,13 +66,13 @@ export class Trading {
       const owner = await user.ethSigner.getAddress();
       const result = await this.client.getBalance({
         owner,
-        address: 'eth',
+        address: "eth",
       });
       // TODO update code gen of API Spec
       assert.equal(
         // @ts-ignore
         result.balance.toString(),
-        parseEther(amount).toString(),
+        parseEther(amount).toString()
       );
     });
   }
@@ -148,12 +148,12 @@ export class Trading {
         });
         console.log(
           `check Details Status: ${orderDetails.status}`,
-          `Status Input: ${status}`,
+          `Status Input: ${status}`
         );
         return orderDetails;
       },
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      (order) => order.status === status,
+      (order) => order.status === status
     );
   }
 

@@ -8,10 +8,9 @@
     "@imtbl/config": "0.0.0",
     "@jest/globals": "^29.5.0",
     "axios": "^1.6.5",
-    "ethers": "^5.7.2"
+    "ethers": "^6.11.1"
   },
   "devDependencies": {
-    "@ethersproject/providers": "^5.7.2",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",

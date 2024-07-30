@@ -1,6 +1,4 @@
-import { Wallet } from '@ethersproject/wallet';
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 import {
   createStarkSigner,
   WalletConnection,
@@ -9,15 +7,17 @@ import {
   CreateTransferResponseV1,
   CreateWithdrawalResponse,
   MintResultDetails,
-} from '@imtbl/sdk/x';
-import { Environment, ImmutableConfiguration } from '@imtbl/sdk/config';
-import { env, getProvider } from '../common';
-import genericErc20Abi from '../abi/ERC20.json';
+} from "@imtbl/sdk/x";
+import { Environment, ImmutableConfiguration } from "@imtbl/sdk/config";
+import { env, getProvider } from "../common";
+import genericErc20Abi from "../abi/ERC20.json";
 
 const provider = getProvider(env.network, env.alchemyApiKey);
 
 // export const configuration = Config.SANDBOX;
-export const configuration = new ImmutableConfiguration({ environment: Environment.SANDBOX });
+export const configuration = new ImmutableConfiguration({
+  environment: Environment.SANDBOX,
+});
 // export const oldConfig = Config.SANDBOX;
 
 /**
@@ -26,14 +26,14 @@ export const configuration = new ImmutableConfiguration({ environment: Environme
 const generateWalletConnection = async (
   privateKey: string,
   starkPrivateKey: string,
-  rpcProvider: JsonRpcProvider,
+  rpcProvider: ethers.JsonRpcProvider
 ): Promise<WalletConnection> => {
   if (!privateKey) {
-    throw new Error('PrivateKey required!');
+    throw new Error("PrivateKey required!");
   }
 
   // L1 credentials
-  const ethSigner = new Wallet(privateKey).connect(rpcProvider);
+  const ethSigner = new ethers.Wallet(privateKey).connect(rpcProvider);
 
   // L2 credentials
   const starkSigner = createStarkSigner(starkPrivateKey);
@@ -57,7 +57,7 @@ export class StepSharedState {
     [key: string]: {
       type: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        MINTABLE_ERC721: 'MINTABLE_ERC721';
+        MINTABLE_ERC721: "MINTABLE_ERC721";
       };
       data: {
         id: string;
@@ -116,7 +116,7 @@ export class StepSharedState {
     const walletConnection = await generateWalletConnection(
       privateKey,
       env.starkPrivateKey1,
-      provider,
+      provider
     );
 
     this.minter = walletConnection;
@@ -132,7 +132,7 @@ export class StepSharedState {
     const walletConnection = await generateWalletConnection(
       privateKey,
       env.starkPrivateKeyBanker,
-      provider,
+      provider
     );
 
     this.banker = walletConnection;
@@ -143,20 +143,20 @@ export class StepSharedState {
   static getTokenAddress(symbol: string): string {
     const tokenAddresses = [
       {
-        symbol: 'ETH',
-        tokenAddress: 'ETH',
+        symbol: "ETH",
+        tokenAddress: "ETH",
       },
       {
-        symbol: 'FCT',
-        tokenAddress: '0x73f99ca65b1a0aef2d4591b1b543d789860851bf',
+        symbol: "FCT",
+        tokenAddress: "0x73f99ca65b1a0aef2d4591b1b543d789860851bf",
       },
       {
-        symbol: 'IMX',
-        tokenAddress: '0x1facdd0165489f373255a90304650e15481b2c85', // IMX address in goerli
+        symbol: "IMX",
+        tokenAddress: "0x1facdd0165489f373255a90304650e15481b2c85", // IMX address in goerli
       },
     ];
     const token = tokenAddresses.find((t) => t.symbol === symbol);
-    return token?.tokenAddress || '';
+    return token?.tokenAddress || "";
   }
 
   static getTokenContract(symbol: string) {
@@ -164,7 +164,7 @@ export class StepSharedState {
     const contract = new ethers.Contract(
       tokenAddress,
       genericErc20Abi,
-      provider,
+      provider
     );
     return contract;
   }

@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { SellOrder } from './smartCheckout';
+import { BrowserProvider } from "ethers";
+import { SellOrder } from "./smartCheckout";
 
 /**
  * Interface representing the parameters for {@link Checkout.sell}

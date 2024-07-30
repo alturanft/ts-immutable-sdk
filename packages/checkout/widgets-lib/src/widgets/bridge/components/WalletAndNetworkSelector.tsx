@@ -1,48 +1,44 @@
+import { Box, Button, Drawer, Heading } from "@biom3/react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
-  Box,
-  Button,
-  Drawer,
-  Heading,
-} from '@biom3/react';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { ChainId, WalletProviderName, WalletProviderRdns } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { useTranslation } from 'react-i18next';
-import { BridgeWidgetViews } from '../../../context/view-context/BridgeViewContextTypes';
+  ChainId,
+  WalletProviderName,
+  WalletProviderRdns,
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { useTranslation } from "react-i18next";
+import { BridgeWidgetViews } from "../../../context/view-context/BridgeViewContextTypes";
 import {
   connectToProvider,
   getWalletProviderNameByProvider,
   isMetaMaskProvider,
   isPassportProvider,
   isWalletConnectProvider,
-} from '../../../lib/provider';
-import { getL1ChainId, getL2ChainId } from '../../../lib';
-import { getChainNameById } from '../../../lib/chains';
-import { ViewActions, ViewContext } from '../../../context/view-context/ViewContext';
-import { abbreviateAddress } from '../../../lib/addressUtils';
+} from "../../../lib/provider";
+import { getL1ChainId, getL2ChainId } from "../../../lib";
+import { getChainNameById } from "../../../lib/chains";
+import {
+  ViewActions,
+  ViewContext,
+} from "../../../context/view-context/ViewContext";
+import { abbreviateAddress } from "../../../lib/addressUtils";
 import {
   useAnalytics,
   UserJourney,
-} from '../../../context/analytics-provider/SegmentAnalyticsProvider';
+} from "../../../context/analytics-provider/SegmentAnalyticsProvider";
 import {
   bridgeHeadingStyles,
   brigdeWalletWrapperStyles,
   submitButtonWrapperStyles,
-} from './WalletAndNetworkSelectorStyles';
-import { BridgeActions, BridgeContext } from '../context/BridgeContext';
-import { NetworkItem } from './NetworkItem';
-import { WalletNetworkButton } from './WalletNetworkButton';
-import { WalletDrawer } from '../../../components/WalletDrawer/WalletDrawer';
-import { useInjectedProviders } from '../../../lib/hooks/useInjectedProviders';
-import { WalletChangeEvent } from '../../../components/WalletDrawer/WalletDrawerEvents';
+} from "./WalletAndNetworkSelectorStyles";
+import { BridgeActions, BridgeContext } from "../context/BridgeContext";
+import { NetworkItem } from "./NetworkItem";
+import { WalletNetworkButton } from "./WalletNetworkButton";
+import { WalletDrawer } from "../../../components/WalletDrawer/WalletDrawer";
+import { useInjectedProviders } from "../../../lib/hooks/useInjectedProviders";
+import { WalletChangeEvent } from "../../../components/WalletDrawer/WalletDrawerEvents";
 
-const testId = 'wallet-network-selector';
+const testId = "wallet-network-selector";
 
 export function WalletAndNetworkSelector() {
   const { t } = useTranslation();
@@ -60,29 +56,33 @@ export function WalletAndNetworkSelector() {
   // if user has clicked back button
   const defaultFromWeb3Provider = from?.web3Provider ?? null;
   const defaultFromNetwork = from?.network ?? null;
-  const defaultFromWalletAddress = from?.walletAddress?.toLowerCase() ?? '';
-  const defaultFromWallet = from ? {
-    provider: defaultFromWeb3Provider,
-    providerDetail: {
-      provider: defaultFromWeb3Provider,
-      info: {
-        ...from.walletProviderInfo,
-      },
-    },
-  } as unknown as WalletChangeEvent : null;
+  const defaultFromWalletAddress = from?.walletAddress?.toLowerCase() ?? "";
+  const defaultFromWallet = from
+    ? ({
+        provider: defaultFromWeb3Provider,
+        providerDetail: {
+          provider: defaultFromWeb3Provider,
+          info: {
+            ...from.walletProviderInfo,
+          },
+        },
+      } as unknown as WalletChangeEvent)
+    : null;
 
   const defaultToWeb3Provider = to?.web3Provider ?? null;
   const defaultToNetwork = to?.network ?? null;
-  const defaultToWalletAddress = to?.walletAddress?.toLowerCase() ?? '';
-  const defaultToWallet = to ? {
-    provider: defaultToWeb3Provider,
-    providerDetail: {
-      provider: defaultToWeb3Provider,
-      info: {
-        ...to.walletProviderInfo,
-      },
-    },
-  } as unknown as WalletChangeEvent : null;
+  const defaultToWalletAddress = to?.walletAddress?.toLowerCase() ?? "";
+  const defaultToWallet = to
+    ? ({
+        provider: defaultToWeb3Provider,
+        providerDetail: {
+          provider: defaultToWeb3Provider,
+          info: {
+            ...to.walletProviderInfo,
+          },
+        },
+      } as unknown as WalletChangeEvent)
+    : null;
 
   // calculating l1/l2 chains to work with based on Checkout environment
   const l1NetworkChainId = getL1ChainId(checkout.config);
@@ -93,18 +93,30 @@ export function WalletAndNetworkSelector() {
   /** From wallet and from network local state */
   const [fromWalletDrawerOpen, setFromWalletDrawerOpen] = useState(false);
   const [fromNetworkDrawerOpen, setFromNetworkDrawerOpen] = useState(false);
-  const [fromWalletWeb3Provider, setFromWalletWeb3Provider] = useState<Web3Provider | null>(defaultFromWeb3Provider);
-  const [fromNetwork, setFromNetwork] = useState<ChainId | null>(defaultFromNetwork);
-  const [fromWalletAddress, setFromWalletAddress] = useState<string>(defaultFromWalletAddress);
-  const [fromWallet, setFromWallet] = useState<WalletChangeEvent | null>(defaultFromWallet);
+  const [fromWalletWeb3Provider, setFromWalletWeb3Provider] =
+    useState<Web3Provider | null>(defaultFromWeb3Provider);
+  const [fromNetwork, setFromNetwork] = useState<ChainId | null>(
+    defaultFromNetwork
+  );
+  const [fromWalletAddress, setFromWalletAddress] = useState<string>(
+    defaultFromWalletAddress
+  );
+  const [fromWallet, setFromWallet] = useState<WalletChangeEvent | null>(
+    defaultFromWallet
+  );
 
   /** To wallet local state */
   const [toNetworkDrawerOpen, setToNetworkDrawerOpen] = useState(false);
   const [toWalletDrawerOpen, setToWalletDrawerOpen] = useState(false);
-  const [toWalletWeb3Provider, setToWalletWeb3Provider] = useState<Web3Provider | null>(defaultToWeb3Provider);
+  const [toWalletWeb3Provider, setToWalletWeb3Provider] =
+    useState<Web3Provider | null>(defaultToWeb3Provider);
   const [toNetwork, setToNetwork] = useState<ChainId | null>(defaultToNetwork);
-  const [toWalletAddress, setToWalletAddress] = useState<string>(defaultToWalletAddress);
-  const [toWallet, setToWallet] = useState<WalletChangeEvent | null>(defaultToWallet);
+  const [toWalletAddress, setToWalletAddress] = useState<string>(
+    defaultToWalletAddress
+  );
+  const [toWallet, setToWallet] = useState<WalletChangeEvent | null>(
+    defaultToWallet
+  );
 
   /* Derived state */
   const isFromWalletAndNetworkSelected = fromWalletWeb3Provider && fromNetwork;
@@ -122,14 +134,17 @@ export function WalletAndNetworkSelector() {
 
   const fromWalletSelectorOptions = useMemo(() => providers, [providers]);
 
-  const toWalletSelectorOptions = useMemo(() => (
-    providers
-      .filter((providerDetail) => (
-        providerDetail.info.rdns !== WalletProviderRdns.PASSPORT
-        || (providerDetail.info.rdns === WalletProviderRdns.PASSPORT
-          && fromWallet?.providerDetail?.info?.rdns !== WalletProviderRdns.PASSPORT)
-      ))
-  ), [providers, fromNetwork, fromWallet]);
+  const toWalletSelectorOptions = useMemo(
+    () =>
+      providers.filter(
+        (providerDetail) =>
+          providerDetail.info.rdns !== WalletProviderRdns.PASSPORT ||
+          (providerDetail.info.rdns === WalletProviderRdns.PASSPORT &&
+            fromWallet?.providerDetail?.info?.rdns !==
+              WalletProviderRdns.PASSPORT)
+      ),
+    [providers, fromNetwork, fromWallet]
+  );
 
   useEffect(() => {
     if (!from || !to) return;
@@ -159,9 +174,9 @@ export function WalletAndNetworkSelector() {
 
     track({
       userJourney: UserJourney.BRIDGE,
-      screen: 'WalletAndNetwork',
-      control: 'FromWallet',
-      controlType: 'Select',
+      screen: "WalletAndNetwork",
+      control: "FromWallet",
+      controlType: "Select",
       extras: {
         walletAddress: address.toLowerCase(),
       },
@@ -174,9 +189,9 @@ export function WalletAndNetworkSelector() {
 
       track({
         userJourney: UserJourney.BRIDGE,
-        screen: 'WalletAndNetwork',
-        control: 'FromNetwork',
-        controlType: 'Select',
+        screen: "WalletAndNetwork",
+        control: "FromNetwork",
+        controlType: "Select",
         extras: {
           chainId: imtblZkEvmNetworkChainId,
         },
@@ -205,10 +220,14 @@ export function WalletAndNetworkSelector() {
         changeAccount = true;
       }
       const web3Provider = new Web3Provider(event.provider as any);
-      const connectedProvider = await connectToProvider(checkout, web3Provider, changeAccount);
+      const connectedProvider = await connectToProvider(
+        checkout,
+        web3Provider,
+        changeAccount
+      );
       await handleFromWalletConnectionSuccess(connectedProvider);
     },
-    [checkout],
+    [checkout]
   );
 
   const handleFromNetworkSelection = useCallback(
@@ -221,15 +240,15 @@ export function WalletAndNetworkSelector() {
 
       track({
         userJourney: UserJourney.BRIDGE,
-        screen: 'WalletAndNetwork',
-        control: 'FromNetwork',
-        controlType: 'Select',
+        screen: "WalletAndNetwork",
+        control: "FromNetwork",
+        controlType: "Select",
         extras: {
           chainId,
         },
       });
     },
-    [checkout, fromWalletWeb3Provider],
+    [checkout, fromWalletWeb3Provider]
   );
 
   const handleToNetworkSelection = useCallback(
@@ -240,36 +259,41 @@ export function WalletAndNetworkSelector() {
 
       track({
         userJourney: UserJourney.BRIDGE,
-        screen: 'WalletAndNetwork',
-        control: 'ToNetwork',
-        controlType: 'Select',
+        screen: "WalletAndNetwork",
+        control: "ToNetwork",
+        controlType: "Select",
         extras: {
           chainId,
         },
       });
     },
-    [checkout, toWalletWeb3Provider],
+    [checkout, toWalletWeb3Provider]
   );
 
-  const handleSettingToNetwork = useCallback((toAddress: string) => {
-    // If the toWallet is Passport the toNetwork can only be L2
-    // If the user selects the same wallet (e.g. MetaMask) for from AND to this can only be a bridge
-    const theToNetwork = fromWalletAddress === toAddress && fromNetwork === imtblZkEvmNetworkChainId
-      ? l1NetworkChainId
-      : imtblZkEvmNetworkChainId;
-    setToNetwork(theToNetwork);
-    setToWalletDrawerOpen(false);
+  const handleSettingToNetwork = useCallback(
+    (toAddress: string) => {
+      // If the toWallet is Passport the toNetwork can only be L2
+      // If the user selects the same wallet (e.g. MetaMask) for from AND to this can only be a bridge
+      const theToNetwork =
+        fromWalletAddress === toAddress &&
+        fromNetwork === imtblZkEvmNetworkChainId
+          ? l1NetworkChainId
+          : imtblZkEvmNetworkChainId;
+      setToNetwork(theToNetwork);
+      setToWalletDrawerOpen(false);
 
-    track({
-      userJourney: UserJourney.BRIDGE,
-      screen: 'WalletAndNetwork',
-      control: 'ToNetwork',
-      controlType: 'Select',
-      extras: {
-        chainId: theToNetwork,
-      },
-    });
-  }, [fromWalletAddress, fromNetwork]);
+      track({
+        userJourney: UserJourney.BRIDGE,
+        screen: "WalletAndNetwork",
+        control: "ToNetwork",
+        controlType: "Select",
+        extras: {
+          chainId: theToNetwork,
+        },
+      });
+    },
+    [fromWalletAddress, fromNetwork]
+  );
 
   const handleWalletConnectToWalletConnection = useCallback(
     (provider: Web3Provider) => {
@@ -283,21 +307,23 @@ export function WalletAndNetworkSelector() {
 
           track({
             userJourney: UserJourney.BRIDGE,
-            screen: 'WalletAndNetwork',
-            control: 'ToWallet',
-            controlType: 'Select',
+            screen: "WalletAndNetwork",
+            control: "ToWallet",
+            controlType: "Select",
             extras: {
               walletAddress: address.toLowerCase(),
             },
           });
         });
     },
-    [handleSettingToNetwork],
+    [handleSettingToNetwork]
   );
 
   const handleToWalletSelection = useCallback(
     async (event: WalletChangeEvent) => {
-      if (fromWallet?.providerDetail.info.rdns === event.providerDetail.info.rdns) {
+      if (
+        fromWallet?.providerDetail.info.rdns === event.providerDetail.info.rdns
+      ) {
         // if same from wallet and to wallet, just use the existing fromWalletLocalWeb3Provider
         setToWalletWeb3Provider(fromWalletWeb3Provider);
         setToWallet(event);
@@ -307,9 +333,9 @@ export function WalletAndNetworkSelector() {
 
         track({
           userJourney: UserJourney.BRIDGE,
-          screen: 'WalletAndNetwork',
-          control: 'ToWallet',
-          controlType: 'Select',
+          screen: "WalletAndNetwork",
+          control: "ToWallet",
+          controlType: "Select",
           extras: {
             walletAddress: address.toLowerCase(),
           },
@@ -320,7 +346,11 @@ export function WalletAndNetworkSelector() {
       try {
         setToWallet(event);
         const web3Provider = new Web3Provider(event.provider as any);
-        const connectedProvider = await connectToProvider(checkout, web3Provider, false);
+        const connectedProvider = await connectToProvider(
+          checkout,
+          web3Provider,
+          false
+        );
 
         if (isWalletConnectProvider(connectedProvider)) {
           handleWalletConnectToWalletConnection(connectedProvider);
@@ -332,9 +362,9 @@ export function WalletAndNetworkSelector() {
 
           track({
             userJourney: UserJourney.BRIDGE,
-            screen: 'WalletAndNetwork',
-            control: 'ToWallet',
-            controlType: 'Select',
+            screen: "WalletAndNetwork",
+            control: "ToWallet",
+            controlType: "Select",
             extras: {
               walletAddress: address.toLowerCase(),
             },
@@ -350,16 +380,17 @@ export function WalletAndNetworkSelector() {
       fromWalletWeb3Provider,
       handleSettingToNetwork,
       handleWalletConnectToWalletConnection,
-    ],
+    ]
   );
 
   const handleSubmitDetails = useCallback(() => {
     if (
-      !fromWalletWeb3Provider
-      || !fromNetwork
-      || !toWalletWeb3Provider
-      || !toNetwork
-    ) return;
+      !fromWalletWeb3Provider ||
+      !fromNetwork ||
+      !toWalletWeb3Provider ||
+      !toNetwork
+    )
+      return;
 
     bridgeDispatch({
       payload: {
@@ -395,9 +426,9 @@ export function WalletAndNetworkSelector() {
 
     track({
       userJourney: UserJourney.BRIDGE,
-      screen: 'WalletAndNetwork',
-      control: 'Next',
-      controlType: 'Button',
+      screen: "WalletAndNetwork",
+      control: "Next",
+      controlType: "Button",
       extras: {
         fromWalletAddress,
         fromNetwork,
@@ -417,7 +448,8 @@ export function WalletAndNetworkSelector() {
           isPassportWallet: isPassportProvider(toWalletWeb3Provider),
           isMetaMask: isMetaMaskProvider(toWalletWeb3Provider),
         },
-        moveType: fromNetwork && fromNetwork === toNetwork ? 'transfer' : 'bridge',
+        moveType:
+          fromNetwork && fromNetwork === toNetwork ? "transfer" : "bridge",
       },
     });
 
@@ -446,21 +478,21 @@ export function WalletAndNetworkSelector() {
         weight="regular"
         sx={bridgeHeadingStyles}
       >
-        {t('views.WALLET_NETWORK_SELECTION.heading')}
+        {t("views.WALLET_NETWORK_SELECTION.heading")}
       </Heading>
 
-      <Heading size="xSmall" sx={{ paddingBottom: 'base.spacing.x2' }}>
-        {t('views.WALLET_NETWORK_SELECTION.fromFormInput.heading')}
+      <Heading size="xSmall" sx={{ paddingBottom: "base.spacing.x2" }}>
+        {t("views.WALLET_NETWORK_SELECTION.fromFormInput.heading")}
       </Heading>
       {/* Show the from wallet target (select box) if no selections have been made yet */}
       <WalletDrawer
         testId={`${testId}-from`}
         drawerText={{
           heading: t(
-            'views.WALLET_NETWORK_SELECTION.fromFormInput.walletSelectorHeading',
+            "views.WALLET_NETWORK_SELECTION.fromFormInput.walletSelectorHeading"
           ),
           defaultText: t(
-            'views.WALLET_NETWORK_SELECTION.fromFormInput.selectDefaultText',
+            "views.WALLET_NETWORK_SELECTION.fromFormInput.selectDefaultText"
           ),
         }}
         showWalletSelectorTarget={!isFromWalletAndNetworkSelected}
@@ -474,9 +506,9 @@ export function WalletAndNetworkSelector() {
       {isFromWalletAndNetworkSelected && fromWalletProviderName && (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'base.spacing.x10',
+            display: "flex",
+            flexDirection: "column",
+            gap: "base.spacing.x10",
           }}
         >
           <WalletNetworkButton
@@ -486,7 +518,9 @@ export function WalletAndNetworkSelector() {
             walletName={fromWalletProviderName}
             walletAddress={abbreviateAddress(fromWalletAddress)}
             chainId={fromNetwork}
-            disableNetworkButton={fromWalletProviderName === WalletProviderName.PASSPORT.toString()}
+            disableNetworkButton={
+              fromWalletProviderName === WalletProviderName.PASSPORT.toString()
+            }
             onWalletClick={() => {
               // TODO: Force an account selection here
               setFromWalletDrawerOpen(true);
@@ -496,17 +530,17 @@ export function WalletAndNetworkSelector() {
           />
 
           <Box>
-            <Heading size="xSmall" sx={{ paddingBottom: 'base.spacing.x2' }}>
-              {t('views.WALLET_NETWORK_SELECTION.toFormInput.heading')}
+            <Heading size="xSmall" sx={{ paddingBottom: "base.spacing.x2" }}>
+              {t("views.WALLET_NETWORK_SELECTION.toFormInput.heading")}
             </Heading>
             <WalletDrawer
               testId={`${testId}-to`}
               drawerText={{
                 heading: t(
-                  'views.WALLET_NETWORK_SELECTION.toFormInput.walletSelectorHeading',
+                  "views.WALLET_NETWORK_SELECTION.toFormInput.walletSelectorHeading"
                 ),
                 defaultText: t(
-                  'views.WALLET_NETWORK_SELECTION.toFormInput.selectDefaultText',
+                  "views.WALLET_NETWORK_SELECTION.toFormInput.selectDefaultText"
                 ),
               }}
               showWalletSelectorTarget={!isToWalletAndNetworkSelected}
@@ -522,8 +556,9 @@ export function WalletAndNetworkSelector() {
       {/** From Network Selector, we programmatically open this so there is no target */}
       <Drawer
         headerBarTitle={t(
-          fromNetworkDrawerOpen ? 'views.WALLET_NETWORK_SELECTION.fromFormInput.networkSelectorHeading'
-            : 'views.WALLET_NETWORK_SELECTION.toFormInput.networkSelectorHeading',
+          fromNetworkDrawerOpen
+            ? "views.WALLET_NETWORK_SELECTION.fromFormInput.networkSelectorHeading"
+            : "views.WALLET_NETWORK_SELECTION.toFormInput.networkSelectorHeading"
         )}
         size="full"
         onCloseDrawer={() => {
@@ -535,22 +570,32 @@ export function WalletAndNetworkSelector() {
         }}
         visible={fromNetworkDrawerOpen || toNetworkDrawerOpen}
       >
-        <Drawer.Content sx={{ paddingX: 'base.spacing.x4' }}>
+        <Drawer.Content sx={{ paddingX: "base.spacing.x4" }}>
           <NetworkItem
             key={imtblZkEvmNetworkName}
             testId={testId}
             chainName={imtblZkEvmNetworkName}
-            onNetworkClick={fromNetworkDrawerOpen ? handleFromNetworkSelection : handleToNetworkSelection}
+            onNetworkClick={
+              fromNetworkDrawerOpen
+                ? handleFromNetworkSelection
+                : handleToNetworkSelection
+            }
             chainId={imtblZkEvmNetworkChainId}
             environment={environment}
           />
           {/** If selecting from network, show L1 option for everything but Passport */}
-          {(toNetworkDrawerOpen || fromWallet?.providerDetail.info.rdns !== WalletProviderRdns.PASSPORT) && (
+          {(toNetworkDrawerOpen ||
+            fromWallet?.providerDetail.info.rdns !==
+              WalletProviderRdns.PASSPORT) && (
             <NetworkItem
               key={l1NetworkName}
               testId={testId}
               chainName={l1NetworkName}
-              onNetworkClick={fromNetworkDrawerOpen ? handleFromNetworkSelection : handleToNetworkSelection}
+              onNetworkClick={
+                fromNetworkDrawerOpen
+                  ? handleFromNetworkSelection
+                  : handleToNetworkSelection
+              }
               chainId={l1NetworkChainId}
               environment={environment}
             />
@@ -563,9 +608,9 @@ export function WalletAndNetworkSelector() {
         <Box
           sx={{
             flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
           }}
         >
           <WalletNetworkButton
@@ -575,9 +620,11 @@ export function WalletAndNetworkSelector() {
             walletName={toWalletProviderName}
             walletAddress={abbreviateAddress(toWalletAddress)}
             chainId={toNetwork!}
-            disableNetworkButton={fromNetwork === l1NetworkChainId
-              || toWalletProviderName === WalletProviderName.PASSPORT.toString()
-              || fromWalletAddress === toWalletAddress}
+            disableNetworkButton={
+              fromNetwork === l1NetworkChainId ||
+              toWalletProviderName === WalletProviderName.PASSPORT.toString() ||
+              fromWalletAddress === toWalletAddress
+            }
             onWalletClick={() => {
               setToWalletDrawerOpen(true);
             }}
@@ -592,7 +639,7 @@ export function WalletAndNetworkSelector() {
               size="large"
               onClick={handleSubmitDetails}
             >
-              {t('views.WALLET_NETWORK_SELECTION.submitButton.text')}
+              {t("views.WALLET_NETWORK_SELECTION.submitButton.text")}
             </Button>
           </Box>
         </Box>

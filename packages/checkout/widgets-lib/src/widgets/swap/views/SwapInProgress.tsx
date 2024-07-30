@@ -1,16 +1,19 @@
-import { TransactionResponse } from '@ethersproject/providers';
-import { useContext, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { TransactionResponse } from "ethers";
+import { useContext, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ViewActions,
   ViewContext,
-} from '../../../context/view-context/ViewContext';
+} from "../../../context/view-context/ViewContext";
 import {
   PrefilledSwapForm,
   SwapWidgetViews,
-} from '../../../context/view-context/SwapViewContextTypes';
-import { LoadingView } from '../../../views/loading/LoadingView';
-import { UserJourney, useAnalytics } from '../../../context/analytics-provider/SegmentAnalyticsProvider';
+} from "../../../context/view-context/SwapViewContextTypes";
+import { LoadingView } from "../../../views/loading/LoadingView";
+import {
+  UserJourney,
+  useAnalytics,
+} from "../../../context/analytics-provider/SegmentAnalyticsProvider";
 
 interface SwapInProgressProps {
   transactionResponse: TransactionResponse;
@@ -29,7 +32,7 @@ export function SwapInProgress({
   useEffect(() => {
     page({
       userJourney: UserJourney.SWAP,
-      screen: 'SwapInProgress',
+      screen: "SwapInProgress",
       extras: {
         swapFormInfo: swapForm,
       },
@@ -40,6 +43,7 @@ export function SwapInProgress({
     (async () => {
       try {
         const receipt = await transactionResponse.wait();
+        if (!receipt) return;
 
         if (receipt.status === 1) {
           viewDispatch({
@@ -51,8 +55,8 @@ export function SwapInProgress({
                   fromTokenAddress: swapForm.fromTokenAddress,
                   fromAmount: swapForm.fromAmount,
                   toTokenAddress: swapForm.toTokenAddress,
-                  toAmount: swapForm.toAmount || '',
-                  transactionHash: receipt.transactionHash,
+                  toAmount: swapForm.toAmount || "",
+                  transactionHash: receipt.hash,
                 },
               },
             },
@@ -66,7 +70,7 @@ export function SwapInProgress({
             view: {
               type: SwapWidgetViews.FAIL,
               data: swapForm,
-              reason: 'Transaction failed',
+              reason: "Transaction failed",
             },
           },
         });
@@ -77,7 +81,7 @@ export function SwapInProgress({
             view: {
               type: SwapWidgetViews.FAIL,
               data: swapForm,
-              reason: 'Transaction failed',
+              reason: "Transaction failed",
             },
           },
         });
@@ -85,7 +89,5 @@ export function SwapInProgress({
     })();
   }, [transactionResponse]);
 
-  return (
-    <LoadingView loadingText={t('views.SWAP.IN_PROGRESS.loading.text')} />
-  );
+  return <LoadingView loadingText={t("views.SWAP.IN_PROGRESS.loading.text")} />;
 }

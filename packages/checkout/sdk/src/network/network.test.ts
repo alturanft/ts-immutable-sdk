@@ -1,14 +1,14 @@
 /*
  * @jest-environment jsdom
  */
-import { Web3Provider } from '@ethersproject/providers';
-import { Environment } from '@imtbl/config';
+import { BrowserProvider } from "ethers";
+import { Environment } from "@imtbl/config";
 import {
   getNetworkAllowList,
   getNetworkInfo,
   switchWalletNetwork,
-} from './network';
-import { HttpClient } from '../api/http';
+} from "./network";
+import { HttpClient } from "../api/http";
 import {
   ChainId,
   WalletProviderName,
@@ -16,15 +16,17 @@ import {
   NetworkFilterTypes,
   ChainName,
   NetworkInfo,
-} from '../types';
-import { createProvider } from '../provider';
-import { CheckoutError, CheckoutErrorType } from '../errors';
-import { CheckoutConfiguration } from '../config';
-import { RemoteConfigFetcher } from '../config/remoteConfigFetcher';
-import { getUnderlyingChainId } from '../provider/getUnderlyingProvider';
+} from "../types";
+import { createProvider } from "../provider";
+import { CheckoutError, CheckoutErrorType } from "../errors";
+import { CheckoutConfiguration } from "../config";
+import { RemoteConfigFetcher } from "../config/remoteConfigFetcher";
+import { getUnderlyingChainId } from "../provider/getUnderlyingProvider";
 import {
-  PRODUCTION_CHAIN_ID_NETWORK_MAP, SANDBOX_CHAIN_ID_NETWORK_MAP, ZKEVM_NATIVE_SANDBOX_TOKEN,
-} from '../env';
+  PRODUCTION_CHAIN_ID_NETWORK_MAP,
+  SANDBOX_CHAIN_ID_NETWORK_MAP,
+  ZKEVM_NATIVE_SANDBOX_TOKEN,
+} from "../env";
 
 let windowSpy: any;
 const providerMock = {
@@ -39,7 +41,7 @@ const ethNetworkInfo = {
   chainId: ChainId.ETHEREUM,
   nativeCurrency: {
     name: ChainName.ETHEREUM,
-    symbol: 'ETH',
+    symbol: "ETH",
     decimals: 18,
   },
 };
@@ -49,28 +51,28 @@ const zkevmNetworkInfo = {
   nativeCurrency: ZKEVM_NATIVE_SANDBOX_TOKEN,
 };
 
-jest.mock('../api/http', () => ({
+jest.mock("../api/http", () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
   HttpClient: jest.fn().mockImplementation(() => ({
     get: jest.fn(),
   })),
 }));
 
-jest.mock('@ethersproject/providers', () => ({
+jest.mock("@ethersproject/providers", () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
   Web3Provider: jest.fn(),
 }));
 
-jest.mock('../config/remoteConfigFetcher');
+jest.mock("../config/remoteConfigFetcher");
 
-jest.mock('../provider/getUnderlyingProvider');
+jest.mock("../provider/getUnderlyingProvider");
 
-describe('network functions', () => {
+describe("network functions", () => {
   let testCheckoutConfiguration: CheckoutConfiguration;
   let mockedHttpClient: jest.Mocked<HttpClient>;
 
   beforeEach(() => {
-    windowSpy = jest.spyOn(window, 'window', 'get');
+    windowSpy = jest.spyOn(window, "window", "get");
     windowSpy.mockImplementation(() => ({
       ethereum: {
         request: jest.fn(),
@@ -95,9 +97,12 @@ describe('network functions', () => {
       ]),
     });
 
-    testCheckoutConfiguration = new CheckoutConfiguration({
-      baseConfig: { environment: Environment.SANDBOX },
-    }, mockedHttpClient);
+    testCheckoutConfiguration = new CheckoutConfiguration(
+      {
+        baseConfig: { environment: Environment.SANDBOX },
+      },
+      mockedHttpClient
+    );
   });
 
   afterEach(() => {
@@ -105,8 +110,8 @@ describe('network functions', () => {
     jest.clearAllMocks();
   });
 
-  describe('switchWalletNetwork()', () => {
-    it('should make request for the user to switch network', async () => {
+  describe("switchWalletNetwork()", () => {
+    it("should make request for the user to switch network", async () => {
       (Web3Provider as unknown as jest.Mock).mockReturnValue({
         provider: providerMock,
         getNetwork: async () => ethNetworkInfo,
@@ -116,18 +121,22 @@ describe('network functions', () => {
       const { provider } = await createProvider(WalletProviderName.METAMASK);
 
       const switchNetworkResult = await switchWalletNetwork(
-        new CheckoutConfiguration({
-          baseConfig: { environment: Environment.PRODUCTION },
-        }, mockedHttpClient),
+        new CheckoutConfiguration(
+          {
+            baseConfig: { environment: Environment.PRODUCTION },
+          },
+          mockedHttpClient
+        ),
         provider,
-        ChainId.ETHEREUM,
+        ChainId.ETHEREUM
       );
 
       expect(provider.provider.request).toBeCalledWith({
         method: WalletAction.SWITCH_NETWORK,
         params: [
           {
-            chainId: PRODUCTION_CHAIN_ID_NETWORK_MAP.get(ChainId.ETHEREUM)!.chainIdHex,
+            chainId: PRODUCTION_CHAIN_ID_NETWORK_MAP.get(ChainId.ETHEREUM)!
+              .chainIdHex,
           },
         ],
       });
@@ -137,13 +146,13 @@ describe('network functions', () => {
         isSupported: true,
         nativeCurrency: {
           name: ChainName.ETHEREUM,
-          symbol: 'ETH',
+          symbol: "ETH",
           decimals: 18,
         },
       });
     });
 
-    it('should make request for the user to switch network zkevm', async () => {
+    it("should make request for the user to switch network zkevm", async () => {
       (Web3Provider as unknown as jest.Mock)
         .mockReturnValueOnce({
           provider: providerMock,
@@ -167,7 +176,7 @@ describe('network functions', () => {
       const switchNetworkResult = await switchWalletNetwork(
         testCheckoutConfiguration,
         provider,
-        ChainId.IMTBL_ZKEVM_TESTNET,
+        ChainId.IMTBL_ZKEVM_TESTNET
       );
 
       expect(provider.provider.request).toBeCalledWith({
@@ -175,7 +184,7 @@ describe('network functions', () => {
         params: [
           {
             chainId: testCheckoutConfiguration.networkMap.get(
-              ChainId.IMTBL_ZKEVM_TESTNET,
+              ChainId.IMTBL_ZKEVM_TESTNET
             )?.chainIdHex,
           },
         ],
@@ -185,7 +194,7 @@ describe('network functions', () => {
       expect(switchNetworkResult.network).toEqual(copyZkevmNetworkInfo);
     });
 
-    it('should throw an error if the network is not in our whitelist', async () => {
+    it("should throw an error if the network is not in our whitelist", async () => {
       (Web3Provider as unknown as jest.Mock).mockReturnValueOnce({
         provider: providerMock,
         getNetwork: async () => ethNetworkInfo,
@@ -197,16 +206,16 @@ describe('network functions', () => {
       const { provider } = await createProvider(WalletProviderName.METAMASK);
 
       await expect(
-        switchWalletNetwork(testCheckoutConfiguration, provider, 56 as ChainId),
+        switchWalletNetwork(testCheckoutConfiguration, provider, 56 as ChainId)
       ).rejects.toThrow(
         new CheckoutError(
-          'Chain:56 is not a supported chain',
-          CheckoutErrorType.CHAIN_NOT_SUPPORTED_ERROR,
-        ),
+          "Chain:56 is not a supported chain",
+          CheckoutErrorType.CHAIN_NOT_SUPPORTED_ERROR
+        )
       );
     });
 
-    it('should throw an error if the user rejects the switch network request', async () => {
+    it("should throw an error if the user rejects the switch network request", async () => {
       (Web3Provider as unknown as jest.Mock).mockReturnValue({
         provider: providerMock,
         getNetwork: async () => ethNetworkInfo,
@@ -217,12 +226,9 @@ describe('network functions', () => {
 
       windowSpy.mockImplementation(() => ({
         ethereum: {
-          request: jest
-            .fn()
-            .mockResolvedValueOnce({})
-            .mockRejectedValue({
-              message: 'Provider error',
-            }),
+          request: jest.fn().mockResolvedValueOnce({}).mockRejectedValue({
+            message: "Provider error",
+          }),
         },
         removeEventListener: () => {},
       }));
@@ -233,23 +239,21 @@ describe('network functions', () => {
         await switchWalletNetwork(
           testCheckoutConfiguration,
           provider,
-          ChainId.IMTBL_ZKEVM_TESTNET,
+          ChainId.IMTBL_ZKEVM_TESTNET
         );
       } catch (err: any) {
-        expect(err.message).toEqual('User cancelled switch network request');
+        expect(err.message).toEqual("User cancelled switch network request");
         expect(err.type).toEqual(CheckoutErrorType.USER_REJECTED_REQUEST_ERROR);
       }
     });
 
-    it('should throw an error if the user rejects the add network request', async () => {
+    it("should throw an error if the user rejects the add network request", async () => {
       (Web3Provider as unknown as jest.Mock).mockReturnValue({
         provider: {
-          request: jest
-            .fn()
-            .mockRejectedValue({
-              message: 'Provider error',
-              code: 4902,
-            }),
+          request: jest.fn().mockRejectedValue({
+            message: "Provider error",
+            code: 4902,
+          }),
         },
         getNetwork: async () => ethNetworkInfo,
         network: {
@@ -263,23 +267,21 @@ describe('network functions', () => {
         await switchWalletNetwork(
           testCheckoutConfiguration,
           provider,
-          ChainId.IMTBL_ZKEVM_TESTNET,
+          ChainId.IMTBL_ZKEVM_TESTNET
         );
       } catch (err: any) {
-        expect(err.message).toEqual('User cancelled add network request');
+        expect(err.message).toEqual("User cancelled add network request");
         expect(err.type).toEqual(CheckoutErrorType.USER_REJECTED_REQUEST_ERROR);
       }
     });
 
-    it('should throw an error if user rejects request and non-4902 code', async () => {
+    it("should throw an error if user rejects request and non-4902 code", async () => {
       (Web3Provider as unknown as jest.Mock).mockReturnValue({
         provider: {
-          request: jest
-            .fn()
-            .mockRejectedValue({
-              message: 'Provider error',
-              code: 4000,
-            }),
+          request: jest.fn().mockRejectedValue({
+            message: "Provider error",
+            code: 4000,
+          }),
         },
         getNetwork: async () => ethNetworkInfo,
         network: {
@@ -293,15 +295,15 @@ describe('network functions', () => {
         await switchWalletNetwork(
           testCheckoutConfiguration,
           provider,
-          ChainId.IMTBL_ZKEVM_TESTNET,
+          ChainId.IMTBL_ZKEVM_TESTNET
         );
       } catch (err: any) {
-        expect(err.message).toEqual('User cancelled switch network request');
+        expect(err.message).toEqual("User cancelled switch network request");
         expect(err.type).toEqual(CheckoutErrorType.USER_REJECTED_REQUEST_ERROR);
       }
     });
 
-    it('should request the user to add a new network if their wallet does not already have it', async () => {
+    it("should request the user to add a new network if their wallet does not already have it", async () => {
       (Web3Provider as unknown as jest.Mock)
         .mockReturnValueOnce({
           provider: {
@@ -329,7 +331,7 @@ describe('network functions', () => {
       await switchWalletNetwork(
         testCheckoutConfiguration,
         provider,
-        ChainId.IMTBL_ZKEVM_TESTNET,
+        ChainId.IMTBL_ZKEVM_TESTNET
       );
 
       expect(provider.provider.request).toHaveBeenCalledWith({
@@ -337,40 +339,42 @@ describe('network functions', () => {
         params: [
           {
             chainId: testCheckoutConfiguration.networkMap.get(
-              ChainId.IMTBL_ZKEVM_TESTNET,
+              ChainId.IMTBL_ZKEVM_TESTNET
             )?.chainIdHex,
             chainName: testCheckoutConfiguration.networkMap.get(
-              ChainId.IMTBL_ZKEVM_TESTNET,
+              ChainId.IMTBL_ZKEVM_TESTNET
             )?.chainName,
             rpcUrls: testCheckoutConfiguration.networkMap.get(
-              ChainId.IMTBL_ZKEVM_TESTNET,
+              ChainId.IMTBL_ZKEVM_TESTNET
             )?.rpcUrls,
             nativeCurrency: testCheckoutConfiguration.networkMap.get(
-              ChainId.IMTBL_ZKEVM_TESTNET,
+              ChainId.IMTBL_ZKEVM_TESTNET
             )?.nativeCurrency,
             blockExplorerUrls: testCheckoutConfiguration.networkMap.get(
-              ChainId.IMTBL_ZKEVM_TESTNET,
+              ChainId.IMTBL_ZKEVM_TESTNET
             )?.blockExplorerUrls,
           },
         ],
       });
     });
 
-    it('should throw an error when switch network is called with a passport provider', async () => {
+    it("should throw an error when switch network is called with a passport provider", async () => {
       try {
         await switchWalletNetwork(
           testCheckoutConfiguration,
           { provider: passportProviderMock } as unknown as Web3Provider,
-          ChainId.SEPOLIA,
+          ChainId.SEPOLIA
         );
       } catch (err: any) {
-        expect(err.message).toBe('Switching networks with Passport provider is not supported');
+        expect(err.message).toBe(
+          "Switching networks with Passport provider is not supported"
+        );
         expect(err.type).toBe(CheckoutErrorType.SWITCH_NETWORK_UNSUPPORTED);
       }
     });
   });
 
-  describe('getNetworkInfo', () => {
+  describe("getNetworkInfo", () => {
     const getNetworkTestCases = [
       {
         chainId: ChainId.SEPOLIA,
@@ -393,44 +397,44 @@ describe('network functions', () => {
         };
         const result = await getNetworkInfo(
           testCheckoutConfiguration,
-          mockProvider as unknown as Web3Provider,
+          mockProvider as unknown as Web3Provider
         );
         expect(result.name).toBe(
-          SANDBOX_CHAIN_ID_NETWORK_MAP.get(testCase.chainId)?.chainName,
+          SANDBOX_CHAIN_ID_NETWORK_MAP.get(testCase.chainId)?.chainName
         );
         expect(result.chainId).toBe(
           parseInt(
-            SANDBOX_CHAIN_ID_NETWORK_MAP.get(testCase.chainId)?.chainIdHex
-              ?? '',
-            16,
-          ),
+            SANDBOX_CHAIN_ID_NETWORK_MAP.get(testCase.chainId)?.chainIdHex ??
+              "",
+            16
+          )
         );
         expect(result.nativeCurrency).toEqual(
-          SANDBOX_CHAIN_ID_NETWORK_MAP.get(testCase.chainId)?.nativeCurrency,
+          SANDBOX_CHAIN_ID_NETWORK_MAP.get(testCase.chainId)?.nativeCurrency
         );
       });
     });
 
-    it('should return basic details for an unsupported network', async () => {
+    it("should return basic details for an unsupported network", async () => {
       const getNetworkMock = jest.fn().mockResolvedValue({
         chainId: 3,
-        name: 'ropsten',
+        name: "ropsten",
       });
       const mockProvider = {
         getNetwork: getNetworkMock,
       };
       const result = await getNetworkInfo(
         testCheckoutConfiguration,
-        mockProvider as unknown as Web3Provider,
+        mockProvider as unknown as Web3Provider
       );
       expect(result).toEqual({
         chainId: 3,
-        name: 'ropsten',
+        name: "ropsten",
         isSupported: false,
       });
     });
 
-    it('should get underlying chain id if get network errors', async () => {
+    it("should get underlying chain id if get network errors", async () => {
       const getNetworkMock = jest.fn().mockRejectedValue({});
       const mockProvider = {
         getNetwork: getNetworkMock,
@@ -440,7 +444,7 @@ describe('network functions', () => {
 
       const result = await getNetworkInfo(
         testCheckoutConfiguration,
-        mockProvider as unknown as Web3Provider,
+        mockProvider as unknown as Web3Provider
       );
 
       expect(result).toEqual({
@@ -450,27 +454,36 @@ describe('network functions', () => {
     });
   });
 
-  describe('getNetworkAllowList()', () => {
-    it('should return an empty list if no configuration is provided', async () => {
+  describe("getNetworkAllowList()", () => {
+    it("should return an empty list if no configuration is provided", async () => {
       (RemoteConfigFetcher as unknown as jest.Mock).mockReturnValue({
         getConfig: jest.fn().mockResolvedValue(undefined),
       });
 
-      const emptyCheckoutConfiguration = new CheckoutConfiguration({
-        baseConfig: { environment: Environment.SANDBOX },
-      }, mockedHttpClient);
-      const allowListResult = await getNetworkAllowList(emptyCheckoutConfiguration, {
-        type: NetworkFilterTypes.ALL,
-      });
+      const emptyCheckoutConfiguration = new CheckoutConfiguration(
+        {
+          baseConfig: { environment: Environment.SANDBOX },
+        },
+        mockedHttpClient
+      );
+      const allowListResult = await getNetworkAllowList(
+        emptyCheckoutConfiguration,
+        {
+          type: NetworkFilterTypes.ALL,
+        }
+      );
       expect(allowListResult).toEqual({
         networks: [],
       });
     });
 
-    it('should return all the networks if no exclude filter is provided', async () => {
-      const allowListResult = await getNetworkAllowList(testCheckoutConfiguration, {
-        type: NetworkFilterTypes.ALL,
-      });
+    it("should return all the networks if no exclude filter is provided", async () => {
+      const allowListResult = await getNetworkAllowList(
+        testCheckoutConfiguration,
+        {
+          type: NetworkFilterTypes.ALL,
+        }
+      );
       expect(allowListResult).toEqual({
         networks: [
           {
@@ -478,8 +491,8 @@ describe('network functions', () => {
             chainId: ChainId.SEPOLIA,
             isSupported: true,
             nativeCurrency: {
-              name: 'Sep Eth',
-              symbol: 'ETH',
+              name: "Sep Eth",
+              symbol: "ETH",
               decimals: 18,
             },
           },
@@ -493,11 +506,14 @@ describe('network functions', () => {
       });
     });
 
-    it('should exclude the right networks if an exclude filter is provided', async () => {
-      const allowListResult = await getNetworkAllowList(testCheckoutConfiguration, {
-        type: NetworkFilterTypes.ALL,
-        exclude: [{ chainId: ChainId.IMTBL_ZKEVM_TESTNET }],
-      });
+    it("should exclude the right networks if an exclude filter is provided", async () => {
+      const allowListResult = await getNetworkAllowList(
+        testCheckoutConfiguration,
+        {
+          type: NetworkFilterTypes.ALL,
+          exclude: [{ chainId: ChainId.IMTBL_ZKEVM_TESTNET }],
+        }
+      );
       expect(allowListResult).toEqual({
         networks: [
           {
@@ -505,8 +521,8 @@ describe('network functions', () => {
             chainId: ChainId.SEPOLIA,
             isSupported: true,
             nativeCurrency: {
-              name: 'Sep Eth',
-              symbol: 'ETH',
+              name: "Sep Eth",
+              symbol: "ETH",
               decimals: 18,
             },
           },

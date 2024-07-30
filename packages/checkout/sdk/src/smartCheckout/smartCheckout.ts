@@ -1,4 +1,4 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 import {
   AvailableRoutingOptions,
   FulfillmentTransaction,
@@ -8,21 +8,25 @@ import {
   ItemType,
   RoutingOutcome,
   SmartCheckoutResult,
-} from '../types/smartCheckout';
-import { itemAggregator } from './aggregators';
-import { hasERC1155Allowances, hasERC20Allowances, hasERC721Allowances } from './allowance';
-import { balanceCheck } from './balanceCheck';
-import { CheckoutConfiguration } from '../config';
-import { allowanceAggregator } from './aggregators/allowanceAggregator';
-import { gasCalculator } from './gas';
-import { getAvailableRoutingOptions } from './routing';
-import { routingCalculator } from './routing/routingCalculator';
-import { Allowance } from './allowance/types';
-import { BalanceCheckResult, BalanceRequirement } from './balanceCheck/types';
-import { measureAsyncExecution } from '../logger/debugLogger';
+} from "../types/smartCheckout";
+import { itemAggregator } from "./aggregators";
+import {
+  hasERC1155Allowances,
+  hasERC20Allowances,
+  hasERC721Allowances,
+} from "./allowance";
+import { balanceCheck } from "./balanceCheck";
+import { CheckoutConfiguration } from "../config";
+import { allowanceAggregator } from "./aggregators/allowanceAggregator";
+import { gasCalculator } from "./gas";
+import { getAvailableRoutingOptions } from "./routing";
+import { routingCalculator } from "./routing/routingCalculator";
+import { Allowance } from "./allowance/types";
+import { BalanceCheckResult, BalanceRequirement } from "./balanceCheck/types";
+import { measureAsyncExecution } from "../logger/debugLogger";
 
 export const overrideBalanceCheckResult = (
-  balanceCheckResult: BalanceCheckResult,
+  balanceCheckResult: BalanceCheckResult
 ): BalanceCheckResult => {
   const modifiedRequirements = balanceCheckResult.balanceRequirements.map(
     (requirement) => {
@@ -37,7 +41,7 @@ export const overrideBalanceCheckResult = (
         };
       }
       return requirement;
-    },
+    }
   );
 
   return {
@@ -55,22 +59,23 @@ const processRoutes = async (
   balanceCheckResult: BalanceCheckResult,
   fundingRouteFullAmount: boolean,
   onComplete?: (result: SmartCheckoutResult) => void,
-  onFundingRoute?: (fundingRoute: FundingRoute) => void,
+  onFundingRoute?: (fundingRoute: FundingRoute) => void
 ): Promise<RoutingOutcome> => {
-  const finalBalanceCheckResult = !fundingRouteFullAmount || (sufficient && onComplete)
-    ? overrideBalanceCheckResult(balanceCheckResult)
-    : balanceCheckResult;
+  const finalBalanceCheckResult =
+    !fundingRouteFullAmount || (sufficient && onComplete)
+      ? overrideBalanceCheckResult(balanceCheckResult)
+      : balanceCheckResult;
 
   const routingOutcome = await measureAsyncExecution<RoutingOutcome>(
     config,
-    'Total time to run the routing calculator',
+    "Total time to run the routing calculator",
     routingCalculator(
       config,
       ownerAddress,
       finalBalanceCheckResult,
       availableRoutingOptions,
-      onFundingRoute,
-    ),
+      onFundingRoute
+    )
   );
 
   onComplete?.({
@@ -93,7 +98,7 @@ export const smartCheckout = async (
   routingOptions?: AvailableRoutingOptions,
   onComplete?: (result: SmartCheckoutResult) => void,
   onFundingRoute?: (fundingRoute: FundingRoute) => void,
-  fundingRouteFullAmount: boolean = false,
+  fundingRouteFullAmount: boolean = false
 ): Promise<SmartCheckoutResult> => {
   const ownerAddress = await provider.getSigner().getAddress();
 
@@ -102,31 +107,35 @@ export const smartCheckout = async (
   const erc20AllowancePromise = hasERC20Allowances(
     provider,
     ownerAddress,
-    aggregatedItems,
+    aggregatedItems
   );
   const erc721AllowancePromise = hasERC721Allowances(
     provider,
     ownerAddress,
-    aggregatedItems,
+    aggregatedItems
   );
   const erc1155AllowancePromise = hasERC1155Allowances(
     provider,
     ownerAddress,
-    aggregatedItems,
+    aggregatedItems
   );
 
   const resolvedAllowances = await measureAsyncExecution<
-  { sufficient: boolean; allowances: Allowance[] }[]
+    { sufficient: boolean; allowances: Allowance[] }[]
   >(
     config,
-    'Time to calculate token allowances',
-    Promise.all([erc20AllowancePromise, erc721AllowancePromise, erc1155AllowancePromise]),
+    "Time to calculate token allowances",
+    Promise.all([
+      erc20AllowancePromise,
+      erc721AllowancePromise,
+      erc1155AllowancePromise,
+    ])
   );
 
   const aggregatedAllowances = allowanceAggregator(
     resolvedAllowances[0],
     resolvedAllowances[1],
-    resolvedAllowances[2],
+    resolvedAllowances[2]
   );
 
   // Skip gas calculation if transactionOrGasAmount is not provided
@@ -134,8 +143,8 @@ export const smartCheckout = async (
   if (transactionOrGasAmount) {
     gasItem = await measureAsyncExecution<ItemRequirement | null>(
       config,
-      'Time to run gas calculator',
-      gasCalculator(provider, aggregatedAllowances, transactionOrGasAmount),
+      "Time to run gas calculator",
+      gasCalculator(provider, aggregatedAllowances, transactionOrGasAmount)
     );
     if (gasItem !== null) {
       aggregatedItems.push(gasItem);
@@ -145,18 +154,19 @@ export const smartCheckout = async (
 
   const balanceCheckResult = await measureAsyncExecution<BalanceCheckResult>(
     config,
-    'Time to run balance checks',
-    balanceCheck(config, provider, ownerAddress, aggregatedItems, true),
+    "Time to run balance checks",
+    balanceCheck(config, provider, ownerAddress, aggregatedItems, true)
   );
 
   const { sufficient } = balanceCheckResult;
   const transactionRequirements = balanceCheckResult.balanceRequirements;
 
-  const availableRoutingOptions = await measureAsyncExecution<AvailableRoutingOptions>(
-    config,
-    'Time to fetch available routing options',
-    getAvailableRoutingOptions(config, provider),
-  );
+  const availableRoutingOptions =
+    await measureAsyncExecution<AvailableRoutingOptions>(
+      config,
+      "Time to fetch available routing options",
+      getAvailableRoutingOptions(config, provider)
+    );
   if (routingOptions?.onRamp === false) availableRoutingOptions.onRamp = false;
   if (routingOptions?.swap === false) availableRoutingOptions.swap = false;
   if (routingOptions?.bridge === false) availableRoutingOptions.bridge = false;
@@ -171,7 +181,7 @@ export const smartCheckout = async (
       balanceCheckResult,
       fundingRouteFullAmount,
       onComplete,
-      onFundingRoute,
+      onFundingRoute
     );
     return {
       sufficient,
@@ -195,7 +205,7 @@ export const smartCheckout = async (
     balanceCheckResult,
     fundingRouteFullAmount,
     onComplete,
-    onFundingRoute,
+    onFundingRoute
   );
 
   return {

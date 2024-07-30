@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { EIP6963ProviderDetail, WalletProviderName } from '@imtbl/checkout-sdk';
+import { BrowserProvider } from "ethers";
+import { EIP6963ProviderDetail, WalletProviderName } from "@imtbl/checkout-sdk";
 
 export function isPassportProvider(provider?: Web3Provider | null) {
   return (provider?.provider as any)?.isPassport === true;
@@ -15,34 +15,38 @@ export function isWalletConnectProvider(provider?: Web3Provider | null) {
 
 export function getWalletProviderNameByProvider(
   web3Provider: Web3Provider | undefined,
-  providers?: EIP6963ProviderDetail[],
+  providers?: EIP6963ProviderDetail[]
 ) {
-  if (isMetaMaskProvider(web3Provider)) return WalletProviderName.METAMASK.toString();
-  if (isPassportProvider(web3Provider)) return WalletProviderName.PASSPORT.toString();
-  if (isWalletConnectProvider(web3Provider)) return 'walletconnect';
+  if (isMetaMaskProvider(web3Provider))
+    return WalletProviderName.METAMASK.toString();
+  if (isPassportProvider(web3Provider))
+    return WalletProviderName.PASSPORT.toString();
+  if (isWalletConnectProvider(web3Provider)) return "walletconnect";
 
   if (providers && web3Provider) {
     // Find the matching provider in the providerDetail
-    const matchedProviderDetail = providers.find((providerDetail) => providerDetail.provider === web3Provider.provider);
+    const matchedProviderDetail = providers.find(
+      (providerDetail) => providerDetail.provider === web3Provider.provider
+    );
     if (matchedProviderDetail) {
       return matchedProviderDetail.info.name;
     }
   }
 
-  return 'Other';
+  return "Other";
 }
 
 export function getProviderSlugFromRdns(rdns: string) {
-  let providerSlug = '';
+  let providerSlug = "";
   switch (rdns) {
-    case 'com.immutable.passport':
-      providerSlug = 'passport';
+    case "com.immutable.passport":
+      providerSlug = "passport";
       break;
-    case 'io.metamask':
-      providerSlug = 'metamask';
+    case "io.metamask":
+      providerSlug = "metamask";
       break;
-    case 'com.coinbase.wallet':
-      providerSlug = 'coinbase-wallet';
+    case "com.coinbase.wallet":
+      providerSlug = "coinbase-wallet";
       break;
     default:
       providerSlug = rdns;

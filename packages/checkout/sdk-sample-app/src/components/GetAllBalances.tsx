@@ -1,9 +1,9 @@
-import { ChainId, Checkout, GetBalanceResult } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import LoadingButton from './LoadingButton';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage, WarningMessage } from './messages';
-import { Box } from '@biom3/react';
+import { ChainId, Checkout, GetBalanceResult } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import LoadingButton from "./LoadingButton";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage, WarningMessage } from "./messages";
+import { Box } from "@biom3/react";
 
 interface BalanceProps {
   checkout: Checkout | undefined;
@@ -19,11 +19,11 @@ export default function GetAllBalances(props: BalanceProps) {
 
   async function getAllBalances() {
     if (!checkout) {
-      console.error('missing checkout, please connect frist');
+      console.error("missing checkout, please connect frist");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect frist');
+      console.error("missing provider, please connect frist");
       return;
     }
     setError(null);
@@ -59,7 +59,7 @@ export default function GetAllBalances(props: BalanceProps) {
       {!provider && <WarningMessage>Not connected.</WarningMessage>}
       <Box
         sx={{
-          marginTop: 'base.spacing.x4',
+          marginTop: "base.spacing.x4",
         }}
       >
         <LoadingButton onClick={getAllBalances} loading={loading}>
@@ -70,7 +70,7 @@ export default function GetAllBalances(props: BalanceProps) {
         <SuccessMessage>
           {result?.map((balance) => (
             <div key={balance.token.symbol}>
-              <Box>{balance.token.symbol + ' ' + balance.formattedBalance}</Box>
+              <Box>{balance.token.symbol + " " + balance.formattedBalance}</Box>
             </div>
           ))}
         </SuccessMessage>

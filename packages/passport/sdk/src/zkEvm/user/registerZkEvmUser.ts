@@ -1,22 +1,21 @@
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
-import { MultiRollupApiClients } from '@imtbl/generated-clients';
-import { signRaw } from '@imtbl/toolkit';
-import { Signer } from '@ethersproject/abstract-signer';
-import { Flow } from '@imtbl/metrics';
-import { getEip155ChainId } from '../walletHelpers';
-import AuthManager from '../../authManager';
-import { JsonRpcError, RpcErrorCode } from '../JsonRpcError';
+import { Signer, JsonRpcProvider } from "ethers";
+import { MultiRollupApiClients } from "@imtbl/generated-clients";
+import { signRaw } from "@imtbl/toolkit";
+import { Flow } from "@imtbl/metrics";
+import { getEip155ChainId } from "../walletHelpers";
+import AuthManager from "../../authManager";
+import { JsonRpcError, RpcErrorCode } from "../JsonRpcError";
 
 export type RegisterZkEvmUserInput = {
   authManager: AuthManager;
-  ethSigner: Signer,
-  multiRollupApiClients: MultiRollupApiClients,
+  ethSigner: Signer;
+  multiRollupApiClients: MultiRollupApiClients;
   accessToken: string;
-  rpcProvider: StaticJsonRpcProvider;
+  rpcProvider: JsonRpcProvider;
   flow: Flow;
 };
 
-const MESSAGE_TO_SIGN = 'Only sign this message from Immutable Passport';
+const MESSAGE_TO_SIGN = "Only sign this message from Immutable Passport";
 
 export async function registerZkEvmUser({
   authManager,
@@ -28,49 +27,59 @@ export async function registerZkEvmUser({
 }: RegisterZkEvmUserInput): Promise<string> {
   // Parallelize the operations that can happen concurrently
   const getAddressPromise = ethSigner.getAddress();
-  getAddressPromise.then(() => flow.addEvent('endGetAddress'));
+  getAddressPromise.then(() => flow.addEvent("endGetAddress"));
 
   const signRawPromise = signRaw(MESSAGE_TO_SIGN, ethSigner);
-  signRawPromise.then(() => flow.addEvent('endSignRaw'));
+  signRawPromise.then(() => flow.addEvent("endSignRaw"));
 
-  const detectNetworkPromise = rpcProvider.detectNetwork();
-  detectNetworkPromise.then(() => flow.addEvent('endDetectNetwork'));
+  const detectNetworkPromise = rpcProvider._detectNetwork();
+  detectNetworkPromise.then(() => flow.addEvent("endDetectNetwork"));
 
   const listChainsPromise = multiRollupApiClients.chainsApi.listChains();
-  listChainsPromise.then(() => flow.addEvent('endListChains'));
+  listChainsPromise.then(() => flow.addEvent("endListChains"));
 
-  const [ethereumAddress, ethereumSignature, network, chainListResponse] = await Promise.all([
-    getAddressPromise,
-    signRawPromise,
-    detectNetworkPromise,
-    listChainsPromise,
-  ]);
+  const [ethereumAddress, ethereumSignature, network, chainListResponse] =
+    await Promise.all([
+      getAddressPromise,
+      signRawPromise,
+      detectNetworkPromise,
+      listChainsPromise,
+    ]);
 
   const eipChainId = getEip155ChainId(network.chainId);
-  const chainName = chainListResponse.data?.result?.find((chain) => chain.id === eipChainId)?.name;
+  const chainName = chainListResponse.data?.result?.find(
+    (chain) => chain.id === eipChainId
+  )?.name;
   if (!chainName) {
     throw new JsonRpcError(
       RpcErrorCode.INTERNAL_ERROR,
-      `Chain name does not exist on for chain id ${network.chainId}`,
+      `Chain name does not exist on for chain id ${network.chainId}`
     );
   }
 
   try {
-    const registrationResponse = await multiRollupApiClients.passportApi.createCounterfactualAddressV2({
-      chainName,
-      createCounterfactualAddressRequest: {
-        ethereum_address: ethereumAddress,
-        ethereum_signature: ethereumSignature,
-      },
-    }, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    flow.addEvent('endCreateCounterfactualAddress');
+    const registrationResponse =
+      await multiRollupApiClients.passportApi.createCounterfactualAddressV2(
+        {
+          chainName,
+          createCounterfactualAddressRequest: {
+            ethereum_address: ethereumAddress,
+            ethereum_signature: ethereumSignature,
+          },
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+    flow.addEvent("endCreateCounterfactualAddress");
 
     authManager.forceUserRefreshInBackground();
 
     return registrationResponse.data.counterfactual_address;
   } catch (error) {
-    throw new JsonRpcError(RpcErrorCode.INTERNAL_ERROR, `Failed to create counterfactual address: ${error}`);
+    throw new JsonRpcError(
+      RpcErrorCode.INTERNAL_ERROR,
+      `Failed to create counterfactual address: ${error}`
+    );
   }
 }

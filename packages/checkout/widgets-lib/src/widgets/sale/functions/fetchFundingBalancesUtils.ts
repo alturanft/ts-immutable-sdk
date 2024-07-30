@@ -11,27 +11,27 @@ import {
   RoutingOutcomeType,
   FundingStepType,
   Fee,
-} from '@imtbl/checkout-sdk';
+} from "@imtbl/checkout-sdk";
 
-import { BigNumber } from 'ethers';
-import { Environment } from '@imtbl/config';
-import { Web3Provider } from '@ethersproject/providers';
-import { SwapFees } from '@imtbl/checkout-sdk/dist/types';
-import { getTokenImageByAddress, isNativeToken } from '../../../lib/utils';
-import { isGasFree } from '../../../lib/provider';
+import { BigNumber } from "ethers";
+import { Environment } from "@imtbl/config";
+import { BrowserProvider } from "ethers";
+import { SwapFees } from "@imtbl/checkout-sdk/dist/types";
+import { getTokenImageByAddress, isNativeToken } from "../../../lib/utils";
+import { isGasFree } from "../../../lib/provider";
 import {
   OrderQuoteCurrency,
   FundingBalance,
   FundingBalanceType,
   SufficientFundingStep,
-} from '../types';
+} from "../types";
 
-const MAX_GAS_LIMIT = '30000000';
+const MAX_GAS_LIMIT = "30000000";
 
 export const getERC20ItemRequirement = (
   amount: string,
   spenderAddress: string,
-  tokenAddress: string,
+  tokenAddress: string
 ): ERC20ItemRequirement[] => [
   {
     type: ItemType.ERC20,
@@ -51,7 +51,7 @@ export const getGasEstimate = (): GasAmount => ({
 
 export const wrapPromisesWithOnResolve = async <T>(
   awaitedFns: Promise<T>[],
-  onResolve: (value: T) => void,
+  onResolve: (value: T) => void
 ): Promise<T[]> => {
   const promises = awaitedFns.map(async (fn) => {
     const value = await fn;
@@ -67,11 +67,11 @@ const getTokenInfoFromRequirement = (req: TransactionRequirement) =>
 
 const getTokenInfo = (
   tokenInfo: TokenInfo,
-  environment: Environment,
+  environment: Environment
 ): TokenInfo => {
   const address = isNativeToken(tokenInfo.address)
     ? tokenInfo.symbol
-    : tokenInfo.address ?? '';
+    : tokenInfo.address ?? "";
 
   return {
     ...tokenInfo,
@@ -81,7 +81,7 @@ const getTokenInfo = (
 
 export const getSufficientFundingStep = (
   requirement: TransactionRequirement,
-  environment: Environment,
+  environment: Environment
 ): SufficientFundingStep => ({
   type: FundingBalanceType.SUFFICIENT,
   fundingItem: {
@@ -100,7 +100,7 @@ export const getSufficientFundingStep = (
 
 export const getAlternativeFundingSteps = (
   fundingRoutes: FundingRoute[],
-  environment: Environment,
+  environment: Environment
 ) => {
   if (fundingRoutes.length === 0) {
     return [];
@@ -109,7 +109,9 @@ export const getAlternativeFundingSteps = (
   const routes = fundingRoutes.filter((route) => route.steps.length === 1);
 
   const tokens = [ItemType.ERC20, ItemType.NATIVE];
-  const steps = routes.flatMap((route) => route.steps.filter((step) => tokens.includes(step.fundingItem.type)));
+  const steps = routes.flatMap((route) =>
+    route.steps.filter((step) => tokens.includes(step.fundingItem.type))
+  );
 
   return steps.map((step) => ({
     ...step,
@@ -122,11 +124,11 @@ export const getAlternativeFundingSteps = (
 
 export const getFundingBalances = (
   smartCheckoutResult: SmartCheckoutResult,
-  environment: Environment,
+  environment: Environment
 ): FundingBalance[] | null => {
   if (smartCheckoutResult.sufficient === true) {
     const erc20Req = smartCheckoutResult.transactionRequirements.find(
-      (req) => req.type === ItemType.ERC20,
+      (req) => req.type === ItemType.ERC20
     );
 
     if (erc20Req && erc20Req.type === ItemType.ERC20) {
@@ -135,57 +137,60 @@ export const getFundingBalances = (
   }
 
   if (
-    smartCheckoutResult.sufficient === false
-    && smartCheckoutResult?.router?.routingOutcome.type
-    === RoutingOutcomeType.ROUTES_FOUND
+    smartCheckoutResult.sufficient === false &&
+    smartCheckoutResult?.router?.routingOutcome.type ===
+      RoutingOutcomeType.ROUTES_FOUND
   ) {
     return getAlternativeFundingSteps(
       smartCheckoutResult.router.routingOutcome.fundingRoutes,
-      environment,
+      environment
     );
   }
 
   return null;
 };
 
-export const getFnToSortFundingBalancesByPriority = (baseSymbol?: string) => (a: FundingBalance, b: FundingBalance) => {
-  const aIsBase = a.fundingItem
-    && a.fundingItem.token
-    && a.fundingItem.token.symbol === baseSymbol
-    ? -1
-    : 0;
-  const bIsBase = b.fundingItem
-    && b.fundingItem.token
-    && b.fundingItem.token.symbol === baseSymbol
-    ? -1
-    : 0;
+export const getFnToSortFundingBalancesByPriority =
+  (baseSymbol?: string) => (a: FundingBalance, b: FundingBalance) => {
+    const aIsBase =
+      a.fundingItem &&
+      a.fundingItem.token &&
+      a.fundingItem.token.symbol === baseSymbol
+        ? -1
+        : 0;
+    const bIsBase =
+      b.fundingItem &&
+      b.fundingItem.token &&
+      b.fundingItem.token.symbol === baseSymbol
+        ? -1
+        : 0;
 
-  if (aIsBase !== bIsBase) {
-    return aIsBase - bIsBase;
-  }
+    if (aIsBase !== bIsBase) {
+      return aIsBase - bIsBase;
+    }
 
-  if (
-    a.type === FundingBalanceType.SUFFICIENT
-    && b.type === FundingBalanceType.SUFFICIENT
-  ) {
+    if (
+      a.type === FundingBalanceType.SUFFICIENT &&
+      b.type === FundingBalanceType.SUFFICIENT
+    ) {
+      return 0;
+    }
+    if (a.type === FundingBalanceType.SUFFICIENT) {
+      return -1;
+    }
+    if (b.type === FundingBalanceType.SUFFICIENT) {
+      return 1;
+    }
+
     return 0;
-  }
-  if (a.type === FundingBalanceType.SUFFICIENT) {
-    return -1;
-  }
-  if (b.type === FundingBalanceType.SUFFICIENT) {
-    return 1;
-  }
-
-  return 0;
-};
+  };
 
 export const getFnToPushAndSortFundingBalances = (
-  baseCurrency: OrderQuoteCurrency,
+  baseCurrency: OrderQuoteCurrency
 ): ((balances: FundingBalance[]) => FundingBalance[]) => {
   let currentBalances: FundingBalance[] = [];
   const sortByBaseAndPriority = getFnToSortFundingBalancesByPriority(
-    baseCurrency.name,
+    baseCurrency.name
   );
 
   return (newBalances: FundingBalance[]) => {
@@ -194,7 +199,7 @@ export const getFnToPushAndSortFundingBalances = (
     }
 
     currentBalances = Array.from(
-      new Set([...currentBalances, ...newBalances]),
+      new Set([...currentBalances, ...newBalances])
     ).sort(sortByBaseAndPriority);
 
     return currentBalances;
@@ -204,12 +209,12 @@ export const getFnToPushAndSortFundingBalances = (
 const getZeroFee = (fee: Fee): Fee => ({
   ...fee,
   amount: BigNumber.from(0),
-  formattedAmount: '0',
+  formattedAmount: "0",
 });
 
 const getGasFreeBalanceAdjustment = (
   balance: FundingBalance,
-  provider?: Web3Provider,
+  provider?: Web3Provider
 ): FundingBalance => {
   if (balance.type !== FundingStepType.SWAP) {
     return balance;
@@ -233,5 +238,5 @@ const getGasFreeBalanceAdjustment = (
 
 export const processGasFreeBalances = (
   balances: FundingBalance[],
-  provider?: Web3Provider,
+  provider?: Web3Provider
 ) => balances.map((balance) => getGasFreeBalanceAdjustment(balance, provider));

@@ -3,11 +3,11 @@ import {
   ImxModuleConfiguration,
   GenericIMXProvider,
   ProviderConfiguration,
-} from '@imtbl/sdk/x';
-import { parseUnits } from '@ethersproject/units';
-import { repeatCheck30, repeatCheck300 } from 'common';
-import { strict as assert } from 'assert';
-import { configuration, StepSharedState } from './stepSharedState';
+} from "@imtbl/sdk/x";
+import { parseUnits } from "ethers";
+import { repeatCheck30, repeatCheck300 } from "common";
+import { strict as assert } from "assert";
+import { configuration, StepSharedState } from "./stepSharedState";
 
 export class Withdrawal {
   constructor(protected stepSharedState: StepSharedState) {}
@@ -38,13 +38,20 @@ export class Withdrawal {
   public async prepareEthWithdrawal(
     userVar: string,
     withdrawalName: string,
-    ethAmount: string,
+    ethAmount: string
   ) {
     try {
       const user = this.stepSharedState.users[userVar];
-      const imxProvider = new GenericIMXProvider(this.providerConfig, user.ethSigner, user.starkSigner);
+      const imxProvider = new GenericIMXProvider(
+        this.providerConfig,
+        user.ethSigner,
+        user.starkSigner
+      );
       const ethAmountInWei = parseUnits(ethAmount);
-      const result = await imxProvider.prepareWithdrawal({ type: 'ETH', amount: ethAmountInWei.toString() });
+      const result = await imxProvider.prepareWithdrawal({
+        type: "ETH",
+        amount: ethAmountInWei.toString(),
+      });
 
       this.stepSharedState.withdrawals[withdrawalName] = result;
       return result;
@@ -76,10 +83,11 @@ export class Withdrawal {
   // )
   public async checkWithdrawableEthStatus(
     withdrawalName: string,
-    status: string,
+    status: string
   ) {
     const id = this.stepSharedState.withdrawals[withdrawalName].withdrawal_id!;
-    const repeatCheckFunction = status === 'withdrawable' ? repeatCheck300 : repeatCheck30;
+    const repeatCheckFunction =
+      status === "withdrawable" ? repeatCheck300 : repeatCheck30;
     const config: ImxModuleConfiguration = {
       baseConfig: { environment: configuration.environment },
     };
@@ -95,11 +103,19 @@ export class Withdrawal {
   public async completeEthWithdrawal(userVar: string) {
     const user = this.stepSharedState.users[userVar];
     const starkAddress = await user.starkSigner.getAddress();
-    const imxProvider = new GenericIMXProvider(this.providerConfig, user.ethSigner, user.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      user.ethSigner,
+      user.starkSigner
+    );
     try {
-      const result = await imxProvider.completeWithdrawal(starkAddress, { type: 'ETH' });
+      const result = await imxProvider.completeWithdrawal(starkAddress, {
+        type: "ETH",
+      });
       // eslint-disable-next-line no-console
-      console.log(`Eth withdrawal transaction complete. txHash: ${result.hash}`);
+      console.log(
+        `Eth withdrawal transaction complete. txHash: ${result.hash}`
+      );
     } catch (e) {
       console.error(e);
       throw e;
@@ -195,12 +211,12 @@ export class Withdrawal {
   //       },
   //     );
 
-//     console.log('Completed withdrawal for token');
-//     console.log({
-//       tokenAddress: tokenAddress!,
-//       tokenId: tokenId!,
-//       txHash: response.hash,
-//       withdrawalId: results[0].transaction_id,
-//     });
-//   }
+  //     console.log('Completed withdrawal for token');
+  //     console.log({
+  //       tokenAddress: tokenAddress!,
+  //       tokenId: tokenId!,
+  //       txHash: response.hash,
+  //       withdrawalId: results[0].transaction_id,
+  //     });
+  //   }
 }

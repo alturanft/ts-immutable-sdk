@@ -1,21 +1,21 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 
 /**
  * Enum representing the names of different wallet providers.
  */
 export enum WalletProviderName {
-  PASSPORT = 'passport',
-  METAMASK = 'metamask',
-  WALLETCONNECT = 'walletconnect',
+  PASSPORT = "passport",
+  METAMASK = "metamask",
+  WALLETCONNECT = "walletconnect",
 }
 
 /**
  * Enum representing the rdns of injected wallet providers.
  */
 export enum WalletProviderRdns {
-  PASSPORT = 'com.immutable.passport',
-  METAMASK = 'io.metamask',
-  WALLETCONNECT = 'walletconnect',
+  PASSPORT = "com.immutable.passport",
+  METAMASK = "io.metamask",
+  WALLETCONNECT = "walletconnect",
 }
 
 /**
@@ -33,8 +33,8 @@ export interface CreateProviderParams {
  * @property {WalletProviderName} walletProviderName - The wallet provider name of the provider that was created.
  */
 export type CreateProviderResult = {
-  provider: Web3Provider,
-  walletProviderName: WalletProviderName
+  provider: Web3Provider;
+  walletProviderName: WalletProviderName;
 };
 
 export type ValidateProviderOptions = {

@@ -1,7 +1,11 @@
 /* eslint-disable react/jsx-no-constructed-context-values */
 import React, {
-  useContext, useMemo, useEffect, useReducer, useCallback,
-} from 'react';
+  useContext,
+  useMemo,
+  useEffect,
+  useReducer,
+  useCallback,
+} from "react";
 import {
   ChainId,
   Checkout,
@@ -11,49 +15,65 @@ import {
   getMetaMaskProviderDetail,
   getPassportProviderDetail,
   WalletConnectManager as IWalletConnectManager,
-} from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { useTranslation } from 'react-i18next';
-import { isL1EthChainId, isZkEvmChainId } from '../../lib/utils';
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { useTranslation } from "react-i18next";
+import { isL1EthChainId, isZkEvmChainId } from "../../lib/utils";
 import {
   sendCloseWidgetEvent,
   sendConnectFailedEvent,
   sendConnectSuccessEvent,
   sendWalletConnectProviderUpdatedEvent,
-} from './connectWidgetEvents';
+} from "./connectWidgetEvents";
 import {
   ConnectActions,
   ConnectContext,
   connectReducer,
   initialConnectState,
-} from './context/ConnectContext';
-import { ConnectWidgetView, ConnectWidgetViews } from '../../context/view-context/ConnectViewContextTypes';
-import { ConnectWallet } from './views/ConnectWallet';
-import { SwitchNetworkZkEVM } from './views/SwitchNetworkZkEVM';
-import { LoadingView } from '../../views/loading/LoadingView';
-import { ConnectLoaderSuccess } from '../../components/ConnectLoader/ConnectLoaderSuccess';
+} from "./context/ConnectContext";
+import {
+  ConnectWidgetView,
+  ConnectWidgetViews,
+} from "../../context/view-context/ConnectViewContextTypes";
+import { ConnectWallet } from "./views/ConnectWallet";
+import { SwitchNetworkZkEVM } from "./views/SwitchNetworkZkEVM";
+import { LoadingView } from "../../views/loading/LoadingView";
+import { ConnectLoaderSuccess } from "../../components/ConnectLoader/ConnectLoaderSuccess";
 import {
   viewReducer,
   initialViewState,
   ViewActions,
   ViewContext,
   SharedViews,
-} from '../../context/view-context/ViewContext';
-import { StatusType } from '../../components/Status/StatusType';
-import { StatusView } from '../../components/Status/StatusView';
-import { StrongCheckoutWidgetsConfig } from '../../lib/withDefaultWidgetConfig';
-import { addProviderListenersForWidgetRoot, sendProviderUpdatedEvent } from '../../lib';
-import { SwitchNetworkEth } from './views/SwitchNetworkEth';
-import { ErrorView } from '../../views/error/ErrorView';
-import { EventTargetContext } from '../../context/event-target-context/EventTargetContext';
-import { UserJourney, useAnalytics } from '../../context/analytics-provider/SegmentAnalyticsProvider';
-import { identifyUser } from '../../lib/analytics/identifyUser';
-import { isMetaMaskProvider, isPassportProvider, isWalletConnectProvider } from '../../lib/provider';
-import { WalletConnectManager, walletConnectProviderInfo } from '../../lib/walletConnect';
-import { useWalletConnect } from '../../lib/hooks/useWalletConnect';
+} from "../../context/view-context/ViewContext";
+import { StatusType } from "../../components/Status/StatusType";
+import { StatusView } from "../../components/Status/StatusView";
+import { StrongCheckoutWidgetsConfig } from "../../lib/withDefaultWidgetConfig";
+import {
+  addProviderListenersForWidgetRoot,
+  sendProviderUpdatedEvent,
+} from "../../lib";
+import { SwitchNetworkEth } from "./views/SwitchNetworkEth";
+import { ErrorView } from "../../views/error/ErrorView";
+import { EventTargetContext } from "../../context/event-target-context/EventTargetContext";
+import {
+  UserJourney,
+  useAnalytics,
+} from "../../context/analytics-provider/SegmentAnalyticsProvider";
+import { identifyUser } from "../../lib/analytics/identifyUser";
+import {
+  isMetaMaskProvider,
+  isPassportProvider,
+  isWalletConnectProvider,
+} from "../../lib/provider";
+import {
+  WalletConnectManager,
+  walletConnectProviderInfo,
+} from "../../lib/walletConnect";
+import { useWalletConnect } from "../../lib/hooks/useWalletConnect";
 
 export type ConnectWidgetInputs = ConnectWidgetParams & {
-  config: StrongCheckoutWidgetsConfig
+  config: StrongCheckoutWidgetsConfig;
   deepLink?: ConnectWidgetViews;
   sendCloseEventOverride?: () => void;
   allowedChains?: ChainId[];
@@ -76,11 +96,16 @@ export default function ConnectWidget({
   const { environment } = config;
   const { isWalletConnectEnabled, ethereumProvider } = useWalletConnect();
 
-  const errorText = t('views.ERROR_VIEW.actionText');
+  const errorText = t("views.ERROR_VIEW.actionText");
 
-  const { eventTargetState: { eventTarget } } = useContext(EventTargetContext);
+  const {
+    eventTargetState: { eventTarget },
+  } = useContext(EventTargetContext);
 
-  const [connectState, connectDispatch] = useReducer(connectReducer, initialConnectState);
+  const [connectState, connectDispatch] = useReducer(
+    connectReducer,
+    initialConnectState
+  );
   const { sendCloseEvent, provider, walletProviderName } = connectState;
 
   const [viewState, viewDispatch] = useReducer(viewReducer, {
@@ -91,11 +116,11 @@ export default function ConnectWidget({
 
   const connectReducerValues = useMemo(
     () => ({ connectState, connectDispatch }),
-    [connectState, connectDispatch],
+    [connectState, connectDispatch]
   );
   const viewReducerValues = useMemo(
     () => ({ viewState, viewDispatch }),
-    [viewState, viewDispatch],
+    [viewState, viewDispatch]
   );
 
   const { identify, page } = useAnalytics();
@@ -137,7 +162,8 @@ export default function ConnectWidget({
     connectDispatch({
       payload: {
         type: ConnectActions.SET_SEND_CLOSE_EVENT,
-        sendCloseEvent: sendCloseEventOverride ?? (() => sendCloseWidgetEvent(eventTarget)),
+        sendCloseEvent:
+          sendCloseEventOverride ?? (() => sendCloseWidgetEvent(eventTarget)),
       },
     });
     viewDispatch({
@@ -160,7 +186,7 @@ export default function ConnectWidget({
       sendWalletConnectProviderUpdatedEvent(
         eventTarget,
         ethereumProvider,
-        WalletConnectManager.getInstance() as unknown as IWalletConnectManager,
+        WalletConnectManager.getInstance() as unknown as IWalletConnectManager
       );
     }
   }, [isWalletConnectEnabled, ethereumProvider]);
@@ -170,7 +196,7 @@ export default function ConnectWidget({
     // WT-1698 Analytics - Identify user here
     page({
       userJourney: UserJourney.CONNECT,
-      screen: 'ConnectSuccess',
+      screen: "ConnectSuccess",
     });
     // Set up EIP-1193 provider event listeners for widget root instances
     addProviderListenersForWidgetRoot(provider);
@@ -183,23 +209,32 @@ export default function ConnectWidget({
       walletProviderInfo = walletConnectProviderInfo;
     } else {
       const injectedProviderDetails = checkout.getInjectedProviders();
-      const walletProviderDetail = injectedProviderDetails.find((providerDetail) => (
-        providerDetail.provider === provider.provider
-      ));
+      const walletProviderDetail = injectedProviderDetails.find(
+        (providerDetail) => providerDetail.provider === provider.provider
+      );
       if (walletProviderDetail) {
         walletProviderInfo = walletProviderDetail.info;
       }
       if (!walletProviderInfo) {
         if (isPassportProvider(provider)) {
-          walletProviderInfo = getPassportProviderDetail(provider.provider as EIP1193Provider).info;
+          walletProviderInfo = getPassportProviderDetail(
+            provider.provider as EIP1193Provider
+          ).info;
         }
         if (isMetaMaskProvider(provider)) {
-          walletProviderInfo = getMetaMaskProviderDetail(provider.provider as EIP1193Provider).info;
+          walletProviderInfo = getMetaMaskProviderDetail(
+            provider.provider as EIP1193Provider
+          ).info;
         }
       }
     }
 
-    sendConnectSuccessEvent(eventTarget, provider, walletProviderName ?? undefined, walletProviderInfo);
+    sendConnectSuccessEvent(
+      eventTarget,
+      provider,
+      walletProviderName ?? undefined,
+      walletProviderInfo
+    );
   }, [provider, identify]);
 
   return (
@@ -217,17 +252,15 @@ export default function ConnectWidget({
               blocklistWalletRdns={blocklistWalletRdns}
             />
           )}
-          {view.type === ConnectWidgetViews.SWITCH_NETWORK && isZkEvmChainId(targetChain) && (
-            <SwitchNetworkZkEVM />
-          )}
-          {view.type === ConnectWidgetViews.SWITCH_NETWORK && isL1EthChainId(targetChain) && (
-            <SwitchNetworkEth />
-          )}
+          {view.type === ConnectWidgetViews.SWITCH_NETWORK &&
+            isZkEvmChainId(targetChain) && <SwitchNetworkZkEVM />}
+          {view.type === ConnectWidgetViews.SWITCH_NETWORK &&
+            isL1EthChainId(targetChain) && <SwitchNetworkEth />}
           {view.type === ConnectWidgetViews.SUCCESS && provider && (
             <ConnectLoaderSuccess>
               <StatusView
-                statusText={t('views.CONNECT_SUCCESS.status')}
-                actionText={t('views.CONNECT_SUCCESS.action')}
+                statusText={t("views.CONNECT_SUCCESS.status")}
+                actionText={t("views.CONNECT_SUCCESS.action")}
                 onActionClick={() => sendCloseEvent()}
                 onRenderEvent={handleConnectSuccess}
                 statusType={StatusType.SUCCESS}
@@ -235,24 +268,23 @@ export default function ConnectWidget({
               />
             </ConnectLoaderSuccess>
           )}
-          {((view.type === ConnectWidgetViews.SUCCESS && !provider)
-            || view.type === SharedViews.ERROR_VIEW)
-            && (
-              <ErrorView
-                actionText={errorText}
-                onActionClick={() => {
-                  viewDispatch({
-                    payload: {
-                      type: ViewActions.UPDATE_VIEW,
-                      view: {
-                        type: ConnectWidgetViews.CONNECT_WALLET,
-                      } as ConnectWidgetView,
-                    },
-                  });
-                }}
-                onCloseClick={() => sendCloseEvent()}
-              />
-            )}
+          {((view.type === ConnectWidgetViews.SUCCESS && !provider) ||
+            view.type === SharedViews.ERROR_VIEW) && (
+            <ErrorView
+              actionText={errorText}
+              onActionClick={() => {
+                viewDispatch({
+                  payload: {
+                    type: ViewActions.UPDATE_VIEW,
+                    view: {
+                      type: ConnectWidgetViews.CONNECT_WALLET,
+                    } as ConnectWidgetView,
+                  },
+                });
+              }}
+              onCloseClick={() => sendCloseEvent()}
+            />
+          )}
         </>
       </ConnectContext.Provider>
     </ViewContext.Provider>

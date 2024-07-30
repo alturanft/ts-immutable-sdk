@@ -1,10 +1,13 @@
-import { TransactionResponse, Web3Provider } from '@ethersproject/providers';
-import { PopulatedTransaction } from 'ethers';
-import { CancelOrdersOnChainResponse, Orderbook } from '@imtbl/orderbook';
-import { CheckoutConfiguration } from '../../config';
-import { CheckoutError, CheckoutErrorType } from '../../errors';
-import * as instance from '../../instance';
-import { signFulfillmentTransactions } from '../actions';
+import {
+  TransactionResponse,
+  BrowserProvider,
+  ContractTransaction,
+} from "ethers";
+import { CancelOrdersOnChainResponse, Orderbook } from "@imtbl/orderbook";
+import { CheckoutConfiguration } from "../../config";
+import { CheckoutError, CheckoutErrorType } from "../../errors";
+import * as instance from "../../instance";
+import { signFulfillmentTransactions } from "../actions";
 import {
   CancelOverrides,
   CancelResult,
@@ -13,23 +16,25 @@ import {
   CancelResultGasless,
   CancelResultSuccess,
   CheckoutStatus,
-} from '../../types';
-import { SignTransactionStatusType } from '../actions/types';
-import { measureAsyncExecution } from '../../logger/debugLogger';
-import { sendTransaction } from '../../transaction';
+} from "../../types";
+import { SignTransactionStatusType } from "../actions/types";
+import { measureAsyncExecution } from "../../logger/debugLogger";
+import { sendTransaction } from "../../transaction";
 
 const cancelOnChain = async (
   config: CheckoutConfiguration,
   orderbook: Orderbook,
-  provider: Web3Provider,
+  provider: BrowserProvider,
   orderIds: string[],
-  waitFulfillmentSettlements: boolean,
-): Promise<CancelResultSuccess | CancelResultFailed | CancelResultFulfillmentsUnsettled> => {
-  let unsignedCancelOrderTransaction: PopulatedTransaction;
+  waitFulfillmentSettlements: boolean
+): Promise<
+  CancelResultSuccess | CancelResultFailed | CancelResultFulfillmentsUnsettled
+> => {
+  let unsignedCancelOrderTransaction: ContractTransaction;
   if (orderIds.length === 0) {
     throw new CheckoutError(
-      'No orderIds were provided to the orderIds array. Please provide at least one orderId.',
-      CheckoutErrorType.CANCEL_ORDER_LISTING_ERROR,
+      "No orderIds were provided to the orderIds array. Please provide at least one orderId.",
+      CheckoutErrorType.CANCEL_ORDER_LISTING_ERROR
     );
   }
   // Update this when bulk cancel is supported
@@ -37,32 +42,33 @@ const cancelOnChain = async (
   try {
     const offererAddress = await measureAsyncExecution<string>(
       config,
-      'Time to get the address from the provider',
-      provider.getSigner().getAddress(),
+      "Time to get the address from the provider",
+      (await provider.getSigner()).getAddress()
     );
-    const cancelOrderResponse = await measureAsyncExecution<CancelOrdersOnChainResponse>(
-      config,
-      'Time to get the cancel order from the orderbook',
-      orderbook.cancelOrdersOnChain(
-        [orderId],
-        offererAddress,
-      ),
-    );
+    const cancelOrderResponse =
+      await measureAsyncExecution<CancelOrdersOnChainResponse>(
+        config,
+        "Time to get the cancel order from the orderbook",
+        orderbook.cancelOrdersOnChain([orderId], offererAddress)
+      );
 
-    unsignedCancelOrderTransaction = await cancelOrderResponse.cancellationAction.buildTransaction();
+    unsignedCancelOrderTransaction =
+      await cancelOrderResponse.cancellationAction.buildTransaction();
   } catch (err: any) {
     throw new CheckoutError(
-      'An error occurred while cancelling the order listing',
+      "An error occurred while cancelling the order listing",
       CheckoutErrorType.CANCEL_ORDER_LISTING_ERROR,
       {
         orderId,
         error: err,
-      },
+      }
     );
   }
 
   if (waitFulfillmentSettlements) {
-    const result = await signFulfillmentTransactions(provider, [unsignedCancelOrderTransaction]);
+    const result = await signFulfillmentTransactions(provider, [
+      unsignedCancelOrderTransaction,
+    ]);
     if (result.type === SignTransactionStatusType.FAILED) {
       return {
         status: CheckoutStatus.FAILED,
@@ -78,17 +84,19 @@ const cancelOnChain = async (
 
   let transactions: TransactionResponse[];
   try {
-    const response = await Promise.all([unsignedCancelOrderTransaction].map(
-      (transaction) => sendTransaction(provider, transaction),
-    ));
+    const response = await Promise.all(
+      [unsignedCancelOrderTransaction].map((transaction) =>
+        sendTransaction(provider, transaction)
+      )
+    );
     transactions = response.map((result) => result.transactionResponse);
   } catch (err: any) {
     throw new CheckoutError(
-      'An error occurred while executing the fulfillment transaction',
+      "An error occurred while executing the fulfillment transaction",
       CheckoutErrorType.EXECUTE_FULFILLMENT_TRANSACTION_ERROR,
       {
         message: err.message,
-      },
+      }
     );
   }
   return {
@@ -99,22 +107,28 @@ const cancelOnChain = async (
 
 const gaslessCancel = async (
   orderbook: Orderbook,
-  provider: Web3Provider,
-  orderIds: string[],
+  provider: BrowserProvider,
+  orderIds: string[]
 ): Promise<CancelResultGasless> => {
   try {
-    const signer = provider.getSigner();
+    const signer = await provider.getSigner();
     const address = await signer.getAddress();
 
-    const { signableAction } = await orderbook.prepareOrderCancellations(orderIds);
+    const { signableAction } = await orderbook.prepareOrderCancellations(
+      orderIds
+    );
 
     // eslint-disable-next-line no-underscore-dangle
-    const signedMessage = await signer._signTypedData(
+    const signedMessage = await signer.signTypedData(
       signableAction.message.domain,
       signableAction.message.types,
-      signableAction.message.value,
+      signableAction.message.value
     );
-    const { result } = await orderbook.cancelOrders(orderIds, address, signedMessage);
+    const { result } = await orderbook.cancelOrders(
+      orderIds,
+      address,
+      signedMessage
+    );
 
     const successfulCancellations = [];
     const failedCancellations = [];
@@ -146,24 +160,24 @@ const gaslessCancel = async (
     };
   } catch (err: any) {
     throw new CheckoutError(
-      'An error occurred while cancelling the order listing',
+      "An error occurred while cancelling the order listing",
       CheckoutErrorType.CANCEL_ORDER_LISTING_ERROR,
       {
         orderIds,
         error: err,
-      },
+      }
     );
   }
 };
 
 export const cancel = async (
   config: CheckoutConfiguration,
-  provider: Web3Provider,
+  provider: BrowserProvider,
   orderIds: string[],
   overrides: CancelOverrides = {
     waitFulfillmentSettlements: true,
     useGaslessCancel: false,
-  },
+  }
 ): Promise<CancelResult> => {
   const orderbook = instance.createOrderbookInstance(config);
 
@@ -176,6 +190,6 @@ export const cancel = async (
     orderbook,
     provider,
     orderIds,
-    overrides.waitFulfillmentSettlements ?? true,
+    overrides.waitFulfillmentSettlements ?? true
   );
 };

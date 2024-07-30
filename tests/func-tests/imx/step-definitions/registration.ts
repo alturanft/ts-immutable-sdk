@@ -1,14 +1,14 @@
-import fs from 'fs';
-import { strict as assert } from 'assert';
-import { Wallet } from '@ethersproject/wallet';
+import fs from "fs";
+import { strict as assert } from "assert";
+import { Wallet } from "ethers";
 import {
   ProviderConfiguration,
   GenericIMXProvider,
   createStarkSigner,
   generateStarkPrivateKey,
-} from '@imtbl/sdk/x';
-import { configuration, StepSharedState } from './stepSharedState';
-import { getProvider, env } from '../common';
+} from "@imtbl/sdk/x";
+import { configuration, StepSharedState } from "./stepSharedState";
+import { getProvider, env } from "../common";
 
 const provider = getProvider(env.network, env.alchemyApiKey);
 
@@ -38,7 +38,7 @@ const provider = getProvider(env.network, env.alchemyApiKey);
 //   },
 // };
 
-const sharedStateFile = 'sharedState.json';
+const sharedStateFile = "sharedState.json";
 
 type PersistedSharedState = {
   users: {
@@ -57,7 +57,11 @@ export class Registration {
   });
 
   // eslint-disable-next-line class-methods-use-this
-  private async persistState(user: string, ethPrivateKey: string, starkPrivateKey: string) {
+  private async persistState(
+    user: string,
+    ethPrivateKey: string,
+    starkPrivateKey: string
+  ) {
     const state: PersistedSharedState = {
       users: {
         [user]: {
@@ -76,7 +80,7 @@ export class Registration {
       return false;
     }
 
-    const state = fs.readFileSync(sharedStateFile, 'utf8');
+    const state = fs.readFileSync(sharedStateFile, "utf8");
     return JSON.parse(state);
   }
 
@@ -89,7 +93,11 @@ export class Registration {
     const starkSigner = createStarkSigner(starkPrivateKey);
 
     if (persist) {
-      await this.persistState(addressVar, ethSigner.privateKey, starkPrivateKey);
+      await this.persistState(
+        addressVar,
+        ethSigner.privateKey,
+        starkPrivateKey
+      );
     }
 
     this.stepSharedState.users[addressVar] = {
@@ -110,14 +118,18 @@ export class Registration {
         starkSigner,
       };
     } else {
-      throw new Error('No persisted user state found');
+      throw new Error("No persisted user state found");
     }
   }
 
   public async register(addressVar: string) {
     const user = this.stepSharedState.users[addressVar];
 
-    const imxProvider = new GenericIMXProvider(this.providerConfig, user.ethSigner, user.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      user.ethSigner,
+      user.starkSigner
+    );
     await imxProvider.registerOffchain();
 
     return {
@@ -128,7 +140,11 @@ export class Registration {
 
   public async registerBanker() {
     const banker = await this.stepSharedState.getBanker();
-    const imxProvider = new GenericIMXProvider(this.providerConfig, banker.ethSigner, banker.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      banker.ethSigner,
+      banker.starkSigner
+    );
     await imxProvider.registerOffchain();
     return {
       address: await banker.ethSigner.getAddress(),
@@ -138,7 +154,11 @@ export class Registration {
   public async checkUserRegistrationOffchain(addressVar: string) {
     const user = this.stepSharedState.users[addressVar];
 
-    const imxProvider = new GenericIMXProvider(this.providerConfig, user.ethSigner, user.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      user.ethSigner,
+      user.starkSigner
+    );
     const registered = await imxProvider.isRegisteredOffchain();
     assert.equal(registered, true);
   }

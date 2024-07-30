@@ -1,16 +1,14 @@
-import { imx } from '@imtbl/generated-clients';
+import { imx } from "@imtbl/generated-clients";
 import {
   Contracts,
   ERC20Amount,
   EthConfiguration,
   EthSigner,
-} from '@imtbl/x-client';
-import { TransactionResponse } from '@ethersproject/providers';
-import { parseUnits } from '@ethersproject/units';
-import { BigNumber } from '@ethersproject/bignumber';
-import { validateChain } from '../helpers';
-import { Signers } from '../types';
-import { ProviderConfiguration } from '../../config';
+} from "@imtbl/x-client";
+import { parseUnits, TransactionResponse } from "ethers";
+import { validateChain } from "../helpers";
+import { Signers } from "../types";
+import { ProviderConfiguration } from "../../config";
 
 interface ERC20TokenData {
   decimals: number;
@@ -25,23 +23,24 @@ type DepositERC20Params = {
 };
 async function executeDepositERC20(
   ethSigner: EthSigner,
-  quantizedAmount: BigNumber,
+  quantizedAmount: bigint,
   assetType: string,
   starkPublicKey: string,
   vaultId: number,
-  config: EthConfiguration,
+  config: EthConfiguration
 ): Promise<TransactionResponse> {
   const coreContract = Contracts.CoreV4.connect(
     config.coreContractAddress,
-    ethSigner,
+    ethSigner
   );
 
-  const populatedTransaction = await coreContract.populateTransaction.depositERC20(
-    starkPublicKey,
-    assetType,
-    vaultId,
-    quantizedAmount,
-  );
+  const populatedTransaction =
+    await coreContract.populateTransaction.depositERC20(
+      starkPublicKey,
+      assetType,
+      vaultId,
+      quantizedAmount
+    );
 
   return ethSigner.sendTransaction(populatedTransaction);
 }
@@ -75,11 +74,11 @@ export async function depositERC20({
   // Approve whether an amount of token from an account can be spent by a third-party account
   const tokenContract = Contracts.IERC20.connect(
     deposit.tokenAddress,
-    ethSigner,
+    ethSigner
   );
   const approveTransaction = await tokenContract.populateTransaction.approve(
     ethConfiguration.coreContractAddress,
-    amount,
+    amount
   );
   await ethSigner.sendTransaction(approveTransaction);
 
@@ -98,7 +97,7 @@ export async function depositERC20({
 
   // Perform encoding on asset details to get an assetType (required for stark contract request)
   const encodingResult = await encodingApi.encodeAsset({
-    assetType: 'asset',
+    assetType: "asset",
     encodeAssetRequest: {
       token: {
         type: deposit.type,
@@ -112,7 +111,7 @@ export async function depositERC20({
   const assetType = encodingResult.data.asset_type;
   const starkPublicKey = signableDepositResult.data.stark_key;
   const vaultId = signableDepositResult.data.vault_id;
-  const quantizedAmount = BigNumber.from(signableDepositResult.data.amount);
+  const quantizedAmount = BigInt(signableDepositResult.data.amount);
 
   return executeDepositERC20(
     ethSigner,
@@ -120,6 +119,6 @@ export async function depositERC20({
     assetType,
     starkPublicKey,
     vaultId,
-    ethConfiguration,
+    ethConfiguration
   );
 }

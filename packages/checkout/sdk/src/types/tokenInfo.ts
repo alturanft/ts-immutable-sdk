@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
+import { JsonRpcProvider, BrowserProvider } from "ethers";
 
 /**
  * Represents information about a token.
@@ -23,6 +23,6 @@ export interface TokenInfo {
  * @property {string} tokenAddress - The contract address of the token.
  */
 export interface GetTokenInfoParams {
-  provider: Web3Provider | JsonRpcProvider;
+  provider: BrowserProvider | JsonRpcProvider;
   tokenAddress: string;
 }

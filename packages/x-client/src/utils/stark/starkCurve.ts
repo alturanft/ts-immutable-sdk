@@ -1,17 +1,16 @@
 /* eslint-disable spaced-comment */
-import { Signer } from '@ethersproject/abstract-signer';
-import { splitSignature } from '@ethersproject/bytes';
-import hash from 'hash.js';
+import { Signer, Signature } from "ethers";
+import hash from "hash.js";
 // @ts-ignore - elliptic types cause build to break...
-import elliptic from 'elliptic';
-import * as encUtils from 'enc-utils';
+import elliptic from "elliptic";
+import * as encUtils from "enc-utils";
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import BN from 'bn.js';
+import BN from "bn.js";
 // import { hdkey } from 'ethereumjs-wallet';
-import * as ethereumJsWallet from 'ethereumjs-wallet';
-import { createStarkSigner } from './starkSigner';
-import * as legacy from './legacy/crypto';
-import { getStarkPublicKeyFromImx } from './getStarkPublicKeyFromImx';
+import * as ethereumJsWallet from "ethereumjs-wallet";
+import { createStarkSigner } from "./starkSigner";
+import * as legacy from "./legacy/crypto";
+import { getStarkPublicKeyFromImx } from "./getStarkPublicKeyFromImx";
 
 const { curves, ec } = elliptic;
 
@@ -40,33 +39,33 @@ https://docs.starkware.co/starkex-v4/crypto/stark-curve
 */
 
 export const starkEcOrder = new BN(
-  '08000000 00000010 ffffffff ffffffff b781126d cae7b232 1e66a241 adc64d2f',
-  16,
+  "08000000 00000010 ffffffff ffffffff b781126d cae7b232 1e66a241 adc64d2f",
+  16
 );
 
 // eslint-disable-next-line new-cap
 export const starkEc = new ec(
   new curves.PresetCurve({
-    type: 'short',
+    type: "short",
     prime: null,
-    p: '08000000 00000011 00000000 00000000 00000000 00000000 00000000 00000001',
-    a: '00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001',
-    b: '06f21413 efbe40de 150e596d 72f7a8c5 609ad26c 15c915c1 f4cdfcb9 9cee9e89',
-    n: starkEcOrder.toString('hex'),
+    p: "08000000 00000011 00000000 00000000 00000000 00000000 00000000 00000001",
+    a: "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001",
+    b: "06f21413 efbe40de 150e596d 72f7a8c5 609ad26c 15c915c1 f4cdfcb9 9cee9e89",
+    n: starkEcOrder.toString("hex"),
     hash: hash.sha256,
     gRed: false,
     g: [
-      '1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca',
-      '5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f',
+      "1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",
+      "5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f",
     ],
-  }),
+  })
 );
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const MAX_ALLOWED_VAL = () => {
   const sha256EcMaxDigest = new BN(
-    '1 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000',
-    16,
+    "1 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000",
+    16
   );
   return sha256EcMaxDigest.sub(sha256EcMaxDigest.mod(starkEcOrder));
 };
@@ -78,12 +77,12 @@ function hashKeyWithIndex(key: string, index: number): BN {
       .sha256()
       .update(
         encUtils.hexToBuffer(
-          encUtils.removeHexPrefix(key)
-            + encUtils.sanitizeBytes(encUtils.numberToHex(index), 2),
-        ),
+          encUtils.removeHexPrefix(key) +
+            encUtils.sanitizeBytes(encUtils.numberToHex(index), 2)
+        )
       )
-      .digest('hex'),
-    16,
+      .digest("hex"),
+    16
   );
 }
 
@@ -99,14 +98,14 @@ export function grindKeyV201(keySeed: BN): string {
   // The key passed to hashKeyWithIndex must have a length of 64 characters
   // to ensure that the correct number of leading zeroes are used as input
   // to the hashing loop
-  let key = hashKeyWithIndex(keySeed.toString('hex', 64), 0);
+  let key = hashKeyWithIndex(keySeed.toString("hex", 64), 0);
 
   // Make sure the produced key is devided by the Stark EC order, and falls within the range
   // [0, maxAllowedVal).
   for (let i = 0; key.gte(maxAllowedVal); i++) {
-    key = hashKeyWithIndex(key.toString('hex'), i);
+    key = hashKeyWithIndex(key.toString("hex"), i);
   }
-  return key.umod(starkEcOrder).toString('hex');
+  return key.umod(starkEcOrder).toString("hex");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,14 +134,14 @@ export function grindKey(keySeed: BN) {
   // The key passed to hashKeyWithIndex must have a length of 64 characters
   // to ensure that the correct number of leading zeroes are used as input
   // to the hashing loop
-  let key = hashKeyWithIndex(keySeed.toString('hex', 64), 0);
+  let key = hashKeyWithIndex(keySeed.toString("hex", 64), 0);
 
   // Make sure the produced key is devided by the Stark EC order, and falls within the range
   // [0, maxAllowedVal).
   for (let i = 1; key.gte(maxAllowedVal); i++) {
-    key = hashKeyWithIndex(key.toString('hex'), i);
+    key = hashKeyWithIndex(key.toString("hex"), i);
   }
-  return key.umod(starkEcOrder).toString('hex');
+  return key.umod(starkEcOrder).toString("hex");
 }
 
 // Check if the hash value of the the given PrivateKey falls above the starkEcOrder limit.
@@ -153,13 +152,13 @@ export function checkIfHashedKeyIsAboveLimit(keySeed: BN) {
   // The key passed to hashKeyWithIndex must have a length of 64 characters
   // to ensure that the correct number of leading zeroes are used as input
   // to the hashing loop
-  const key = hashKeyWithIndex(keySeed.toString('hex', 64), 0);
+  const key = hashKeyWithIndex(keySeed.toString("hex", 64), 0);
   return key.gte(maxAllowedVal);
 }
 
 export function getPrivateKeyFromPath(seed: string, path: string): BN {
   const privateKey = ethereumJsWallet.hdkey
-    .fromMasterSeed(Buffer.from(seed.slice(2), 'hex')) // assuming seed is '0x...'
+    .fromMasterSeed(Buffer.from(seed.slice(2), "hex")) // assuming seed is '0x...'
     .derivePath(path)
     .getWallet()
     .getPrivateKey();
@@ -169,7 +168,7 @@ export function getPrivateKeyFromPath(seed: string, path: string): BN {
 async function getKeyFromPath(
   seed: string,
   path: string,
-  ethAddress: string,
+  ethAddress: string
 ): Promise<string> {
   const privateKeySeed = getPrivateKeyFromPath(seed, path);
   const starkPrivateKey = grindKey(privateKeySeed);
@@ -200,7 +199,7 @@ async function getKeyFromPath(
   // Only need to so alternative method if the account is found but the stark public key does not match.
 
   if (imxResponse === undefined) {
-    throw new Error('Error fetching stark public key from IMX');
+    throw new Error("Error fetching stark public key from IMX");
   }
 
   // If the account is not found it is a new account, just return the Stark Private Key that is generated by grindKey function.
@@ -210,7 +209,7 @@ async function getKeyFromPath(
 
   const registeredStarkPublicKeyBN = new BN(
     encUtils.removeHexPrefix(imxResponse.starkPublicKey),
-    16,
+    16
   );
 
   let starkPublicKey = await createStarkSigner(starkPrivateKey).getAddress();
@@ -218,7 +217,7 @@ async function getKeyFromPath(
   // If the user account matches with generated stark public key user, just return Stark Private Key.
   if (
     registeredStarkPublicKeyBN.eq(
-      new BN(encUtils.removeHexPrefix(starkPublicKey), 16),
+      new BN(encUtils.removeHexPrefix(starkPublicKey), 16)
     )
   ) {
     return starkPrivateKey;
@@ -231,12 +230,12 @@ async function getKeyFromPath(
   // Lets try to use grindKeyV201 method from backwards compatible logic to generate a key and see if that matches.
   const starkPrivateKeyV201Compatible = grindKeyV201(privateKeySeed);
   starkPublicKey = await createStarkSigner(
-    starkPrivateKeyV201Compatible,
+    starkPrivateKeyV201Compatible
   ).getAddress();
 
   if (
     registeredStarkPublicKeyBN.eq(
-      new BN(encUtils.removeHexPrefix(starkPublicKey), 16),
+      new BN(encUtils.removeHexPrefix(starkPublicKey), 16)
     )
   ) {
     return starkPrivateKeyV201Compatible;
@@ -251,7 +250,7 @@ async function getKeyFromPath(
 
   if (
     registeredStarkPublicKeyBN.eq(
-      new BN(encUtils.removeHexPrefix(starkPublicKey), 16),
+      new BN(encUtils.removeHexPrefix(starkPublicKey), 16)
     )
   ) {
     return starkPrivateKeyLegacy;
@@ -262,7 +261,7 @@ async function getKeyFromPath(
   // Account is found, but did not match with stark public keys generated by either grindKey or grindKeyV1 method.
   // Will have to contact support for further investigation.
   throw new Error(
-    'Can not deterministically generate stark private key - please contact support',
+    "Can not deterministically generate stark private key - please contact support"
   );
 }
 
@@ -272,7 +271,7 @@ async function getKeyFromPath(
  */
 export function generateStarkPrivateKey(): string {
   const keyPair = legacy.starkEc.genKeyPair();
-  return legacy.grindKey(keyPair.getPrivate('hex'));
+  return legacy.grindKey(keyPair.getPrivate("hex"));
 }
 
 /**
@@ -280,17 +279,17 @@ export function generateStarkPrivateKey(): string {
  * @returns the private key as a hex string
  */
 export async function generateLegacyStarkPrivateKey(
-  signer: Signer,
+  signer: Signer
 ): Promise<string> {
   const address = (await signer.getAddress()).toLowerCase();
   const signature = await signer.signMessage(legacy.DEFAULT_SIGNATURE_MESSAGE);
-  const seed = splitSignature(signature).s;
+  const seed = Signature.from(signature).s;
   const path = legacy.getAccountPath(
     legacy.DEFAULT_ACCOUNT_LAYER,
     legacy.DEFAULT_ACCOUNT_APPLICATION,
     address,
-    legacy.DEFAULT_ACCOUNT_INDEX,
+    legacy.DEFAULT_ACCOUNT_INDEX
   );
   const key = await getKeyFromPath(seed, path, address);
-  return key.padStart(64, '0');
+  return key.padStart(64, "0");
 }

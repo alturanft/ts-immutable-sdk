@@ -1,11 +1,10 @@
 import {
+  BrowserProvider,
   TransactionRequest,
   TransactionResponse,
-  Web3Provider,
-} from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
-import { TokenInfo } from './tokenInfo';
-import { OrderFee } from './fees';
+} from "ethers";
+import { TokenInfo } from "./tokenInfo";
+import { OrderFee } from "./fees";
 
 /*
  * Type representing the result of the buy
@@ -242,10 +241,10 @@ export type CancelOverrides = {
  * @property {string} FULFILLMENTS_UNSETTLED - If checkout succeeded but the fulfillment transactions are not yet settled
  */
 export enum CheckoutStatus {
-  SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED',
-  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
-  FULFILLMENTS_UNSETTLED = 'FULFILLMENTS_UNSETTLED',
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+  INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS",
+  FULFILLMENTS_UNSETTLED = "FULFILLMENTS_UNSETTLED",
 }
 
 /**
@@ -316,7 +315,10 @@ export type ERC20BuyToken = {
  * Represents the token listed for sale.
  * ERC721SellToken or ERC1155SellToken {@link Checkout.smartCheckout}.
  */
-export type SellToken = DeprecatedERC721SellToken | ERC721SellToken | ERC1155SellToken;
+export type SellToken =
+  | DeprecatedERC721SellToken
+  | ERC721SellToken
+  | ERC1155SellToken;
 
 /**
  * The ERC721SellToken type
@@ -368,7 +370,7 @@ export type ERC1155SellToken = {
  */
 export interface SmartCheckoutParams {
   /** The provider to use for smart checkout. */
-  provider: Web3Provider;
+  provider: BrowserProvider;
   /** The item requirements for the transaction. */
   itemRequirements: (
     | NativeItemRequirement
@@ -454,7 +456,7 @@ export type ERC1155ItemRequirement = {
   /** The contract address of the approver. */
   spenderAddress: string;
   /** The amount of the ERC1155 token ID being spent. */
-  amount: BigNumber;
+  amount: bigint;
 };
 
 /**
@@ -472,10 +474,10 @@ export type ItemRequirement = NativeItem | ERC20Item | ERC721Item | ERC1155Item;
  * @property {string} ERC1155 - If the item is an ERC1155 token.
  */
 export enum ItemType {
-  NATIVE = 'NATIVE',
-  ERC20 = 'ERC20',
-  ERC721 = 'ERC721',
-  ERC1155 = 'ERC1155',
+  NATIVE = "NATIVE",
+  ERC20 = "ERC20",
+  ERC721 = "ERC721",
+  ERC1155 = "ERC1155",
 }
 
 /**
@@ -487,7 +489,7 @@ export type NativeItem = {
   /** The type indicate this is a native item. */
   type: ItemType.NATIVE;
   /** The amount of the item. */
-  amount: BigNumber;
+  amount: bigint;
 };
 
 /**
@@ -503,7 +505,7 @@ export type ERC20Item = {
   /** The token address of the ERC20. */
   tokenAddress: string;
   /** The amount of the item. */
-  amount: BigNumber;
+  amount: bigint;
   /** The contract address of the approver. */
   spenderAddress: string;
 };
@@ -544,7 +546,7 @@ export type ERC1155Item = {
   /** The contract address of the approver. */
   spenderAddress: string;
   /** The amount of the ERC1155 token ID being spent. */
-  amount: BigNumber;
+  amount: bigint;
 };
 
 /**
@@ -554,8 +556,8 @@ export type ERC1155Item = {
  * @property {string} GAS - If the type is the gas amount
  */
 export enum TransactionOrGasType {
-  TRANSACTION = 'TRANSACTION',
-  GAS = 'GAS',
+  TRANSACTION = "TRANSACTION",
+  GAS = "GAS",
 }
 
 /**
@@ -594,8 +596,8 @@ export type GasToken = NativeGas | ERC20Gas;
  * @property {string} ERC20 - If the gas token is an ERC20 token.
  */
 export enum GasTokenType {
-  NATIVE = 'NATIVE',
-  ERC20 = 'ERC20',
+  NATIVE = "NATIVE",
+  ERC20 = "ERC20",
 }
 
 /**
@@ -607,7 +609,7 @@ export type NativeGas = {
   /** The type to indicate this is a native gas token. */
   type: GasTokenType.NATIVE;
   /** The gas limit. */
-  limit: BigNumber;
+  limit: bigint;
 };
 
 /**
@@ -622,7 +624,7 @@ export type ERC20Gas = {
   /** The token address of the ERC20. */
   tokenAddress: string;
   /** The gas limit. */
-  limit: BigNumber;
+  limit: bigint;
 };
 
 /**
@@ -679,9 +681,9 @@ export type SmartCheckoutRouter = {
  * @property {string} NO_ROUTE_OPTIONS - If no routing options were available for the transaction.
  */
 export enum RoutingOutcomeType {
-  ROUTES_FOUND = 'ROUTES_FOUND',
-  NO_ROUTES_FOUND = 'NO_ROUTES_FOUND',
-  NO_ROUTE_OPTIONS = 'NO_ROUTE_OPTIONS',
+  ROUTES_FOUND = "ROUTES_FOUND",
+  NO_ROUTES_FOUND = "NO_ROUTES_FOUND",
+  NO_ROUTE_OPTIONS = "NO_ROUTE_OPTIONS",
 }
 
 /*
@@ -747,7 +749,7 @@ export type Fee = {
   /** The type of fee */
   type: FeeType;
   /** The amount of the fee */
-  amount: BigNumber;
+  amount: bigint;
   /** The formatted amount of the fee */
   formattedAmount: string;
   /** The token info for the fee */
@@ -765,10 +767,10 @@ export type Fee = {
  * @property {string} IMMUTABLE_FEE - If the fee is an immutable fee.
  */
 export enum FeeType {
-  GAS = 'GAS',
-  BRIDGE_FEE = 'BRIDGE_FEE',
-  SWAP_FEE = 'SWAP_FEE',
-  IMMUTABLE_FEE = 'IMMUTABLE_FEE',
+  GAS = "GAS",
+  BRIDGE_FEE = "BRIDGE_FEE",
+  SWAP_FEE = "SWAP_FEE",
+  IMMUTABLE_FEE = "IMMUTABLE_FEE",
 }
 
 /*
@@ -868,9 +870,9 @@ export type OnRampFundingStep = {
  * @property {string} ONRAMP - If the funding step is an onramp.
  */
 export enum FundingStepType {
-  BRIDGE = 'BRIDGE',
-  SWAP = 'SWAP',
-  ONRAMP = 'ONRAMP',
+  BRIDGE = "BRIDGE",
+  SWAP = "SWAP",
+  ONRAMP = "ONRAMP",
 }
 
 /**
@@ -898,7 +900,7 @@ export type FundingItem = {
  */
 export type FundsRequired = {
   /** The amount of funds required */
-  amount: BigNumber;
+  amount: bigint;
   /** The formatted amount of funds required */
   formattedAmount: string;
 };
@@ -910,7 +912,7 @@ export type FundsRequired = {
  */
 export type UserBalance = {
   /** The balance of the funding item */
-  balance: BigNumber;
+  balance: bigint;
   /** The formatted balance of the funding item */
   formattedBalance: string;
 };
@@ -947,7 +949,7 @@ export type TokenBalance = {
   /** Type to indicate this is a native or ERC20 token. */
   type: ItemType.NATIVE | ItemType.ERC20;
   /** The balance of the item. */
-  balance: BigNumber;
+  balance: bigint;
   /** The formatted balance of the item. */
   formattedBalance: string;
   /**  The token info of the item. */
@@ -966,7 +968,7 @@ export type ERC721Balance = {
   /** Type to indicate this is an ERC721 token. */
   type: ItemType.ERC721;
   /** The balance of the item. */
-  balance: BigNumber;
+  balance: bigint;
   /** The formatted balance of the item. */
   formattedBalance: string;
   /** The contract address of the ERC721 collection. */
@@ -987,7 +989,7 @@ export type ItemBalance = ERC721Balance | TokenBalance;
  */
 export type BalanceDelta = {
   /** The delta of the balance. */
-  balance: BigNumber;
+  balance: bigint;
   /** The formatted balance of the delta. */
   formattedBalance: string;
 };
@@ -1013,18 +1015,18 @@ export type FundingRouteFeeEstimate =
   | BridgeRouteFeeEstimate;
 export type SwapRouteFeeEstimate = {
   type: FundingStepType.SWAP;
-  estimatedAmount: BigNumber;
+  estimatedAmount: bigint;
   token: TokenInfo;
 };
 export type BridgeRouteFeeEstimate = {
   type: FundingStepType.BRIDGE;
   gasFee: {
-    estimatedAmount: BigNumber;
+    estimatedAmount: bigint;
     token?: TokenInfo;
   };
   bridgeFee: {
-    estimatedAmount: BigNumber;
+    estimatedAmount: bigint;
     token?: TokenInfo;
   };
-  totalFees: BigNumber;
+  totalFees: bigint;
 };

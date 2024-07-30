@@ -1,21 +1,21 @@
 // this function needs to be in a separate file to prevent circular dependencies with ./network
 
-import { Web3Provider } from '@ethersproject/providers';
-import { CheckoutError, CheckoutErrorType } from '../errors';
-import { WalletAction } from '../types';
+import { BrowserProvider } from "ethers";
+import { CheckoutError, CheckoutErrorType } from "../errors";
+import { WalletAction } from "../types";
 
 const parseChainId = (chainId: unknown): number => {
-  if (typeof chainId === 'number') {
+  if (typeof chainId === "number") {
     return chainId;
   }
 
-  if (typeof chainId === 'string' && !Number.isNaN(Number(chainId))) {
-    return chainId.startsWith('0x') ? parseInt(chainId, 16) : Number(chainId);
+  if (typeof chainId === "string" && !Number.isNaN(Number(chainId))) {
+    return chainId.startsWith("0x") ? parseInt(chainId, 16) : Number(chainId);
   }
 
   throw new CheckoutError(
-    'Invalid chainId',
-    CheckoutErrorType.WEB3_PROVIDER_ERROR,
+    "Invalid chainId",
+    CheckoutErrorType.WEB3_PROVIDER_ERROR
   );
 };
 
@@ -27,8 +27,8 @@ const parseChainId = (chainId: unknown): number => {
 async function requestChainId(web3Provider: Web3Provider): Promise<number> {
   if (!web3Provider.provider?.request) {
     throw new CheckoutError(
-      'Parsed provider is not a valid Web3Provider',
-      CheckoutErrorType.WEB3_PROVIDER_ERROR,
+      "Parsed provider is not a valid Web3Provider",
+      CheckoutErrorType.WEB3_PROVIDER_ERROR
     );
   }
 
@@ -45,7 +45,9 @@ async function requestChainId(web3Provider: Web3Provider): Promise<number> {
  * @param web3Provider
  * @returns chainId number
  */
-export async function getUnderlyingChainId(web3Provider: Web3Provider): Promise<number> {
+export async function getUnderlyingChainId(
+  web3Provider: Web3Provider
+): Promise<number> {
   const chainId = (web3Provider.provider as any)?.chainId;
 
   if (chainId) {

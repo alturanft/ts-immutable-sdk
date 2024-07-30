@@ -1,15 +1,15 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { EIP6963ProviderInfo, WalletProviderName } from '../../../types';
+import { BrowserProvider } from "ethers";
+import { EIP6963ProviderInfo, WalletProviderName } from "../../../types";
 
 /**
  * Enum representing possible Connect Widget event types.
  */
 export enum ConnectEventType {
-  CLOSE_WIDGET = 'close-widget',
-  SUCCESS = 'success',
-  FAILURE = 'failure',
-  LANGUAGE_CHANGED = 'language-changed',
-  WALLETCONNECT_PROVIDER_UPDATED = 'walletconnect-provider-updated',
+  CLOSE_WIDGET = "close-widget",
+  SUCCESS = "success",
+  FAILURE = "failure",
+  LANGUAGE_CHANGED = "language-changed",
+  WALLETCONNECT_PROVIDER_UPDATED = "walletconnect-provider-updated",
 }
 
 /**

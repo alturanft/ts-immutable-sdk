@@ -1,9 +1,22 @@
-import { BuyToken, Checkout, ItemType, SellOrder, SellToken } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import LoadingButton from './LoadingButton';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage } from './messages';
-import { Box, FormControl, Select, TextInput, OptionKey, Body } from '@biom3/react';
+import {
+  BuyToken,
+  Checkout,
+  ItemType,
+  SellOrder,
+  SellToken,
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import LoadingButton from "./LoadingButton";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage } from "./messages";
+import {
+  Box,
+  FormControl,
+  Select,
+  TextInput,
+  OptionKey,
+  Body,
+} from "@biom3/react";
 
 interface SellProps {
   checkout: Checkout;
@@ -11,24 +24,34 @@ interface SellProps {
 }
 
 export default function Sell({ checkout, provider }: SellProps) {
-  const [sellTokenType, setSellTokenType] = useState<ItemType|undefined>(undefined);
-  const [sellTokenTypeError, setSellTokenTypeError] = useState<string>('');
-  const [sellTokenId, setSellTokenId] = useState<string>('');
-  const [sellTokenIdError, setSellTokenIdError] = useState<string>('');
-  const [sellTokenContractAddress, setSellTokenContractAddress] = useState<string>('');
-  const [sellTokenContractAddressError, setSellTokenContractAddressError] = useState<string>('');
-  const [sellTokenAmount, setSellTokenAmount] = useState<string>('');
-  const [sellTokenAmountError, setSellTokenAmountError] = useState<string>('');
-  const [disableSellTokenAmount, setDisableSellTokenAmount] = useState<boolean>(true);
-  const [buyTokenType, setBuyTokenType] = useState<ItemType|undefined>(undefined);
-  const [buyTokenTypeError, setBuyTokenTypeError] = useState<string>('');
-  const [buyTokenContractAddress, setBuyTokenContractAddress] = useState<string>('');
-  const [buyTokenContractAddressError, setBuyTokenContractAddressError] = useState<string>('');
-  const [disableBuyTokenContractAddress, setDisabledBuyTokenContractAddress] = useState<boolean>(true);
-  const [buyTokenAmount, setBuyTokenAmount] = useState<string>('');
-  const [buyTokenAmountError, setBuyTokenAmountError] = useState<string>('');
+  const [sellTokenType, setSellTokenType] = useState<ItemType | undefined>(
+    undefined
+  );
+  const [sellTokenTypeError, setSellTokenTypeError] = useState<string>("");
+  const [sellTokenId, setSellTokenId] = useState<string>("");
+  const [sellTokenIdError, setSellTokenIdError] = useState<string>("");
+  const [sellTokenContractAddress, setSellTokenContractAddress] =
+    useState<string>("");
+  const [sellTokenContractAddressError, setSellTokenContractAddressError] =
+    useState<string>("");
+  const [sellTokenAmount, setSellTokenAmount] = useState<string>("");
+  const [sellTokenAmountError, setSellTokenAmountError] = useState<string>("");
+  const [disableSellTokenAmount, setDisableSellTokenAmount] =
+    useState<boolean>(true);
+  const [buyTokenType, setBuyTokenType] = useState<ItemType | undefined>(
+    undefined
+  );
+  const [buyTokenTypeError, setBuyTokenTypeError] = useState<string>("");
+  const [buyTokenContractAddress, setBuyTokenContractAddress] =
+    useState<string>("");
+  const [buyTokenContractAddressError, setBuyTokenContractAddressError] =
+    useState<string>("");
+  const [disableBuyTokenContractAddress, setDisabledBuyTokenContractAddress] =
+    useState<boolean>(true);
+  const [buyTokenAmount, setBuyTokenAmount] = useState<string>("");
+  const [buyTokenAmountError, setBuyTokenAmountError] = useState<string>("");
   const [expiry, setExpiry] = useState<string | undefined>(undefined);
-  const [expiryError, setExpiryError] = useState<string>('');
+  const [expiryError, setExpiryError] = useState<string>("");
   const [error, setError] = useState<any>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -36,7 +59,7 @@ export default function Sell({ checkout, provider }: SellProps) {
   const isDateValid = (dateStr: string) => {
     var dateRegex = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})Z)?$/;
     return dateRegex.test(dateStr);
-  }
+  };
 
   const getSellToken = (): SellToken => {
     if (sellTokenType === ItemType.ERC721) {
@@ -44,95 +67,109 @@ export default function Sell({ checkout, provider }: SellProps) {
         type: ItemType.ERC721,
         id: sellTokenId,
         collectionAddress: sellTokenContractAddress,
-      }
+      };
     } else if (sellTokenType === ItemType.ERC1155) {
       return {
         type: ItemType.ERC1155,
         id: sellTokenId,
         collectionAddress: sellTokenContractAddress,
         amount: sellTokenAmount,
-      }
+      };
     }
 
-    throw new Error('Invalid sell token type');
-  }
+    throw new Error("Invalid sell token type");
+  };
 
   const getBuyToken = (): BuyToken => {
     if (buyTokenType === ItemType.NATIVE) {
       return {
         type: ItemType.NATIVE,
         amount: buyTokenAmount,
-      }
+      };
     } else if (buyTokenType === ItemType.ERC20) {
       return {
         type: ItemType.ERC20,
         amount: buyTokenAmount,
         tokenAddress: buyTokenContractAddress,
-      }
+      };
     }
 
-    throw new Error('Invalid buy token type');
-  }
+    throw new Error("Invalid buy token type");
+  };
 
   async function sellClick() {
     if (!sellTokenType) {
-      setSellTokenTypeError('Please select the sell token type');
+      setSellTokenTypeError("Please select the sell token type");
       return;
     }
     if (!sellTokenContractAddress) {
-      setSellTokenContractAddressError(`Please enter the collection address for the ${sellTokenType}`);
+      setSellTokenContractAddressError(
+        `Please enter the collection address for the ${sellTokenType}`
+      );
       return;
     }
     if (!sellTokenId) {
-      setSellTokenIdError('Please enter the ID of the ERC721 or ERC1155');
+      setSellTokenIdError("Please enter the ID of the ERC721 or ERC1155");
       return;
     }
     if (sellTokenType === ItemType.ERC1155 && !sellTokenAmount) {
-      setSellTokenAmountError('Please enter the amount of ERC1155 tokens to sell');
+      setSellTokenAmountError(
+        "Please enter the amount of ERC1155 tokens to sell"
+      );
       return;
     }
     if (!buyTokenType) {
-      setBuyTokenTypeError('Please select the buy token type');
+      setBuyTokenTypeError("Please select the buy token type");
       return;
     }
     if (buyTokenType === ItemType.ERC20 && !buyTokenContractAddress) {
-      setBuyTokenContractAddressError('Please enter the contract address for the ERC20');
+      setBuyTokenContractAddressError(
+        "Please enter the contract address for the ERC20"
+      );
       return;
     }
     if (!buyTokenAmount) {
-      setBuyTokenAmountError(`Please enter the amount of ${buyTokenType} tokens to sell the ${sellTokenType} for`);
+      setBuyTokenAmountError(
+        `Please enter the amount of ${buyTokenType} tokens to sell the ${sellTokenType} for`
+      );
       return;
     }
     if (expiry && !isDateValid(expiry)) {
-      setExpiryError('Invalid date - format YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ');
+      setExpiryError(
+        "Invalid date - format YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ"
+      );
       return;
     }
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      const orders:Array<SellOrder> = [{
-        sellToken: getSellToken(),
-        buyToken: getBuyToken(),
-        makerFees: [{
-          amount: { percentageDecimal: 0.025 },
-          recipient: '0xEac347177DbA4a190B632C7d9b8da2AbfF57c772'
-        }],
-        orderExpiry: expiry ? new Date(expiry) : undefined
-      }]
+      const orders: Array<SellOrder> = [
+        {
+          sellToken: getSellToken(),
+          buyToken: getBuyToken(),
+          makerFees: [
+            {
+              amount: { percentageDecimal: 0.025 },
+              recipient: "0xEac347177DbA4a190B632C7d9b8da2AbfF57c772",
+            },
+          ],
+          orderExpiry: expiry ? new Date(expiry) : undefined,
+        },
+      ];
 
       const result = await checkout.sell({
         provider,
         orders,
       });
-      console.log('Sell result', result);
+      console.log("Sell result", result);
       setLoading(false);
     } catch (err: any) {
       setError(err);
@@ -146,30 +183,30 @@ export default function Sell({ checkout, provider }: SellProps) {
 
   const updateSellTokenId = (event: any) => {
     setSellTokenId(event.target.value);
-    setSellTokenIdError('');
-  }
+    setSellTokenIdError("");
+  };
 
   const updateSellTokenContractAddress = (event: any) => {
     setSellTokenContractAddress(event.target.value);
-    setSellTokenContractAddressError('');
-  }
+    setSellTokenContractAddressError("");
+  };
 
   const updateExpiry = (event: any) => {
     setExpiry(event.target.value);
-    setError('');
-  }
+    setError("");
+  };
 
   const updateSellTokenAmount = (event: any) => {
     const value = event.target.value;
     setSellTokenAmount(value);
-    setSellTokenAmountError('');
-  }
+    setSellTokenAmountError("");
+  };
 
   const updateBuyTokenAmount = (event: any) => {
     const value = event.target.value;
     setBuyTokenAmount(value);
-    setBuyTokenAmountError('');
-  }
+    setBuyTokenAmountError("");
+  };
 
   useEffect(() => {
     setError(null);
@@ -178,36 +215,36 @@ export default function Sell({ checkout, provider }: SellProps) {
 
   const selectSellToken = (value: OptionKey) => {
     switch (value) {
-      case 'erc721':
+      case "erc721":
         setSellTokenType(ItemType.ERC721);
-        setSellTokenAmount('1');
+        setSellTokenAmount("1");
         setDisableSellTokenAmount(true);
-        setSellTokenTypeError('');
+        setSellTokenTypeError("");
         break;
-      case 'erc1155':
+      case "erc1155":
         setSellTokenType(ItemType.ERC1155);
         setDisableSellTokenAmount(false);
-        setSellTokenTypeError('');
+        setSellTokenTypeError("");
         break;
     }
-  }
+  };
 
   const selectBuyToken = (value: OptionKey) => {
     switch (value) {
-      case 'native':
+      case "native":
         setBuyTokenType(ItemType.NATIVE);
         setDisabledBuyTokenContractAddress(true);
-        setBuyTokenTypeError('');
-        setBuyTokenContractAddress('');
-        setBuyTokenContractAddressError('');
+        setBuyTokenTypeError("");
+        setBuyTokenContractAddress("");
+        setBuyTokenContractAddressError("");
         break;
-      case 'erc20':
+      case "erc20":
         setBuyTokenType(ItemType.ERC20);
         setDisabledBuyTokenContractAddress(false);
-        setBuyTokenTypeError('');
+        setBuyTokenTypeError("");
         break;
     }
-  }
+  };
 
   const sellTokenForm = () => {
     return (
@@ -223,11 +260,13 @@ export default function Sell({ checkout, provider }: SellProps) {
         <tbody>
           <tr>
             <td>
-              <FormControl validationStatus={sellTokenTypeError ? 'error' : 'success'}>
+              <FormControl
+                validationStatus={sellTokenTypeError ? "error" : "success"}
+              >
                 <Select
                   onSelectChange={selectSellToken}
-                  defaultLabel='Select Sell Token'
-                  validationStatus={sellTokenTypeError ? 'error' : 'success'}
+                  defaultLabel="Select Sell Token"
+                  validationStatus={sellTokenTypeError ? "error" : "success"}
                 >
                   <Select.Option optionKey="erc721">
                     <Select.Option.Label>ERC721</Select.Option.Label>
@@ -237,23 +276,35 @@ export default function Sell({ checkout, provider }: SellProps) {
                   </Select.Option>
                 </Select>
                 {sellTokenTypeError && (
-                  <FormControl.Validation>{sellTokenTypeError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {sellTokenTypeError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={sellTokenContractAddressError ? 'error' : 'success'} >
+              <FormControl
+                validationStatus={
+                  sellTokenContractAddressError ? "error" : "success"
+                }
+              >
                 <TextInput onChange={updateSellTokenContractAddress} />
                 {sellTokenContractAddressError && (
-                  <FormControl.Validation>{sellTokenContractAddressError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {sellTokenContractAddressError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={sellTokenIdError ? 'error' : 'success'} >
+              <FormControl
+                validationStatus={sellTokenIdError ? "error" : "success"}
+              >
                 <TextInput onChange={updateSellTokenId} />
                 {sellTokenIdError && (
-                  <FormControl.Validation>{sellTokenIdError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {sellTokenIdError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
@@ -261,20 +312,22 @@ export default function Sell({ checkout, provider }: SellProps) {
               <FormControl>
                 <TextInput
                   value={sellTokenAmount}
-                  type='number'
+                  type="number"
                   disabled={disableSellTokenAmount}
                   onChange={updateSellTokenAmount}
                 />
                 {sellTokenAmountError && (
-                  <FormControl.Validation>{sellTokenAmountError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {sellTokenAmountError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
           </tr>
         </tbody>
       </table>
-    )
-  }
+    );
+  };
 
   const buyTokenForm = () => {
     return (
@@ -289,11 +342,13 @@ export default function Sell({ checkout, provider }: SellProps) {
         <tbody>
           <tr key="form">
             <td>
-              <FormControl validationStatus={buyTokenTypeError ? 'error' : 'success'}>
+              <FormControl
+                validationStatus={buyTokenTypeError ? "error" : "success"}
+              >
                 <Select
                   onSelectChange={selectBuyToken}
-                  defaultLabel='Select Buy Token'
-                  validationStatus={buyTokenTypeError ? 'error' : 'success'}
+                  defaultLabel="Select Buy Token"
+                  validationStatus={buyTokenTypeError ? "error" : "success"}
                 >
                   <Select.Option optionKey="native">
                     <Select.Option.Label>Native</Select.Option.Label>
@@ -303,42 +358,54 @@ export default function Sell({ checkout, provider }: SellProps) {
                   </Select.Option>
                 </Select>
                 {buyTokenTypeError && (
-                  <FormControl.Validation>{buyTokenTypeError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {buyTokenTypeError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={buyTokenContractAddressError ? 'error' : 'success'}>
+              <FormControl
+                validationStatus={
+                  buyTokenContractAddressError ? "error" : "success"
+                }
+              >
                 <TextInput
                   value={buyTokenContractAddress}
                   disabled={disableBuyTokenContractAddress}
                   onChange={(event: any) => {
                     setBuyTokenContractAddress(event.target.value);
-                    setBuyTokenContractAddressError('');
+                    setBuyTokenContractAddressError("");
                   }}
                 />
-              {buyTokenContractAddressError && (
-                  <FormControl.Validation>{buyTokenContractAddressError}</FormControl.Validation>
+                {buyTokenContractAddressError && (
+                  <FormControl.Validation>
+                    {buyTokenContractAddressError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={buyTokenAmountError ? 'error' : 'success'}>
+              <FormControl
+                validationStatus={buyTokenAmountError ? "error" : "success"}
+              >
                 <TextInput
                   value={buyTokenAmount}
-                  type='number'
+                  type="number"
                   onChange={updateBuyTokenAmount}
                 />
                 {buyTokenAmountError && (
-                  <FormControl.Validation>{buyTokenAmountError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {buyTokenAmountError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
           </tr>
         </tbody>
       </table>
-    )
-  }
+    );
+  };
 
   return (
     <Box>
@@ -355,7 +422,7 @@ export default function Sell({ checkout, provider }: SellProps) {
         <tbody>
           <tr>
             <td>
-              <FormControl validationStatus={expiryError ? 'error' : 'success'} >
+              <FormControl validationStatus={expiryError ? "error" : "success"}>
                 <TextInput onChange={updateExpiry} />
                 {expiryError && (
                   <FormControl.Validation>{expiryError}</FormControl.Validation>
@@ -367,13 +434,20 @@ export default function Sell({ checkout, provider }: SellProps) {
       </table>
       <br />
 
-      <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 'base.spacing.x2'}}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "base.spacing.x2",
+        }}
+      >
         <LoadingButton onClick={sellClick} loading={loading}>
           Sell
         </LoadingButton>
         <Body size="xSmall">(adds 2.5% maker fee)</Body>
       </Box>
-      {(!error && success) && <SuccessMessage>Sell success.</SuccessMessage>}
+      {!error && success && <SuccessMessage>Sell success.</SuccessMessage>}
       {error && (
         <ErrorMessage>
           {error.message}. Check console logs for more details.

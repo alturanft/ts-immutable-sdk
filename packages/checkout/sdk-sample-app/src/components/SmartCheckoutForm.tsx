@@ -8,34 +8,54 @@ import {
   ItemType,
   NativeItemRequirement,
   TransactionOrGasType,
-} from '@imtbl/checkout-sdk';
+} from "@imtbl/checkout-sdk";
 import {
-  Action, ActionType, TransactionPurpose, constants, Orderbook,
-} from '@imtbl/orderbook';
-import { Web3Provider } from '@ethersproject/providers';
-import { useEffect, useState } from 'react';
-import { BigNumber, utils } from 'ethers';
-import { Body, Box, Button, FormControl, Heading, Select, TextInput, OptionKey, Checkbox } from '@biom3/react';
-import LoadingButton from './LoadingButton';
-import { ErrorMessage, SuccessMessage } from './messages';
+  Action,
+  ActionType,
+  TransactionPurpose,
+  constants,
+  Orderbook,
+} from "@imtbl/orderbook";
+import { BrowserProvider } from "ethers";
+import { useEffect, useState } from "react";
+import { BigNumber, utils } from "ethers";
+import {
+  Body,
+  Box,
+  Button,
+  FormControl,
+  Heading,
+  Select,
+  TextInput,
+  OptionKey,
+  Checkbox,
+} from "@biom3/react";
+import LoadingButton from "./LoadingButton";
+import { ErrorMessage, SuccessMessage } from "./messages";
 
 interface SmartCheckoutProps {
   checkout: Checkout;
   provider: Web3Provider | undefined;
 }
 
-export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) => {
-  const [itemRequirements, setItemRequirements] = useState<(NativeItemRequirement | ERC20ItemRequirement | ERC721ItemRequirement)[]>([]);
-  const [itemRequirementsError, setItemRequirementsError] = useState<string>('');
-  const [transactionOrGasAmount, setTransactionOrGasAmount] = useState<FulfillmentTransaction | GasAmount>(
-    {
-      type: TransactionOrGasType.GAS,
-      gasToken: {
-        type: GasTokenType.NATIVE,
-        limit: BigNumber.from(400000),
-      }
-    }
-  );
+export const SmartCheckoutForm = ({
+  checkout,
+  provider,
+}: SmartCheckoutProps) => {
+  const [itemRequirements, setItemRequirements] = useState<
+    (NativeItemRequirement | ERC20ItemRequirement | ERC721ItemRequirement)[]
+  >([]);
+  const [itemRequirementsError, setItemRequirementsError] =
+    useState<string>("");
+  const [transactionOrGasAmount, setTransactionOrGasAmount] = useState<
+    FulfillmentTransaction | GasAmount
+  >({
+    type: TransactionOrGasType.GAS,
+    gasToken: {
+      type: GasTokenType.NATIVE,
+      limit: BigNumber.from(400000),
+    },
+  });
   const [error, setError] = useState<any>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,7 +63,8 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
   const [bridgeChecked, setBridgeChecked] = useState<boolean>(true);
   const [swapChecked, setSwapChecked] = useState<boolean>(true);
 
-  const [seaportContractAddress, setSeaportContractAddress] = useState<string>('');
+  const [seaportContractAddress, setSeaportContractAddress] =
+    useState<string>("");
 
   const [disableAmount, setDisableAmount] = useState(true);
   const [disableId, setDisabledId] = useState(true);
@@ -51,21 +72,24 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
   const [disableSpenderAddress, setDisabledSpenderAddress] = useState(true);
 
   const [itemType, setItemType] = useState<ItemType | undefined>(undefined);
-  const [amount, setAmount] = useState<string>('');
-  const [amountError, setAmountError] = useState<string>('');
-  const [id, setId] = useState<string>('');
-  const [idError, setIdError] = useState<string>('');
-  const [tokenAddress, setTokenAddress] = useState<string>('');
-  const [tokenAddressError, setTokenAddressError] = useState<string>('');
-  const [spenderAddress, setSpenderAddress] = useState<string>('');
-  const [spenderAddressError, setSpenderAddressError] = useState<string>('');
+  const [amount, setAmount] = useState<string>("");
+  const [amountError, setAmountError] = useState<string>("");
+  const [id, setId] = useState<string>("");
+  const [idError, setIdError] = useState<string>("");
+  const [tokenAddress, setTokenAddress] = useState<string>("");
+  const [tokenAddressError, setTokenAddressError] = useState<string>("");
+  const [spenderAddress, setSpenderAddress] = useState<string>("");
+  const [spenderAddressError, setSpenderAddressError] = useState<string>("");
 
-  const [nativeGasAmountChecked, setNativeGasAmountChecked] = useState<boolean>(true);
-  const [erc20GasAmountChecked, setErc20GasAmountChecked] = useState<boolean>(false);
-  const [gasLimit, setGasLimit] = useState<string>('400000');
-  const [gasLimitError, setGasLimitError] = useState<string>('');
-  const [gasContractAddress, setGasContractAddress] = useState<string>('');
-  const [gasContractAddressError, setGasContractAddressError] = useState<string>('');
+  const [nativeGasAmountChecked, setNativeGasAmountChecked] =
+    useState<boolean>(true);
+  const [erc20GasAmountChecked, setErc20GasAmountChecked] =
+    useState<boolean>(false);
+  const [gasLimit, setGasLimit] = useState<string>("400000");
+  const [gasLimitError, setGasLimitError] = useState<string>("");
+  const [gasContractAddress, setGasContractAddress] = useState<string>("");
+  const [gasContractAddressError, setGasContractAddressError] =
+    useState<string>("");
 
   useEffect(() => {
     if (!checkout) return;
@@ -78,29 +102,29 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
 
     const { seaportContractAddress } = orderbook.config();
     setSeaportContractAddress(seaportContractAddress);
-  }, [checkout])
+  }, [checkout]);
 
   async function smartCheckout() {
     setSuccess(false);
 
     if (itemRequirements.length === 0) {
-      setItemRequirementsError('Add item requirements using the form above');
+      setItemRequirementsError("Add item requirements using the form above");
       return;
     }
-    setItemRequirementsError('');
+    setItemRequirementsError("");
 
     if (!checkout) {
-      setError('missing checkout, please connect first')
+      setError("missing checkout, please connect first");
       return;
     }
 
     if (!provider) {
-      setError('missing provider, please connect first')
+      setError("missing provider, please connect first");
       return;
     }
 
     if (!gasLimit) {
-      setGasLimitError('Gas limit is required');
+      setGasLimitError("Gas limit is required");
       return;
     }
 
@@ -110,13 +134,15 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
         gasToken: {
           type: GasTokenType.NATIVE,
           limit: BigNumber.from(gasLimit),
-        }
+        },
       });
     }
 
     if (erc20GasAmountChecked) {
       if (!gasContractAddress) {
-        setGasContractAddressError('Contract address is required for ERC20 gas token');
+        setGasContractAddressError(
+          "Contract address is required for ERC20 gas token"
+        );
         return;
       }
       setTransactionOrGasAmount({
@@ -125,28 +151,26 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
           type: GasTokenType.ERC20,
           limit: BigNumber.from(gasLimit),
           tokenAddress: gasContractAddress,
-        }
+        },
       });
     }
 
-    setItemRequirementsError('');
-    setError('');
+    setItemRequirementsError("");
+    setError("");
     setLoading(true);
 
     try {
-      const result = await checkout.smartCheckout(
-        {
-          provider,
-          itemRequirements,
-          transactionOrGasAmount,
-          routingOptions: {
-            onRamp: onRampChecked,
-            swap: swapChecked,
-            bridge: bridgeChecked,
-          },
-        }
-      );
-      console.log('Smart checkout result', result);
+      const result = await checkout.smartCheckout({
+        provider,
+        itemRequirements,
+        transactionOrGasAmount,
+        routingOptions: {
+          onRamp: onRampChecked,
+          swap: swapChecked,
+          bridge: bridgeChecked,
+        },
+      });
+      console.log("Smart checkout result", result);
       setLoading(false);
       setSuccess(true);
     } catch (err: any) {
@@ -159,34 +183,39 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
     }
   }
 
-  const updateItemRequirements = (itemRequirement: (NativeItemRequirement | ERC20ItemRequirement | ERC721ItemRequirement)) => {
+  const updateItemRequirements = (
+    itemRequirement:
+      | NativeItemRequirement
+      | ERC20ItemRequirement
+      | ERC721ItemRequirement
+  ) => {
     setItemRequirements([...itemRequirements, itemRequirement]);
-  }
+  };
 
   const parseUnits = (amount: string): BigNumber => {
     return utils.parseUnits(amount, 18);
-  }
+  };
 
   const addNativeRequirement = () => {
     if (!amount) {
-      setAmountError('Amount is required for native token');
+      setAmountError("Amount is required for native token");
       return;
     }
     updateItemRequirements({
       type: ItemType.NATIVE,
-      amount
+      amount,
     });
-  }
+  };
 
   const addERC20Requirement = () => {
     if (!amount) {
-      setAmountError('Amount is required for ERC20 token');
+      setAmountError("Amount is required for ERC20 token");
     }
     if (!tokenAddress) {
-      setTokenAddressError('Contract address is required for ERC20 token');
+      setTokenAddressError("Contract address is required for ERC20 token");
     }
     if (!spenderAddress) {
-      setSpenderAddressError('Spender address is required for ERC20 token');
+      setSpenderAddressError("Spender address is required for ERC20 token");
     }
     if (!amount || !tokenAddress || !spenderAddress) {
       return;
@@ -198,17 +227,17 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
       tokenAddress,
       spenderAddress,
     });
-  }
+  };
 
   const addERC721Requirement = () => {
     if (!id) {
-      setIdError('ID is required for ERC721 token');
+      setIdError("ID is required for ERC721 token");
     }
     if (!tokenAddress) {
-      setTokenAddressError('Contract address is required for ERC721 token');
+      setTokenAddressError("Contract address is required for ERC721 token");
     }
     if (!spenderAddress) {
-      setSpenderAddressError('Spender address is required for ERC721 token');
+      setSpenderAddressError("Spender address is required for ERC721 token");
     }
     if (!id || !tokenAddress || !spenderAddress) {
       return;
@@ -219,7 +248,7 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
       contractAddress: tokenAddress,
       spenderAddress,
     });
-  }
+  };
 
   const addItemRequirement = () => {
     switch (itemType) {
@@ -233,12 +262,15 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
         addERC721Requirement();
         break;
     }
-  }
+  };
 
   const clearItemRequirements = () => {
     setItemRequirements([]);
-  }
-  const getItemRequirementRow = (item: (NativeItemRequirement | ERC20ItemRequirement | ERC721ItemRequirement), index: number) => {
+  };
+  const getItemRequirementRow = (
+    item: NativeItemRequirement | ERC20ItemRequirement | ERC721ItemRequirement,
+    index: number
+  ) => {
     switch (item.type) {
       case ItemType.NATIVE:
         return (
@@ -269,56 +301,56 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
             <td>{item.contractAddress}</td>
             <td>{item.spenderAddress}</td>
           </tr>
-        )
+        );
     }
-  }
+  };
 
   const selectItemType = (value: OptionKey) => {
-    setAmountError('');
-    setIdError('');
-    setTokenAddressError('');
-    setSpenderAddressError('');
+    setAmountError("");
+    setIdError("");
+    setTokenAddressError("");
+    setSpenderAddressError("");
 
     switch (value) {
-      case 'native':
+      case "native":
         setItemType(ItemType.NATIVE);
         setDisableAmount(false);
         setDisabledId(true);
         setDisabledContractAddress(true);
         setDisabledSpenderAddress(true);
-        setId('');
-        setTokenAddress('');
-        setSpenderAddress('');
+        setId("");
+        setTokenAddress("");
+        setSpenderAddress("");
         break;
-      case 'erc20':
+      case "erc20":
         setItemType(ItemType.ERC20);
         setDisableAmount(false);
         setDisabledId(true);
         setDisabledContractAddress(false);
         setDisabledSpenderAddress(false);
-        setId('');
+        setId("");
         break;
-      case 'erc721':
+      case "erc721":
         setItemType(ItemType.ERC721);
         setDisableAmount(true);
         setDisabledId(false);
         setDisabledContractAddress(false);
         setDisabledSpenderAddress(false);
-        setAmount('');
+        setAmount("");
         break;
     }
-  }
+  };
 
   const updateAmount = (event: any) => {
     const value = event.target.value;
     setAmount(value);
-    setAmountError('');
-  }
+    setAmountError("");
+  };
 
   const updateSpenderAddress = (event: any) => {
     setSpenderAddress(event.target.value);
-    setSpenderAddressError('');
-  }
+    setSpenderAddressError("");
+  };
 
   const itemRequirementsTable = () => {
     return (
@@ -333,30 +365,32 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
           </tr>
         </thead>
         <tbody>
-          {itemRequirements.map((item, index) => getItemRequirementRow(item, index))}
+          {itemRequirements.map((item, index) =>
+            getItemRequirementRow(item, index)
+          )}
           <tr key="form">
             <td>
-            <Select
-              onSelectChange={selectItemType}
-              defaultLabel='Select Item Type'
-            >
-              <Select.Option optionKey="native">
-                <Select.Option.Label>Native</Select.Option.Label>
-              </Select.Option>
-              <Select.Option optionKey="erc20">
-                <Select.Option.Label>ERC20</Select.Option.Label>
-              </Select.Option>
-              <Select.Option optionKey="erc721">
-                <Select.Option.Label>ERC721</Select.Option.Label>
-              </Select.Option>
-            </Select>
+              <Select
+                onSelectChange={selectItemType}
+                defaultLabel="Select Item Type"
+              >
+                <Select.Option optionKey="native">
+                  <Select.Option.Label>Native</Select.Option.Label>
+                </Select.Option>
+                <Select.Option optionKey="erc20">
+                  <Select.Option.Label>ERC20</Select.Option.Label>
+                </Select.Option>
+                <Select.Option optionKey="erc721">
+                  <Select.Option.Label>ERC721</Select.Option.Label>
+                </Select.Option>
+              </Select>
             </td>
             <td>
-              <FormControl validationStatus={amountError ? 'error' : 'success'}>
+              <FormControl validationStatus={amountError ? "error" : "success"}>
                 <TextInput
                   value={amount}
                   disabled={disableAmount}
-                  type='number'
+                  type="number"
                   onChange={updateAmount}
                 />
                 {amountError && (
@@ -365,14 +399,14 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={idError ? 'error' : 'success'}>
+              <FormControl validationStatus={idError ? "error" : "success"}>
                 <TextInput
                   value={id}
                   disabled={disableId}
-                  type='number'
+                  type="number"
                   onChange={(event: any) => {
                     setId(event.target.value);
-                    setIdError('');
+                    setIdError("");
                   }}
                 />
                 {idError && (
@@ -381,22 +415,28 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={tokenAddressError ? 'error' : 'success'}>
+              <FormControl
+                validationStatus={tokenAddressError ? "error" : "success"}
+              >
                 <TextInput
                   value={tokenAddress}
                   disabled={disableContractAddress}
                   onChange={(event: any) => {
                     setTokenAddress(event.target.value);
-                    setTokenAddressError('');
+                    setTokenAddressError("");
                   }}
                 />
-              {tokenAddressError && (
-                  <FormControl.Validation>{tokenAddressError}</FormControl.Validation>
+                {tokenAddressError && (
+                  <FormControl.Validation>
+                    {tokenAddressError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
             <td>
-              <FormControl validationStatus={spenderAddressError ? 'error' : 'success'}>
+              <FormControl
+                validationStatus={spenderAddressError ? "error" : "success"}
+              >
                 <TextInput
                   value={spenderAddress}
                   disabled={disableSpenderAddress}
@@ -405,14 +445,16 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
                   <TextInput.Button
                     onClick={() => {
                       setSpenderAddress(seaportContractAddress);
-                      setSpenderAddressError('');
+                      setSpenderAddressError("");
                     }}
                   >
                     Seaport
                   </TextInput.Button>
                 </TextInput>
                 {spenderAddressError && (
-                  <FormControl.Validation>{spenderAddressError}</FormControl.Validation>
+                  <FormControl.Validation>
+                    {spenderAddressError}
+                  </FormControl.Validation>
                 )}
               </FormControl>
             </td>
@@ -428,26 +470,26 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
           </tr>
         </tbody>
       </table>
-    )
-  }
+    );
+  };
 
   const updateGasLimit = (event: any) => {
     const value = event.target.value;
-    setGasLimit(value.split('.')[0]);
-    setGasLimitError('');
-  }
+    setGasLimit(value.split(".")[0]);
+    setGasLimitError("");
+  };
 
   const updateGasContractAddress = (event: any) => {
     setGasContractAddress(event.target.value);
-    setGasContractAddressError('');
-  }
+    setGasContractAddressError("");
+  };
 
   const fundingRoutesForm = () => {
-    return(
+    return (
       <>
         <Body>Set Funding Options</Body>
-        <Box sx={{ display: 'flex' }}>
-          <FormControl sx={{ padding: 'base.spacing.x4' }}>
+        <Box sx={{ display: "flex" }}>
+          <FormControl sx={{ padding: "base.spacing.x4" }}>
             <FormControl.Label>OnRamp</FormControl.Label>
             <Checkbox
               checked={onRampChecked}
@@ -456,7 +498,7 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
               }}
             />
           </FormControl>
-          <FormControl sx={{ padding: 'base.spacing.x4' }}>
+          <FormControl sx={{ padding: "base.spacing.x4" }}>
             <FormControl.Label>Swap</FormControl.Label>
             <Checkbox
               checked={swapChecked}
@@ -465,7 +507,7 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
               }}
             />
           </FormControl>
-          <FormControl sx={{ padding: 'base.spacing.x4' }}>
+          <FormControl sx={{ padding: "base.spacing.x4" }}>
             <FormControl.Label>Bridge</FormControl.Label>
             <Checkbox
               checked={bridgeChecked}
@@ -476,52 +518,48 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
           </FormControl>
         </Box>
       </>
-    )
-  }
+    );
+  };
 
   const gasAmountForm = () => {
-    return(
+    return (
       <>
         <Body>Set Gas Amount</Body>
-        <Box sx={{ display: 'flex' }}>
-          <FormControl sx={{ padding: 'base.spacing.x4' }}>
+        <Box sx={{ display: "flex" }}>
+          <FormControl sx={{ padding: "base.spacing.x4" }}>
             <FormControl.Label>Native</FormControl.Label>
-              <Checkbox
-                checked={nativeGasAmountChecked}
-                onChange={() => {
-                  setNativeGasAmountChecked(!nativeGasAmountChecked);
-                  setErc20GasAmountChecked(!erc20GasAmountChecked);
-                  setGasContractAddress('');
-                  setGasContractAddressError('');
-                }}
-              />
+            <Checkbox
+              checked={nativeGasAmountChecked}
+              onChange={() => {
+                setNativeGasAmountChecked(!nativeGasAmountChecked);
+                setErc20GasAmountChecked(!erc20GasAmountChecked);
+                setGasContractAddress("");
+                setGasContractAddressError("");
+              }}
+            />
           </FormControl>
-          <FormControl sx={{ padding: 'base.spacing.x4' }}>
+          <FormControl sx={{ padding: "base.spacing.x4" }}>
             <FormControl.Label>ERC20</FormControl.Label>
-              <Checkbox
-                checked={erc20GasAmountChecked}
-                onChange={() => {
-                  setErc20GasAmountChecked(!erc20GasAmountChecked);
-                  setNativeGasAmountChecked(!nativeGasAmountChecked);
-                }}
-              />
+            <Checkbox
+              checked={erc20GasAmountChecked}
+              onChange={() => {
+                setErc20GasAmountChecked(!erc20GasAmountChecked);
+                setNativeGasAmountChecked(!nativeGasAmountChecked);
+              }}
+            />
           </FormControl>
         </Box>
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: "flex" }}>
           <FormControl
-            sx={{ paddingLeft: 'base.spacing.x4' }}
-            validationStatus={gasLimitError ? 'error' : 'success'}
+            sx={{ paddingLeft: "base.spacing.x4" }}
+            validationStatus={gasLimitError ? "error" : "success"}
           >
             <FormControl.Label>Limit</FormControl.Label>
-            <TextInput
-              type='number'
-              value={gasLimit}
-              onChange={updateGasLimit}
-            >
+            <TextInput type="number" value={gasLimit} onChange={updateGasLimit}>
               <TextInput.Button
                 onClick={() => {
-                  setGasLimit('400000');
-                  setGasLimitError('');
+                  setGasLimit("400000");
+                  setGasLimitError("");
                 }}
               >
                 Default
@@ -533,8 +571,8 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
           </FormControl>
           {erc20GasAmountChecked && (
             <FormControl
-              sx={{ paddingLeft: 'base.spacing.x4' }}
-              validationStatus={gasContractAddressError ? 'error' : 'success'}
+              sx={{ paddingLeft: "base.spacing.x4" }}
+              validationStatus={gasContractAddressError ? "error" : "success"}
             >
               <FormControl.Label>Contract Address</FormControl.Label>
               <TextInput
@@ -542,33 +580,44 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
                 onChange={updateGasContractAddress}
               />
               {gasContractAddressError && (
-                <FormControl.Validation>{gasContractAddressError}</FormControl.Validation>
+                <FormControl.Validation>
+                  {gasContractAddressError}
+                </FormControl.Validation>
               )}
             </FormControl>
           )}
         </Box>
       </>
-    )
-  }
+    );
+  };
 
-  return(
+  return (
     <Box>
       <Body>
-        Add item requirements below and click Run Smart Checkout to run the smart checkout function with the item requirements.
+        Add item requirements below and click Run Smart Checkout to run the
+        smart checkout function with the item requirements.
       </Body>
-      <Box sx={{
-        paddingTop: 'base.spacing.x4',
-        paddingBottom: 'base.spacing.x8'
-      }} >
+      <Box
+        sx={{
+          paddingTop: "base.spacing.x4",
+          paddingBottom: "base.spacing.x8",
+        }}
+      >
         {itemRequirementsTable()}
-        <Button sx={{ marginTop: 'base.spacing.x2' }} size='small' onClick={clearItemRequirements}>
+        <Button
+          sx={{ marginTop: "base.spacing.x2" }}
+          size="small"
+          onClick={clearItemRequirements}
+        >
           Clear Item Requirements
         </Button>
       </Box>
-      <Box sx={{
-        paddingTop: 'base.spacing.x4',
-        paddingBottom: 'base.spacing.x8'
-      }} >
+      <Box
+        sx={{
+          paddingTop: "base.spacing.x4",
+          paddingBottom: "base.spacing.x8",
+        }}
+      >
         {fundingRoutesForm()}
         {gasAmountForm()}
       </Box>
@@ -576,16 +625,18 @@ export const SmartCheckoutForm = ({ checkout, provider }: SmartCheckoutProps) =>
         Run Smart Checkout
       </LoadingButton>
       {itemRequirementsError && (
-        <ErrorMessage>
-          {itemRequirementsError}
-        </ErrorMessage>
+        <ErrorMessage>{itemRequirementsError}</ErrorMessage>
       )}
       {error && (
         <ErrorMessage>
           {error.message}. Check console logs for more details.
         </ErrorMessage>
       )}
-      {success && <SuccessMessage>Checkout success - view console for info.</SuccessMessage>}
+      {success && (
+        <SuccessMessage>
+          Checkout success - view console for info.
+        </SuccessMessage>
+      )}
     </Box>
-  )
-}
+  );
+};

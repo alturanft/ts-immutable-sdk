@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
-import { Environment } from '@imtbl/config';
-import { SaleItem } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { compareStr } from '../../../lib/utils';
-import { PRIMARY_SALES_API_BASE_URL } from '../utils/config';
+import { useState, useEffect, useRef } from "react";
+import { Environment } from "@imtbl/config";
+import { SaleItem } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { compareStr } from "../../../lib/utils";
+import { PRIMARY_SALES_API_BASE_URL } from "../utils/config";
 
-import { OrderQuote, OrderQuoteCurrency, SaleErrorTypes } from '../types';
-import { transformToOrderQuote } from '../functions/transformToOrderQuote';
+import { OrderQuote, OrderQuoteCurrency, SaleErrorTypes } from "../types";
+import { transformToOrderQuote } from "../functions/transformToOrderQuote";
 
 type UseQuoteOrderParams = {
   items: SaleItem[];
@@ -18,7 +18,7 @@ type UseQuoteOrderParams = {
 
 export const defaultOrderQuote: OrderQuote = {
   config: {
-    contractId: '',
+    contractId: "",
   },
   currencies: [],
   products: {},
@@ -38,19 +38,19 @@ export const useQuoteOrder = ({
   preferredCurrency,
 }: UseQuoteOrderParams) => {
   const [selectedCurrency, setSelectedCurrency] = useState<
-  OrderQuoteCurrency | undefined
+    OrderQuoteCurrency | undefined
   >();
   const fetching = useRef(false);
-  const [queryParams, setQueryParams] = useState<string>('');
+  const [queryParams, setQueryParams] = useState<string>("");
   const [orderQuote, setOrderQuote] = useState<OrderQuote>(defaultOrderQuote);
   const [orderQuoteError, setOrderQuoteError] = useState<
-  ConfigError | undefined
+    ConfigError | undefined
   >(undefined);
 
   const setError = (error: unknown) => {
     setOrderQuoteError({
       type: SaleErrorTypes.SERVICE_BREAKDOWN,
-      data: { reason: 'Error fetching settlement currencies', error },
+      data: { reason: "Error fetching settlement currencies", error },
     });
   };
 
@@ -62,11 +62,11 @@ export const useQuoteOrder = ({
       try {
         const params = new URLSearchParams();
         const products = items.map(({ productId: id, qty }) => ({ id, qty }));
-        params.append('products', btoa(JSON.stringify(products)));
+        params.append("products", btoa(JSON.stringify(products)));
 
         const signer = provider.getSigner();
         const address = await signer.getAddress();
-        params.append('wallet_address', address);
+        params.append("wallet_address", address);
 
         setQueryParams(params.toString());
       } catch (error) {
@@ -88,9 +88,9 @@ export const useQuoteOrder = ({
 
         // eslint-disable-next-line
         const response = await fetch(baseUrl, {
-          method: 'GET',
+          method: "GET",
           // eslint-disable-next-line @typescript-eslint/naming-convention
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         });
 
         if (!response.ok) {
@@ -99,7 +99,7 @@ export const useQuoteOrder = ({
 
         const config = transformToOrderQuote(
           await response.json(),
-          preferredCurrency,
+          preferredCurrency
         );
         setOrderQuote(config);
       } catch (error) {
@@ -118,9 +118,10 @@ export const useQuoteOrder = ({
       ? orderQuote.currencies.find((c) => compareStr(c.name, preferredCurrency))
       : undefined;
 
-    const defaultSelectedCurrency = baseCurrencyOverride
-      || orderQuote.currencies.find((c) => c.base)
-      || orderQuote.currencies?.[0];
+    const defaultSelectedCurrency =
+      baseCurrencyOverride ||
+      orderQuote.currencies.find((c) => c.base) ||
+      orderQuote.currencies?.[0];
 
     setSelectedCurrency(defaultSelectedCurrency);
   }, [orderQuote]);

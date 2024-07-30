@@ -1,7 +1,8 @@
-import { TransactionRequest, TransactionResponse, Web3Provider } from '@ethersproject/providers';
 import {
-  BigNumber,
-} from 'ethers';
+  BrowserProvider,
+  TransactionRequest,
+  TransactionResponse,
+} from "ethers";
 import {
   ERC20Item,
   NativeItem,
@@ -11,12 +12,16 @@ import {
   Action,
   FulfillOrderResponse,
   OrderStatusName,
-} from '@imtbl/orderbook';
-import { GetTokenResult } from '@imtbl/generated-clients/dist/multi-rollup';
-import { track } from '@imtbl/metrics';
-import * as instance from '../../instance';
-import { CheckoutConfiguration, getL1ChainId, getL2ChainId } from '../../config';
-import { CheckoutError, CheckoutErrorType } from '../../errors';
+} from "@imtbl/orderbook";
+import { GetTokenResult } from "@imtbl/generated-clients/dist/multi-rollup";
+import { track } from "@imtbl/metrics";
+import * as instance from "../../instance";
+import {
+  CheckoutConfiguration,
+  getL1ChainId,
+  getL2ChainId,
+} from "../../config";
+import { CheckoutError, CheckoutErrorType } from "../../errors";
 import {
   ItemType,
   ItemRequirement,
@@ -27,26 +32,27 @@ import {
   BuyResult,
   CheckoutStatus,
   BuyOrder,
-  SmartCheckoutResult, BuyOverrides,
-} from '../../types/smartCheckout';
-import { smartCheckout } from '..';
+  SmartCheckoutResult,
+  BuyOverrides,
+} from "../../types/smartCheckout";
+import { smartCheckout } from "..";
 import {
   getUnsignedERC20ApprovalTransactions,
   getUnsignedFulfillmentTransactions,
   signApprovalTransactions,
   signFulfillmentTransactions,
-} from '../actions';
-import { SignTransactionStatusType } from '../actions/types';
-import { calculateFees } from '../fees/fees';
-import { getAllBalances, resetBlockscoutClientMap } from '../../balances';
-import { debugLogger, measureAsyncExecution } from '../../logger/debugLogger';
-import { sendTransaction } from '../../transaction';
+} from "../actions";
+import { SignTransactionStatusType } from "../actions/types";
+import { calculateFees } from "../fees/fees";
+import { getAllBalances, resetBlockscoutClientMap } from "../../balances";
+import { debugLogger, measureAsyncExecution } from "../../logger/debugLogger";
+import { sendTransaction } from "../../transaction";
 
 export const getItemRequirement = (
   type: ItemType,
   tokenAddress: string,
-  amount: BigNumber,
-  spenderAddress: string,
+  amount: bigint,
+  spenderAddress: string
 ): ItemRequirement => {
   switch (type) {
     case ItemType.ERC20:
@@ -67,7 +73,7 @@ export const getItemRequirement = (
 
 export const getTransactionOrGas = (
   gasLimit: number,
-  fulfillmentTransactions: TransactionRequest[],
+  fulfillmentTransactions: TransactionRequest[]
 ): FulfillmentTransaction | GasAmount => {
   if (fulfillmentTransactions.length > 0) {
     return {
@@ -80,30 +86,30 @@ export const getTransactionOrGas = (
     type: TransactionOrGasType.GAS,
     gasToken: {
       type: GasTokenType.NATIVE,
-      limit: BigNumber.from(gasLimit),
+      limit: BigInt(gasLimit),
     },
   };
 };
 
 export const buy = async (
   config: CheckoutConfiguration,
-  provider: Web3Provider,
+  provider: BrowserProvider,
   orders: Array<BuyOrder>,
   overrides: BuyOverrides = {
     waitFulfillmentSettlements: true,
-  },
+  }
 ): Promise<BuyResult> => {
-  track('checkout_sdk', 'buy_initiated');
+  track("checkout_sdk", "buy_initiated");
 
   if (orders.length === 0) {
     throw new CheckoutError(
-      'No orders were provided to the orders array. Please provide at least one order.',
-      CheckoutErrorType.FULFILL_ORDER_LISTING_ERROR,
+      "No orders were provided to the orders array. Please provide at least one order.",
+      CheckoutErrorType.FULFILL_ORDER_LISTING_ERROR
     );
   }
 
   let order: ListingResult;
-  let spenderAddress = '';
+  let spenderAddress = "";
   let decimals = 18;
 
   const gasLimit = constants.estimatedFulfillmentGasGwei;
@@ -112,8 +118,8 @@ export const buy = async (
 
   const fulfillerAddress = await measureAsyncExecution<string>(
     config,
-    'Time to get the address from the provider',
-    provider.getSigner().getAddress(),
+    "Time to get the address from the provider",
+    (await provider.getSigner()).getAddress()
   );
 
   // Prefetch balances and store them in memory
@@ -127,8 +133,8 @@ export const buy = async (
   try {
     order = await measureAsyncExecution<ListingResult>(
       config,
-      'Time to fetch the listing from the orderbook',
-      orderbook.getListing(id),
+      "Time to fetch the listing from the orderbook",
+      orderbook.getListing(id)
     );
     const { seaportContractAddress, chainName } = orderbook.config();
 
@@ -136,32 +142,35 @@ export const buy = async (
     spenderAddress = seaportContractAddress;
   } catch (err: any) {
     throw new CheckoutError(
-      'An error occurred while getting the order listing',
+      "An error occurred while getting the order listing",
       CheckoutErrorType.GET_ORDER_LISTING_ERROR,
       {
         error: err,
         orderId: id,
-      },
+      }
     );
   }
 
   if (order.result.buy.length === 0) {
     throw new CheckoutError(
-      'An error occurred with the get order listing',
+      "An error occurred with the get order listing",
       CheckoutErrorType.GET_ORDER_LISTING_ERROR,
       {
         orderId: id,
-        message: 'No buy side tokens found on order',
-      },
+        message: "No buy side tokens found on order",
+      }
     );
   }
 
   const buyToken = order.result.buy[0];
-  if (buyToken.type === 'ERC20') {
+  if (buyToken.type === "ERC20") {
     const token = await measureAsyncExecution<GetTokenResult>(
       config,
-      'Time to get decimals of token contract for the buy token',
-      blockchainClient.getToken({ contractAddress: buyToken.contractAddress, chainName: orderChainName }),
+      "Time to get decimals of token contract for the buy token",
+      blockchainClient.getToken({
+        contractAddress: buyToken.contractAddress,
+        chainName: orderChainName,
+      })
     );
 
     if (token.result.decimals) decimals = token.result.decimals;
@@ -170,7 +179,10 @@ export const buy = async (
   let fees: FeeValue[] = [];
   if (takerFees && takerFees.length > 0) {
     // eslint-disable-next-line max-len
-    const tokenQuantity = order.result.sell[0].type === ItemType.ERC721 ? BigNumber.from(1) : BigNumber.from(order.result.sell[0].amount);
+    const tokenQuantity =
+      order.result.sell[0].type === ItemType.ERC721
+        ? 1n
+        : BigInt(order.result.sell[0].amount);
     fees = calculateFees(takerFees, buyToken.amount, decimals, tokenQuantity);
   }
 
@@ -182,88 +194,106 @@ export const buy = async (
   try {
     const { actions } = await measureAsyncExecution<FulfillOrderResponse>(
       config,
-      'Time to call fulfillOrder from the orderbook',
-      orderbook.fulfillOrder(id, fulfillerAddress, fees, fillAmount),
+      "Time to call fulfillOrder from the orderbook",
+      orderbook.fulfillOrder(id, fulfillerAddress, fees, fillAmount)
     );
 
     orderActions = actions;
-    unsignedApprovalTransactions = await measureAsyncExecution<TransactionRequest[]>(
+    unsignedApprovalTransactions = await measureAsyncExecution<
+      TransactionRequest[]
+    >(
       config,
-      'Time to construct the unsigned approval transactions',
-      getUnsignedERC20ApprovalTransactions(actions),
+      "Time to construct the unsigned approval transactions",
+      getUnsignedERC20ApprovalTransactions(actions)
     );
   } catch (err: any) {
-    const elapsedTimeInSeconds = (performance.now() - fulfillOrderStartTime) / 1000;
-    debugLogger(config, 'Time to call fulfillOrder from the orderbook', elapsedTimeInSeconds);
+    const elapsedTimeInSeconds =
+      (performance.now() - fulfillOrderStartTime) / 1000;
+    debugLogger(
+      config,
+      "Time to call fulfillOrder from the orderbook",
+      elapsedTimeInSeconds
+    );
 
     if (err.message.includes(OrderStatusName.EXPIRED)) {
-      throw new CheckoutError('Order is expired', CheckoutErrorType.ORDER_EXPIRED_ERROR, { orderId: id });
+      throw new CheckoutError(
+        "Order is expired",
+        CheckoutErrorType.ORDER_EXPIRED_ERROR,
+        { orderId: id }
+      );
     }
 
     // The balances error will be handled by bulk order fulfillment but for now we
     // need to assert on this string to check that the error is not a balances error
-    if (!err.message.includes('The fulfiller does not have the balances needed to fulfill')) {
+    if (
+      !err.message.includes(
+        "The fulfiller does not have the balances needed to fulfill"
+      )
+    ) {
       throw new CheckoutError(
-        'Error occurred while trying to fulfill the order',
+        "Error occurred while trying to fulfill the order",
         CheckoutErrorType.FULFILL_ORDER_LISTING_ERROR,
         {
           orderId: id,
           error: err,
-        },
+        }
       );
     }
   }
 
   try {
-    unsignedFulfillmentTransactions = await measureAsyncExecution<TransactionRequest[]>(
+    unsignedFulfillmentTransactions = await measureAsyncExecution<
+      TransactionRequest[]
+    >(
       config,
-      'Time to construct the unsigned fulfillment transactions',
-      getUnsignedFulfillmentTransactions(orderActions),
+      "Time to construct the unsigned fulfillment transactions",
+      getUnsignedFulfillmentTransactions(orderActions)
     );
   } catch {
     // if cannot estimate gas then silently continue and use gas limit in smartCheckout
     // but get the fulfillment transactions after they have approved the spending
   }
 
-  let amount = BigNumber.from('0');
+  let amount = 0n;
   let type: ItemType = ItemType.NATIVE;
-  let contractAddress = '';
+  let contractAddress = "";
 
   const buyArray = order.result.buy;
   if (buyArray.length > 0) {
     switch (buyArray[0].type) {
-      case 'NATIVE':
+      case "NATIVE":
         type = ItemType.NATIVE;
         break;
-      case 'ERC20':
+      case "ERC20":
         type = ItemType.ERC20;
         contractAddress = buyArray[0].contractAddress;
         break;
       default:
         throw new CheckoutError(
-          'Purchasing token type is unsupported',
+          "Purchasing token type is unsupported",
           CheckoutErrorType.UNSUPPORTED_TOKEN_TYPE_ERROR,
           {
             orderId: id,
-          },
+          }
         );
     }
   }
 
-  buyArray.forEach((item: (ERC20Item | NativeItem)) => {
-    if (item.type !== ItemType.ERC721 as string) {
-      amount = amount.add(BigNumber.from(item.amount));
+  buyArray.forEach((item: ERC20Item | NativeItem) => {
+    if (item.type !== (ItemType.ERC721 as string)) {
+      amount = amount + BigInt(item.amount);
     }
   });
 
   const feeArray = order.result.fees;
   feeArray.forEach((item: any) => {
-    amount = amount.add(BigNumber.from(item.amount));
+    amount = amount + BigInt(item.amount);
   });
 
   // In the event that the user is filling an ERC1155 listing, the amount required will be scaled by the fill ratio
-  if (order.result.sell[0].type === 'ERC1155' && fillAmount) {
-    amount = amount.mul(BigNumber.from(fillAmount)).div(BigNumber.from(order.result.sell[0].amount));
+  if (order.result.sell[0].type === "ERC1155" && fillAmount) {
+    amount =
+      (amount * BigInt(fillAmount)) / BigInt(order.result.sell[0].amount);
   }
 
   const itemRequirements = [
@@ -272,20 +302,20 @@ export const buy = async (
 
   const smartCheckoutResult = await measureAsyncExecution<SmartCheckoutResult>(
     config,
-    'Total time running smart checkout',
+    "Total time running smart checkout",
     smartCheckout(
       config,
       provider,
       itemRequirements,
-      getTransactionOrGas(
-        gasLimit,
-        unsignedFulfillmentTransactions,
-      ),
-    ),
+      getTransactionOrGas(gasLimit, unsignedFulfillmentTransactions)
+    )
   );
 
   if (smartCheckoutResult.sufficient) {
-    const approvalResult = await signApprovalTransactions(provider, unsignedApprovalTransactions);
+    const approvalResult = await signApprovalTransactions(
+      provider,
+      unsignedApprovalTransactions
+    );
     if (approvalResult.type === SignTransactionStatusType.FAILED) {
       return {
         status: CheckoutStatus.FAILED,
@@ -297,17 +327,21 @@ export const buy = async (
 
     try {
       if (unsignedFulfillmentTransactions.length === 0) {
-        unsignedFulfillmentTransactions = await getUnsignedFulfillmentTransactions(orderActions);
+        unsignedFulfillmentTransactions =
+          await getUnsignedFulfillmentTransactions(orderActions);
       }
     } catch (err: any) {
       throw new CheckoutError(
-        'Error fetching fulfillment transaction',
+        "Error fetching fulfillment transaction",
         CheckoutErrorType.FULFILL_ORDER_LISTING_ERROR,
-        { error: err },
+        { error: err }
       );
     }
     if (overrides.waitFulfillmentSettlements) {
-      const fulfillmentResult = await signFulfillmentTransactions(provider, unsignedFulfillmentTransactions);
+      const fulfillmentResult = await signFulfillmentTransactions(
+        provider,
+        unsignedFulfillmentTransactions
+      );
       if (fulfillmentResult.type === SignTransactionStatusType.FAILED) {
         return {
           status: CheckoutStatus.FAILED,
@@ -325,17 +359,19 @@ export const buy = async (
 
     let transactions: TransactionResponse[];
     try {
-      const response = await Promise.all(unsignedFulfillmentTransactions.map(
-        (transaction) => sendTransaction(provider, transaction),
-      ));
+      const response = await Promise.all(
+        unsignedFulfillmentTransactions.map((transaction) =>
+          sendTransaction(provider, transaction)
+        )
+      );
       transactions = response.map((result) => result.transactionResponse);
     } catch (err: any) {
       throw new CheckoutError(
-        'An error occurred while executing the fulfillment transaction',
+        "An error occurred while executing the fulfillment transaction",
         CheckoutErrorType.EXECUTE_FULFILLMENT_TRANSACTION_ERROR,
         {
           message: err.message,
-        },
+        }
       );
     }
     return {

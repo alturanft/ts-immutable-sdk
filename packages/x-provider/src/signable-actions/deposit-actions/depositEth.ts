@@ -1,16 +1,14 @@
-import { imx } from '@imtbl/generated-clients';
+import { imx } from "@imtbl/generated-clients";
 import {
   Contracts,
   ETHAmount,
   EthSigner,
   ImmutableXConfiguration,
-} from '@imtbl/x-client';
-import { parseUnits } from '@ethersproject/units';
-import { BigNumber } from '@ethersproject/bignumber';
-import { TransactionResponse } from '@ethersproject/providers';
-import { validateChain } from '../helpers';
-import { Signers } from '../types';
-import { ProviderConfiguration } from '../../config';
+} from "@imtbl/x-client";
+import { parseUnits, TransactionResponse } from "ethers";
+import { validateChain } from "../helpers";
+import { Signers } from "../types";
+import { ProviderConfiguration } from "../../config";
 
 interface ETHTokenData {
   decimals: number;
@@ -24,19 +22,19 @@ type DepositEthParams = {
 
 async function executeDepositEth(
   ethSigner: EthSigner,
-  amount: BigNumber,
+  amount: bigint,
   assetType: string,
   starkPublicKey: string,
   vaultId: number,
-  config: ImmutableXConfiguration,
+  config: ImmutableXConfiguration
 ): Promise<TransactionResponse> {
   const coreContract = Contracts.CoreV4.connect(
     config.ethConfiguration.coreContractAddress,
-    ethSigner,
+    ethSigner
   );
 
   const populatedTransaction = await coreContract.populateTransaction[
-    'deposit(uint256,uint256,uint256)'
+    "deposit(uint256,uint256,uint256)"
   ](starkPublicKey, assetType, vaultId);
 
   return ethSigner.sendTransaction({ ...populatedTransaction, value: amount });
@@ -53,7 +51,7 @@ export async function depositEth({
   const data: ETHTokenData = {
     decimals: 18,
   };
-  const amount = parseUnits(deposit.amount, 'wei');
+  const amount = parseUnits(deposit.amount, "wei");
   const imxConfig = config.immutableXConfig;
   const depositsApi = new imx.DepositsApi(imxConfig.apiConfiguration);
   const encodingApi = new imx.EncodingApi(imxConfig.apiConfiguration);
@@ -72,7 +70,7 @@ export async function depositEth({
   });
 
   const encodingResult = await encodingApi.encodeAsset({
-    assetType: 'asset',
+    assetType: "asset",
     encodeAssetRequest: {
       token: {
         type: deposit.type,
@@ -90,6 +88,6 @@ export async function depositEth({
     assetType,
     starkPublicKey,
     vaultId,
-    imxConfig,
+    imxConfig
   );
 }

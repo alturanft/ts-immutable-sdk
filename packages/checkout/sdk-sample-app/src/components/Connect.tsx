@@ -1,9 +1,9 @@
-import { Checkout } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import LoadingButton from './LoadingButton';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage } from './messages';
-import { Stack } from '@biom3/react';
+import { Checkout } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import LoadingButton from "./LoadingButton";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage } from "./messages";
+import { Stack } from "@biom3/react";
 
 interface ConnectProps {
   checkout: Checkout;
@@ -20,11 +20,11 @@ export default function Connect(props: ConnectProps) {
 
   async function connectClick() {
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setError(null);
@@ -49,11 +49,11 @@ export default function Connect(props: ConnectProps) {
 
   async function connectPermissionsClick() {
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setError(null);

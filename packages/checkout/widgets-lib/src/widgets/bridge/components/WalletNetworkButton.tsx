@@ -1,29 +1,31 @@
+import { Body, Box, Button, FramedImage, Heading, Logo } from "@biom3/react";
 import {
-  Body, Box, Button, FramedImage, Heading, Logo,
-} from '@biom3/react';
-import { ChainId, EIP6963ProviderDetail, WalletProviderRdns } from '@imtbl/checkout-sdk';
-import { useEffect, useMemo, useState } from 'react';
-import { Environment } from '@imtbl/config';
-import { Web3Provider } from '@ethersproject/providers';
-import { getChainNameById } from '../../../lib/chains';
-import { useWalletConnect } from '../../../lib/hooks/useWalletConnect';
+  ChainId,
+  EIP6963ProviderDetail,
+  WalletProviderRdns,
+} from "@imtbl/checkout-sdk";
+import { useEffect, useMemo, useState } from "react";
+import { Environment } from "@imtbl/config";
+import { BrowserProvider } from "ethers";
+import { getChainNameById } from "../../../lib/chains";
+import { useWalletConnect } from "../../../lib/hooks/useWalletConnect";
 import {
   networkButtonStyles,
   walletButtonOuterStyles,
   walletCaptionStyles,
   wcStickerLogoStyles,
   wcWalletLogoStyles,
-} from './WalletNetworkButtonStyles';
-import { RawImage } from '../../../components/RawImage/RawImage';
-import { isWalletConnectProvider } from '../../../lib/provider';
-import { getChainImage } from '../../../lib/utils';
+} from "./WalletNetworkButtonStyles";
+import { RawImage } from "../../../components/RawImage/RawImage";
+import { isWalletConnectProvider } from "../../../lib/provider";
+import { getChainImage } from "../../../lib/utils";
 
 interface WalletNetworkButtonProps {
   testId: string;
   walletProvider: Web3Provider;
   walletProviderDetail: EIP6963ProviderDetail | undefined;
   walletAddress: string;
-  walletName: string,
+  walletName: string;
   chainId: ChainId;
   disableNetworkButton?: boolean;
   onWalletClick: (e) => void;
@@ -44,11 +46,12 @@ export function WalletNetworkButton({
 }: WalletNetworkButtonProps) {
   const networkName = getChainNameById(chainId);
   const [walletLogoUrl, setWalletLogoUrl] = useState<string | undefined>(
-    undefined,
+    undefined
   );
-  const [walletConnectPeerName, setWalletConnectPeerName] = useState('Other');
+  const [walletConnectPeerName, setWalletConnectPeerName] = useState("Other");
   const [isWalletConnect, setIsWalletConnect] = useState<boolean>(false);
-  const { isWalletConnectEnabled, getWalletLogoUrl, getWalletName } = useWalletConnect();
+  const { isWalletConnectEnabled, getWalletLogoUrl, getWalletName } =
+    useWalletConnect();
 
   const walletDisplayName = useMemo(() => {
     if (walletProviderDetail?.info.rdns === WalletProviderRdns.PASSPORT) {
@@ -90,20 +93,24 @@ export function WalletNetworkButton({
           />
           <Logo logo="WalletConnectSymbol" sx={wcStickerLogoStyles} />
         </>
-      ) : (walletProviderDetail && (
-        <RawImage
-          src={walletProviderDetail.info.icon}
-          alt={walletProviderDetail.info.name}
-        />
-      ))}
+      ) : (
+        walletProviderDetail && (
+          <RawImage
+            src={walletProviderDetail.info.icon}
+            alt={walletProviderDetail.info.name}
+          />
+        )
+      )}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
+          display: "flex",
+          flexDirection: "column",
           flex: 1,
         }}
       >
-        <Heading size="xSmall" sx={{ textTransform: 'capitalize' }}>{walletDisplayName}</Heading>
+        <Heading size="xSmall" sx={{ textTransform: "capitalize" }}>
+          {walletDisplayName}
+        </Heading>
         <Body size="xSmall" sx={walletCaptionStyles}>
           {walletAddress}
         </Body>
@@ -122,15 +129,15 @@ export function WalletNetworkButton({
       >
         <FramedImage
           sx={{
-            w: 'base.icon.size.400',
-            h: 'base.icon.size.400',
+            w: "base.icon.size.400",
+            h: "base.icon.size.400",
           }}
-          use={(
+          use={
             <img
               src={getChainImage(environment, chainId)}
               alt={networkName[chainId]}
             />
-          )}
+          }
         />
         {networkName}
       </Button>

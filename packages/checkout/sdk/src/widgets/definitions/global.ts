@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { Checkout } from '../../sdk';
+import { BrowserProvider } from "ethers";
+import { Checkout } from "../../sdk";
 import {
   CheckoutWidgetsConfig,
   WidgetParameters,
@@ -8,7 +8,7 @@ import {
   WidgetProperties,
   WidgetType,
   WidgetEventData,
-} from './types';
+} from "./types";
 
 /**
  * Declares global interfaces and namespaces for the application.
@@ -19,7 +19,10 @@ declare global {
   namespace ImmutableCheckoutWidgets {
     class WidgetsFactory implements IWidgetsFactory {
       constructor(sdk: Checkout, config: CheckoutWidgetsConfig);
-      create<T extends WidgetType>(type: T, props?: WidgetProperties<T>): Widget<T>;
+      create<T extends WidgetType>(
+        type: T,
+        props?: WidgetProperties<T>
+      ): Widget<T>;
       updateProvider(provider: Web3Provider): void;
     }
 
@@ -32,7 +35,9 @@ declare global {
         type: KEventName,
         callback: (data: WidgetEventData[T][KEventName]) => void
       ): void;
-      removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void;
+      removeListener<KEventName extends keyof WidgetEventData[T]>(
+        type: KEventName
+      ): void;
     }
 
     class Bridge<T extends WidgetType> implements Widget<T> {
@@ -44,7 +49,9 @@ declare global {
         type: KEventName,
         callback: (data: WidgetEventData[T][KEventName]) => void
       ): void;
-      removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void;
+      removeListener<KEventName extends keyof WidgetEventData[T]>(
+        type: KEventName
+      ): void;
     }
 
     class Wallet<T extends WidgetType> implements Widget<T> {
@@ -56,7 +63,9 @@ declare global {
         type: KEventName,
         callback: (data: WidgetEventData[T][KEventName]) => void
       ): void;
-      removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void;
+      removeListener<KEventName extends keyof WidgetEventData[T]>(
+        type: KEventName
+      ): void;
     }
 
     class Swap<T extends WidgetType> implements Widget<T> {
@@ -68,7 +77,9 @@ declare global {
         type: KEventName,
         callback: (data: WidgetEventData[T][KEventName]) => void
       ): void;
-      removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void;
+      removeListener<KEventName extends keyof WidgetEventData[T]>(
+        type: KEventName
+      ): void;
     }
 
     class OnRamp<T extends WidgetType> implements Widget<T> {
@@ -80,7 +91,9 @@ declare global {
         type: KEventName,
         callback: (data: WidgetEventData[T][KEventName]) => void
       ): void;
-      removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void;
+      removeListener<KEventName extends keyof WidgetEventData[T]>(
+        type: KEventName
+      ): void;
     }
 
     class Sale<T extends WidgetType> implements Widget<T> {
@@ -92,7 +105,9 @@ declare global {
         type: KEventName,
         callback: (data: WidgetEventData[T][KEventName]) => void
       ): void;
-      removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void;
+      removeListener<KEventName extends keyof WidgetEventData[T]>(
+        type: KEventName
+      ): void;
     }
   }
 }

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { parseEther } from '@ethersproject/units';
+import { parseEther } from "ethers";
 import {
   ImxModuleConfiguration,
   GenericIMXProvider,
   ProviderConfiguration,
-} from '@imtbl/sdk/x';
-import { env, getProvider } from 'common';
-import { configuration, StepSharedState } from './stepSharedState';
+} from "@imtbl/sdk/x";
+import { env, getProvider } from "common";
+import { configuration, StepSharedState } from "./stepSharedState";
 
 export class Transfer {
   constructor(protected stepSharedState: StepSharedState) {}
@@ -29,9 +29,13 @@ export class Transfer {
         userVar
       ].ethSigner.getAddress();
 
-      const imxProvider = new GenericIMXProvider(this.providerConfig, banker.ethSigner, banker.starkSigner);
+      const imxProvider = new GenericIMXProvider(
+        this.providerConfig,
+        banker.ethSigner,
+        banker.starkSigner
+      );
       return await imxProvider.transfer({
-        type: 'ETH',
+        type: "ETH",
         amount: parseEther(amount).toString(),
         receiver,
       });
@@ -66,10 +70,14 @@ export class Transfer {
     const sender = this.stepSharedState.users[userVar];
     const banker = await this.stepSharedState.getBanker();
     const bankerAddress = await banker.ethSigner.getAddress();
-    const imxProvider = new GenericIMXProvider(this.providerConfig, sender.ethSigner, sender.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      sender.ethSigner,
+      sender.starkSigner
+    );
 
     return await imxProvider.transfer({
-      type: 'ETH',
+      type: "ETH",
       amount: parseEther(amount).toString(),
       receiver: bankerAddress,
     });
@@ -134,17 +142,21 @@ export class Transfer {
     userVar: string,
     transferVar: string,
     amount: string,
-    receiverVar: string,
+    receiverVar: string
   ) {
     const sender = this.stepSharedState.users[userVar];
     const receiver = this.stepSharedState.users[receiverVar];
     const receiverAddress = await receiver.ethSigner.getAddress();
-    const imxProvider = new GenericIMXProvider(this.providerConfig, sender.ethSigner, sender.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      sender.ethSigner,
+      sender.starkSigner
+    );
 
-    console.log('receiver address', receiverAddress);
+    console.log("receiver address", receiverAddress);
     try {
       const response = await imxProvider.transfer({
-        type: 'ETH',
+        type: "ETH",
         amount: parseEther(amount).toString(),
         receiver: receiverAddress,
       });
@@ -156,7 +168,7 @@ export class Transfer {
         transfer_id: response.transfer_id,
       };
     } catch (error) {
-      console.log('error', error);
+      console.log("error", error);
     }
   }
 }

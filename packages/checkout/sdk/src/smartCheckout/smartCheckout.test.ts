@@ -1,6 +1,6 @@
-import { BigNumber } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
-import { overrideBalanceCheckResult, smartCheckout } from './smartCheckout';
+import { BigNumber } from "ethers";
+import { BrowserProvider } from "ethers";
+import { overrideBalanceCheckResult, smartCheckout } from "./smartCheckout";
 import {
   GasAmount,
   GasTokenType,
@@ -8,36 +8,40 @@ import {
   ItemType,
   RoutingOutcomeType,
   TransactionOrGasType,
-} from '../types';
-import { hasERC20Allowances, hasERC721Allowances, hasERC1155Allowances } from './allowance';
-import { gasCalculator } from './gas';
-import { CheckoutConfiguration } from '../config';
-import { balanceCheck } from './balanceCheck';
-import { routingCalculator } from './routing/routingCalculator';
-import { getAvailableRoutingOptions } from './routing';
-import { BalanceCheckResult } from './balanceCheck/types';
+} from "../types";
+import {
+  hasERC20Allowances,
+  hasERC721Allowances,
+  hasERC1155Allowances,
+} from "./allowance";
+import { gasCalculator } from "./gas";
+import { CheckoutConfiguration } from "../config";
+import { balanceCheck } from "./balanceCheck";
+import { routingCalculator } from "./routing/routingCalculator";
+import { getAvailableRoutingOptions } from "./routing";
+import { BalanceCheckResult } from "./balanceCheck/types";
 
-jest.mock('./routing');
-jest.mock('./allowance');
-jest.mock('./gas');
-jest.mock('./balanceCheck');
-jest.mock('./routing/routingCalculator');
+jest.mock("./routing");
+jest.mock("./allowance");
+jest.mock("./gas");
+jest.mock("./balanceCheck");
+jest.mock("./routing/routingCalculator");
 
-describe('smartCheckout', () => {
+describe("smartCheckout", () => {
   let mockProvider: Web3Provider;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    jest.spyOn(console, 'info').mockImplementation(() => {});
+    jest.spyOn(console, "info").mockImplementation(() => {});
     mockProvider = {
       getSigner: jest.fn().mockReturnValue({
-        getAddress: jest.fn().mockResolvedValue('0xADDRESS'),
+        getAddress: jest.fn().mockResolvedValue("0xADDRESS"),
       }),
     } as unknown as Web3Provider;
 
     (routingCalculator as jest.Mock).mockResolvedValue({
       type: RoutingOutcomeType.NO_ROUTES_FOUND,
-      message: 'No routes found',
+      message: "No routes found",
     });
 
     (getAvailableRoutingOptions as jest.Mock).mockResolvedValue({
@@ -51,8 +55,8 @@ describe('smartCheckout', () => {
     jest.clearAllMocks();
   });
 
-  describe('smartCheckout', () => {
-    it('should return sufficient true with item requirements - ERC721 item', async () => {
+  describe("smartCheckout", () => {
+    it("should return sufficient true with item requirements - ERC721 item", async () => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -81,27 +85,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -109,27 +113,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -137,17 +141,17 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -172,7 +176,7 @@ describe('smartCheckout', () => {
         {} as CheckoutConfiguration,
         mockProvider,
         itemRequirements,
-        transactionOrGasAmount,
+        transactionOrGasAmount
       );
 
       expect(result).toEqual({
@@ -183,27 +187,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -211,27 +215,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -239,24 +243,24 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
       });
     });
 
-    it('should return sufficient true with item requirements - ERC1155 item', async () => {
+    it("should return sufficient true with item requirements - ERC1155 item", async () => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -285,27 +289,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0',
+              formattedBalance: "0",
             },
           },
           {
@@ -313,27 +317,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0',
+              formattedBalance: "0",
             },
           },
           {
@@ -341,17 +345,17 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(10),
-              formattedBalance: '10.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "10.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(10),
-              formattedBalance: '10.0',
+              formattedBalance: "10.0",
             },
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0',
+              formattedBalance: "0",
             },
           },
         ],
@@ -376,7 +380,7 @@ describe('smartCheckout', () => {
         {} as CheckoutConfiguration,
         mockProvider,
         itemRequirements,
-        transactionOrGasAmount,
+        transactionOrGasAmount
       );
 
       expect(result).toEqual({
@@ -387,27 +391,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0',
+              formattedBalance: "0",
             },
           },
           {
@@ -415,27 +419,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0',
+              formattedBalance: "0",
             },
           },
           {
@@ -443,24 +447,24 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(10),
-              formattedBalance: '10.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "10.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(10),
-              formattedBalance: '10.0',
+              formattedBalance: "10.0",
             },
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0',
+              formattedBalance: "0",
             },
           },
         ],
       });
     });
 
-    it('should invoke onComplete callback once funding routes are returned', (done) => {
+    it("should invoke onComplete callback once funding routes are returned", (done) => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -489,27 +493,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -517,27 +521,27 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -545,17 +549,17 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -585,27 +589,27 @@ describe('smartCheckout', () => {
               sufficient: true,
               required: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
                 token: {
-                  name: 'IMX',
-                  symbol: 'IMX',
+                  name: "IMX",
+                  symbol: "IMX",
                   decimals: 18,
-                  address: '0x1010',
+                  address: "0x1010",
                 },
               },
               current: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
                 token: {
-                  name: 'IMX',
-                  symbol: 'IMX',
+                  name: "IMX",
+                  symbol: "IMX",
                   decimals: 18,
-                  address: '0x1010',
+                  address: "0x1010",
                 },
               },
               delta: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
               },
             },
             {
@@ -613,27 +617,27 @@ describe('smartCheckout', () => {
               sufficient: true,
               required: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
                 token: {
-                  name: 'zkTKN',
-                  symbol: 'zkTKN',
+                  name: "zkTKN",
+                  symbol: "zkTKN",
                   decimals: 18,
-                  address: '0xERC20',
+                  address: "0xERC20",
                 },
               },
               current: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
                 token: {
-                  name: 'zkTKN',
-                  symbol: 'zkTKN',
+                  name: "zkTKN",
+                  symbol: "zkTKN",
                   decimals: 18,
-                  address: '0xERC20',
+                  address: "0xERC20",
                 },
               },
               delta: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
               },
             },
             {
@@ -641,17 +645,17 @@ describe('smartCheckout', () => {
               sufficient: true,
               required: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
-                id: '0',
-                contractAddress: '0xCollection',
+                formattedBalance: "1.0",
+                id: "0",
+                contractAddress: "0xCollection",
               },
               current: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
               },
               delta: {
                 balance: BigNumber.from(1),
-                formattedBalance: '1.0',
+                formattedBalance: "1.0",
               },
             },
           ],
@@ -665,11 +669,11 @@ describe('smartCheckout', () => {
         itemRequirements,
         transactionOrGasAmount,
         undefined,
-        mockOnComplete,
+        mockOnComplete
       );
     });
 
-    it('should return sufficient false with item requirements', async () => {
+    it("should return sufficient false with item requirements", async () => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -698,27 +702,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(2),
-              formattedBalance: '2.0',
+              formattedBalance: "2.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -726,27 +730,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -754,19 +758,19 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(0),
-              formattedBalance: '0.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "0.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -791,7 +795,7 @@ describe('smartCheckout', () => {
         {} as CheckoutConfiguration,
         mockProvider,
         itemRequirements,
-        transactionOrGasAmount,
+        transactionOrGasAmount
       );
 
       expect(result).toEqual({
@@ -802,27 +806,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(2),
-              formattedBalance: '2.0',
+              formattedBalance: "2.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -830,27 +834,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -858,19 +862,19 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(0),
-              formattedBalance: '0.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "0.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -882,13 +886,13 @@ describe('smartCheckout', () => {
           },
           routingOutcome: {
             type: RoutingOutcomeType.NO_ROUTES_FOUND,
-            message: 'No routes found',
+            message: "No routes found",
           },
         },
       });
     });
 
-    it('should return passport as true', async () => {
+    it("should return passport as true", async () => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -917,27 +921,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(2),
-              formattedBalance: '2.0',
+              formattedBalance: "2.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -945,27 +949,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -973,19 +977,19 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(0),
-              formattedBalance: '0.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "0.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -1008,7 +1012,7 @@ describe('smartCheckout', () => {
 
       const passportMockProvider = {
         getSigner: jest.fn().mockReturnValue({
-          getAddress: jest.fn().mockResolvedValue('0xADDRESS'),
+          getAddress: jest.fn().mockResolvedValue("0xADDRESS"),
         }),
       } as unknown as Web3Provider;
 
@@ -1016,7 +1020,7 @@ describe('smartCheckout', () => {
         {} as CheckoutConfiguration,
         passportMockProvider,
         itemRequirements,
-        transactionOrGasAmount,
+        transactionOrGasAmount
       );
 
       expect(result).toEqual({
@@ -1027,27 +1031,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(2),
-              formattedBalance: '2.0',
+              formattedBalance: "2.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'IMX',
-                symbol: 'IMX',
+                name: "IMX",
+                symbol: "IMX",
                 decimals: 18,
-                address: '0x1010',
+                address: "0x1010",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -1055,27 +1059,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
           {
@@ -1083,19 +1087,19 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "1.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             current: {
               balance: BigNumber.from(0),
-              formattedBalance: '0.0',
-              id: '0',
-              contractAddress: '0xCollection',
+              formattedBalance: "0.0",
+              id: "0",
+              contractAddress: "0xCollection",
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -1107,13 +1111,13 @@ describe('smartCheckout', () => {
           },
           routingOutcome: {
             type: RoutingOutcomeType.NO_ROUTES_FOUND,
-            message: 'No routes found',
+            message: "No routes found",
           },
         },
       });
     });
 
-    it('should not call gasCalculator if transactionOrGasAmount is not provided', async () => {
+    it("should not call gasCalculator if transactionOrGasAmount is not provided", async () => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -1137,27 +1141,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -1166,9 +1170,9 @@ describe('smartCheckout', () => {
       const itemRequirements: ItemRequirement[] = [
         {
           type: ItemType.ERC20,
-          tokenAddress: '0xERC20',
+          tokenAddress: "0xERC20",
           amount: BigNumber.from(1),
-          spenderAddress: '0x1',
+          spenderAddress: "0x1",
         },
       ];
 
@@ -1176,7 +1180,7 @@ describe('smartCheckout', () => {
         {} as CheckoutConfiguration,
         mockProvider,
         itemRequirements,
-        undefined,
+        undefined
       );
 
       expect(gasCalculator).toHaveBeenCalledTimes(0);
@@ -1189,27 +1193,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -1221,17 +1225,17 @@ describe('smartCheckout', () => {
           },
           routingOutcome: {
             type: RoutingOutcomeType.NO_ROUTES_FOUND,
-            message: 'No routes found',
+            message: "No routes found",
           },
         },
       });
     });
 
-    it('should return swap funding route when available', async () => {
+    it("should return swap funding route when available", async () => {
       (routingCalculator as jest.Mock).mockResolvedValue({
         type: RoutingOutcomeType.NO_ROUTES_FOUND,
         message:
-          'Smart Checkout did not find any funding routes to fulfill the transaction',
+          "Smart Checkout did not find any funding routes to fulfill the transaction",
       });
 
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
@@ -1257,27 +1261,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -1286,9 +1290,9 @@ describe('smartCheckout', () => {
       const itemRequirements: ItemRequirement[] = [
         {
           type: ItemType.ERC20,
-          tokenAddress: '0xERC20',
+          tokenAddress: "0xERC20",
           amount: BigNumber.from(1),
-          spenderAddress: '0x1',
+          spenderAddress: "0x1",
         },
       ];
 
@@ -1299,7 +1303,7 @@ describe('smartCheckout', () => {
         undefined,
         {
           swap: false,
-        },
+        }
       );
 
       expect(result).toEqual({
@@ -1310,27 +1314,27 @@ describe('smartCheckout', () => {
             sufficient: false,
             required: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             current: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
               token: {
-                name: 'zkTKN',
-                symbol: 'zkTKN',
+                name: "zkTKN",
+                symbol: "zkTKN",
                 decimals: 18,
-                address: '0xERC20',
+                address: "0xERC20",
               },
             },
             delta: {
               balance: BigNumber.from(1),
-              formattedBalance: '1.0',
+              formattedBalance: "1.0",
             },
           },
         ],
@@ -1343,15 +1347,15 @@ describe('smartCheckout', () => {
           routingOutcome: {
             type: RoutingOutcomeType.NO_ROUTES_FOUND,
             message:
-              'Smart Checkout did not find any funding routes to fulfill the transaction',
+              "Smart Checkout did not find any funding routes to fulfill the transaction",
           },
         },
       });
     });
   });
 
-  describe('overrideBalanceCheckResult', () => {
-    it('should correctly override sufficient flags and deltas for ERC20 items', () => {
+  describe("overrideBalanceCheckResult", () => {
+    it("should correctly override sufficient flags and deltas for ERC20 items", () => {
       const mockBalanceCheckResult: BalanceCheckResult = {
         sufficient: true,
         balanceRequirements: [
@@ -1360,27 +1364,27 @@ describe('smartCheckout', () => {
             type: ItemType.NATIVE,
             delta: {
               balance: BigNumber.from(0),
-              formattedBalance: '0.0',
+              formattedBalance: "0.0",
             },
             current: {
               balance: BigNumber.from(100),
-              formattedBalance: '100.0',
+              formattedBalance: "100.0",
               token: {
-                address: 'native',
+                address: "native",
                 decimals: 18,
-                name: 'tIMX',
-                symbol: 'tIMX',
+                name: "tIMX",
+                symbol: "tIMX",
               },
               type: ItemType.NATIVE,
             },
             required: {
               balance: BigNumber.from(100),
-              formattedBalance: '100.0',
+              formattedBalance: "100.0",
               token: {
-                address: 'native',
+                address: "native",
                 decimals: 18,
-                name: 'tIMX',
-                symbol: 'tIMX',
+                name: "tIMX",
+                symbol: "tIMX",
               },
               type: ItemType.NATIVE,
             },
@@ -1390,27 +1394,27 @@ describe('smartCheckout', () => {
             type: ItemType.ERC20,
             delta: {
               balance: BigNumber.from(-50),
-              formattedBalance: '-50.0',
+              formattedBalance: "-50.0",
             },
             current: {
               type: ItemType.ERC20,
               balance: BigNumber.from(50),
-              formattedBalance: '50.0',
+              formattedBalance: "50.0",
               token: {
-                address: '0x3b2d8a1931736fc321c24864bceee981b11c3c57',
-                name: 'USDC',
-                symbol: 'USDC',
+                address: "0x3b2d8a1931736fc321c24864bceee981b11c3c57",
+                name: "USDC",
+                symbol: "USDC",
                 decimals: 6,
               },
             },
             required: {
               type: ItemType.ERC20,
               balance: BigNumber.from(100),
-              formattedBalance: '100.0',
+              formattedBalance: "100.0",
               token: {
-                address: '0x3b2d8a1931736fc321c24864bceee981b11c3c57',
-                name: 'USDC',
-                symbol: 'USDC',
+                address: "0x3b2d8a1931736fc321c24864bceee981b11c3c57",
+                name: "USDC",
+                symbol: "USDC",
                 decimals: 6,
               },
             },
@@ -1423,15 +1427,15 @@ describe('smartCheckout', () => {
       expect(result.sufficient).toBe(false);
       expect(result.balanceRequirements[1].sufficient).toBe(false);
       expect(result.balanceRequirements[1].delta.balance.toString()).toBe(
-        '100',
+        "100"
       );
       expect(result.balanceRequirements[1].delta.formattedBalance).toBe(
-        '100.0',
+        "100.0"
       );
       expect(result.balanceRequirements[0].sufficient).toBe(true);
     });
 
-    it('should return correct sufficient status and still calculate funding routes', async () => {
+    it("should return correct sufficient status and still calculate funding routes", async () => {
       (hasERC20Allowances as jest.Mock).mockResolvedValue({
         sufficient: true,
         allowances: [],
@@ -1455,15 +1459,15 @@ describe('smartCheckout', () => {
             sufficient: true,
             required: {
               balance: BigNumber.from(100),
-              formattedBalance: '100.0',
+              formattedBalance: "100.0",
             },
             current: {
               balance: BigNumber.from(90),
-              formattedBalance: '90.0',
+              formattedBalance: "90.0",
             },
             delta: {
               balance: BigNumber.from(-10),
-              formattedBalance: '-10.0',
+              formattedBalance: "-10.0",
             },
           },
         ],
@@ -1474,9 +1478,9 @@ describe('smartCheckout', () => {
       const itemRequirements: ItemRequirement[] = [
         {
           type: ItemType.ERC20,
-          tokenAddress: '0xERC20',
+          tokenAddress: "0xERC20",
           amount: BigNumber.from(10),
-          spenderAddress: '0x1',
+          spenderAddress: "0x1",
         },
       ];
 
@@ -1490,7 +1494,7 @@ describe('smartCheckout', () => {
           itemRequirements,
           undefined,
           undefined,
-          mockOnComplete,
+          mockOnComplete
         );
       });
 
@@ -1506,7 +1510,7 @@ describe('smartCheckout', () => {
               sufficient: true,
             }),
           ]),
-        }),
+        })
       );
     });
   });

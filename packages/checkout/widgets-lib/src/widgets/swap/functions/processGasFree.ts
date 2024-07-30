@@ -1,14 +1,17 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { TransactionResponse } from '@imtbl/dex-sdk';
-import { BigNumber } from 'ethers';
-import { isGasFree } from '../../../lib/provider';
+import { BrowserProvider } from "ethers";
+import { TransactionResponse } from "@imtbl/dex-sdk";
+import { BigNumber } from "ethers";
+import { isGasFree } from "../../../lib/provider";
 
 /**
  * Adjusts the quote for gas free txn so we don't have to adjust it everywhere
  * @param checkProvider
  * @param currentQuote
  */
-export const processGasFree = (checkProvider: Web3Provider, currentQuote: TransactionResponse) => {
+export const processGasFree = (
+  checkProvider: Web3Provider,
+  currentQuote: TransactionResponse
+) => {
   if (!isGasFree(checkProvider)) {
     return currentQuote;
   }

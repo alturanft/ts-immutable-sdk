@@ -1,43 +1,44 @@
-import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
-import { Environment } from '@imtbl/config';
-import { isWeb3Provider, validateProvider } from './validateProvider';
-import { ChainId } from '../types';
-import { CheckoutConfiguration } from '../config';
-import { RemoteConfigFetcher } from '../config/remoteConfigFetcher';
-import { HttpClient } from '../api/http';
+import { Eip1193Provider, BrowserProvider } from "ethers";
+import { Environment } from "@imtbl/config";
+import { isWeb3Provider, validateProvider } from "./validateProvider";
+import { ChainId } from "../types";
+import { CheckoutConfiguration } from "../config";
+import { RemoteConfigFetcher } from "../config/remoteConfigFetcher";
+import { HttpClient } from "../api/http";
 
-jest.mock('../config/remoteConfigFetcher');
+jest.mock("../config/remoteConfigFetcher");
 
-describe('provider validation', () => {
+describe("provider validation", () => {
   const mockRequestFunc = (request: {
     method: string;
     params?: any[] | undefined;
-  }): Promise<any> => Promise.resolve(() => {
-    // eslint-disable-next-line no-console
-    console.log(request);
-  });
+  }): Promise<any> =>
+    Promise.resolve(() => {
+      // eslint-disable-next-line no-console
+      console.log(request);
+    });
 
-  describe('isWeb3Provider', () => {
-    it('should return true when provider is Web3Provider shape and request method is present', () => {
-      const web3Provider = new Web3Provider({ request: mockRequestFunc });
+  describe("isWeb3Provider", () => {
+    it("should return true when provider is Web3Provider shape and request method is present", () => {
+      const web3Provider = new BrowserProvider({ request: mockRequestFunc });
       const result = isWeb3Provider(web3Provider);
 
       expect(result).toBeTruthy();
     });
 
-    it('should return false when it is not a Web3Provider', () => {
+    it("should return false when it is not a Web3Provider", () => {
       // pass in object which is not a Web3Provider
       const web3Provider = {
         request: mockRequestFunc,
-      } as unknown as Web3Provider;
+      } as unknown as BrowserProvider;
       const result = isWeb3Provider(web3Provider);
 
       expect(result).toBeFalsy();
     });
   });
 
-  describe('validateProvider', () => {
-    let underlyingProviderMock: ExternalProvider;
+  describe("validateProvider", () => {
+    let underlyingProviderMock: Eip1193Provider;
     let testCheckoutConfig: CheckoutConfiguration;
     const requestMock = jest.fn();
 
@@ -61,40 +62,43 @@ describe('provider validation', () => {
       });
 
       const mockedHttpClient = new HttpClient() as jest.Mocked<HttpClient>;
-      testCheckoutConfig = new CheckoutConfiguration({
-        baseConfig: { environment: Environment.PRODUCTION },
-      }, mockedHttpClient);
+      testCheckoutConfig = new CheckoutConfiguration(
+        {
+          baseConfig: { environment: Environment.PRODUCTION },
+        },
+        mockedHttpClient
+      );
     });
 
-    it('should not throw an error when valid web3provider', async () => {
-      requestMock.mockResolvedValue('0x1');
-      const testWeb3Provider = new Web3Provider(
+    it("should not throw an error when valid web3provider", async () => {
+      requestMock.mockResolvedValue("0x1");
+      const testWeb3Provider = new BrowserProvider(
         underlyingProviderMock,
-        ChainId.ETHEREUM,
+        ChainId.ETHEREUM
       );
       expect(await validateProvider(testCheckoutConfig, testWeb3Provider)).toBe(
-        testWeb3Provider,
+        testWeb3Provider
       );
     });
 
-    it('should throw an error if the underlying provider is not on the same network as the Web3Provider', async () => {
-      requestMock.mockResolvedValue('0x1');
-      const testWeb3Provider = new Web3Provider(
+    it("should throw an error if the underlying provider is not on the same network as the Web3Provider", async () => {
+      requestMock.mockResolvedValue("0x1");
+      const testWeb3Provider = new BrowserProvider(
         underlyingProviderMock,
-        ChainId.IMTBL_ZKEVM_TESTNET,
+        ChainId.IMTBL_ZKEVM_TESTNET
       );
       await expect(
-        validateProvider(testCheckoutConfig, testWeb3Provider),
+        validateProvider(testCheckoutConfig, testWeb3Provider)
       ).rejects.toThrowError(
-        '[WEB3_PROVIDER_ERROR] Cause:Your wallet has changed network, please switch to a supported network',
+        "[WEB3_PROVIDER_ERROR] Cause:Your wallet has changed network, please switch to a supported network"
       );
     });
 
-    it('should not throw an error if allowMistmatchedChainId is true and underlying network different', async () => {
-      requestMock.mockResolvedValue('0x1');
-      const testWeb3Provider = new Web3Provider(
+    it("should not throw an error if allowMistmatchedChainId is true and underlying network different", async () => {
+      requestMock.mockResolvedValue("0x1");
+      const testWeb3Provider = new BrowserProvider(
         underlyingProviderMock,
-        ChainId.IMTBL_ZKEVM_TESTNET,
+        ChainId.IMTBL_ZKEVM_TESTNET
       );
       const validationOverrides = {
         allowMistmatchedChainId: true,
@@ -104,16 +108,16 @@ describe('provider validation', () => {
         await validateProvider(
           testCheckoutConfig,
           testWeb3Provider,
-          validationOverrides,
-        ),
+          validationOverrides
+        )
       ).toBe(testWeb3Provider);
     });
 
-    it('should throw an error if the underlying provider is on an unsupported network', async () => {
-      requestMock.mockResolvedValue('0xfa');
-      const testWeb3Provider = new Web3Provider(
+    it("should throw an error if the underlying provider is on an unsupported network", async () => {
+      requestMock.mockResolvedValue("0xfa");
+      const testWeb3Provider = new BrowserProvider(
         underlyingProviderMock,
-        ChainId.ETHEREUM,
+        ChainId.ETHEREUM
       );
       const validationOverrides = {
         allowMistmatchedChainId: true,
@@ -123,18 +127,18 @@ describe('provider validation', () => {
         validateProvider(
           testCheckoutConfig,
           testWeb3Provider,
-          validationOverrides,
-        ),
+          validationOverrides
+        )
       ).rejects.toThrowError(
         // eslint-disable-next-line max-len
-        '[WEB3_PROVIDER_ERROR] Cause:Your wallet is connected to an unsupported network, please switch to a supported network',
+        "[WEB3_PROVIDER_ERROR] Cause:Your wallet is connected to an unsupported network, please switch to a supported network"
       );
     });
 
-    it('should not throw an error if allowUnsupportedProvider true and underlying network is unsupported', async () => {
+    it("should not throw an error if allowUnsupportedProvider true and underlying network is unsupported", async () => {
       // HEX 0xfa -> 250 , underlying provider matches Web3Provider, but unsupported chain
-      requestMock.mockResolvedValue('0xfa');
-      const testWeb3Provider = new Web3Provider(underlyingProviderMock, 250);
+      requestMock.mockResolvedValue("0xfa");
+      const testWeb3Provider = new BrowserProvider(underlyingProviderMock, 250);
       const validationOverrides = {
         allowMistmatchedChainId: false,
         allowUnsupportedProvider: true,
@@ -143,8 +147,8 @@ describe('provider validation', () => {
         await validateProvider(
           testCheckoutConfig,
           testWeb3Provider,
-          validationOverrides,
-        ),
+          validationOverrides
+        )
       ).toBe(testWeb3Provider);
     });
   });

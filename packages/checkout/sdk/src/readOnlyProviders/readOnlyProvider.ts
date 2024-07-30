@@ -1,14 +1,16 @@
-import { JsonRpcProvider } from '@ethersproject/providers';
-import * as network from '../network';
-import { ChainId, NetworkFilterTypes } from '../types';
-import { CheckoutConfiguration } from '../config';
+import { JsonRpcProvider } from "ethers";
+import * as network from "../network";
+import { ChainId, NetworkFilterTypes } from "../types";
+import { CheckoutConfiguration } from "../config";
 
 export async function createReadOnlyProviders(
   config: CheckoutConfiguration,
-  existingReadOnlyProviders?: Map<ChainId, JsonRpcProvider>,
+  existingReadOnlyProviders?: Map<ChainId, JsonRpcProvider>
 ): Promise<Map<ChainId, JsonRpcProvider>> {
-  if (config.isProduction && existingReadOnlyProviders?.has(ChainId.ETHEREUM)) return existingReadOnlyProviders;
-  if (existingReadOnlyProviders?.has(ChainId.SEPOLIA)) return existingReadOnlyProviders;
+  if (config.isProduction && existingReadOnlyProviders?.has(ChainId.ETHEREUM))
+    return existingReadOnlyProviders;
+  if (existingReadOnlyProviders?.has(ChainId.SEPOLIA))
+    return existingReadOnlyProviders;
 
   const readOnlyProviders = new Map<ChainId, JsonRpcProvider>();
 

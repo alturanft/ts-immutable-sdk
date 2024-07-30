@@ -1,19 +1,23 @@
-import { Signer } from '@ethersproject/abstract-signer';
+import { Signer } from "ethers";
 import {
-  AnyToken, Contracts, EncodingApi, ERC721Token, ImmutableXConfiguration, MintsApi,
-} from '@imtbl/x-client';
-import { BigNumber } from '@ethersproject/bignumber';
-import { getEncodeAssetInfo } from './getEncodeAssetInfo';
+  AnyToken,
+  Contracts,
+  EncodingApi,
+  ERC721Token,
+  ImmutableXConfiguration,
+  MintsApi,
+} from "@imtbl/x-client";
+import { getEncodeAssetInfo } from "./getEncodeAssetInfo";
 
 async function getWithdrawalBalance(
   signer: Signer,
   ownerKey: string,
   assetId: string,
-  config: ImmutableXConfiguration,
+  config: ImmutableXConfiguration
 ) {
   const coreContract = Contracts.CoreV4.connect(
     config.ethConfiguration.coreContractAddress,
-    signer,
+    signer
   );
   return coreContract.getWithdrawalBalance(ownerKey, assetId);
 }
@@ -21,14 +25,14 @@ async function getWithdrawalBalance(
 async function getETHWithdrawalBalance(
   signer: Signer,
   ownerKey: string,
-  config: ImmutableXConfiguration,
-): Promise<BigNumber> {
-  const assetType = await getEncodeAssetInfo('asset', 'ETH', config);
+  config: ImmutableXConfiguration
+): Promise<bigint> {
+  const assetType = await getEncodeAssetInfo("asset", "ETH", config);
   return await getWithdrawalBalance(
     signer,
     ownerKey,
     assetType.asset_id,
-    config,
+    config
   );
 }
 
@@ -36,16 +40,16 @@ async function getERC20WithdrawalBalance(
   signer: Signer,
   ownerKey: string,
   tokenAddress: string,
-  config: ImmutableXConfiguration,
-): Promise<BigNumber> {
-  const assetType = await getEncodeAssetInfo('asset', 'ERC20', config, {
+  config: ImmutableXConfiguration
+): Promise<bigint> {
+  const assetType = await getEncodeAssetInfo("asset", "ERC20", config, {
     token_address: tokenAddress,
   });
   return await getWithdrawalBalance(
     signer,
     ownerKey,
     assetType.asset_id,
-    config,
+    config
   );
 }
 
@@ -55,18 +59,19 @@ async function getERC721WithdrawalBalance(
   token: ERC721Token,
   encodingApi: EncodingApi,
   mintsApi: MintsApi,
-  config: ImmutableXConfiguration,
-): Promise<BigNumber> {
+  config: ImmutableXConfiguration
+): Promise<bigint> {
   try {
-    const mintableToken = await mintsApi
-      .getMintableTokenDetailsByClientTokenId({
+    const mintableToken = await mintsApi.getMintableTokenDetailsByClientTokenId(
+      {
         tokenAddress: token.tokenAddress,
         tokenId: token.tokenId,
-      });
+      }
+    );
 
     const assetType = await getEncodeAssetInfo(
-      'mintable-asset',
-      'ERC721',
+      "mintable-asset",
+      "ERC721",
       config,
       {
         id: token.tokenId,
@@ -74,31 +79,26 @@ async function getERC721WithdrawalBalance(
         ...(mintableToken.data.blueprint && {
           blueprint: mintableToken.data.blueprint,
         }),
-      },
+      }
     );
     return await getWithdrawalBalance(
       signer,
       ownerKey,
       assetType.asset_id,
-      config,
+      config
     );
   } catch (error: any) {
     if (error.response?.status === 404) {
       // token is not a mintable ERC721 token
-      const assetType = await getEncodeAssetInfo(
-        'asset',
-        'ERC721',
-        config,
-        {
-          token_id: token.tokenId,
-          token_address: token.tokenAddress,
-        },
-      );
+      const assetType = await getEncodeAssetInfo("asset", "ERC721", config, {
+        token_id: token.tokenId,
+        token_address: token.tokenAddress,
+      });
       return await getWithdrawalBalance(
         signer,
         ownerKey,
         assetType.asset_id,
-        config,
+        config
       );
     }
     throw error; // unable to recover from any other kind of error
@@ -111,33 +111,29 @@ export async function getWithdrawalBalanceWorkflow(
   token: AnyToken,
   encodingApi: EncodingApi,
   mintsApi: MintsApi,
-  config: ImmutableXConfiguration,
-): Promise<BigNumber> {
+  config: ImmutableXConfiguration
+): Promise<bigint> {
   switch (token.type) {
-    case 'ETH':
-      return await getETHWithdrawalBalance(
-        signer,
-        ownerKey,
-        config,
-      );
-    case 'ERC20':
+    case "ETH":
+      return await getETHWithdrawalBalance(signer, ownerKey, config);
+    case "ERC20":
       return await getERC20WithdrawalBalance(
         signer,
         ownerKey,
         token.tokenAddress,
-        config,
+        config
       );
-    case 'ERC721':
+    case "ERC721":
       return await getERC721WithdrawalBalance(
         signer,
         ownerKey,
         token,
         encodingApi,
         mintsApi,
-        config,
+        config
       );
     default:
-      throw new Error('Unsupported token type');
+      throw new Error("Unsupported token type");
   }
 }
 
@@ -146,8 +142,8 @@ export async function getWithdrawalBalances(
   starkPublicKey: string,
   ethAddress: string,
   token: AnyToken,
-  config: ImmutableXConfiguration,
-): Promise<{ v3Balance: BigNumber; v4Balance: BigNumber }> {
+  config: ImmutableXConfiguration
+): Promise<{ v3Balance: bigint; v4Balance: bigint }> {
   const encodingApi = new EncodingApi(config.apiConfiguration);
   const mintsApi = new MintsApi(config.apiConfiguration);
 
@@ -157,7 +153,7 @@ export async function getWithdrawalBalances(
     token,
     encodingApi,
     mintsApi,
-    config,
+    config
   );
   const v4Balance = await getWithdrawalBalanceWorkflow(
     signer,
@@ -165,7 +161,7 @@ export async function getWithdrawalBalances(
     token,
     encodingApi,
     mintsApi,
-    config,
+    config
   );
   return {
     v3Balance,
@@ -179,8 +175,8 @@ export async function getWithdrawalBalancesERC721(
   ethAddress: string,
   token: AnyToken,
   config: ImmutableXConfiguration,
-  mintsApi: MintsApi,
-): Promise<{ v3Balance: BigNumber; v4Balance: BigNumber }> {
+  mintsApi: MintsApi
+): Promise<{ v3Balance: bigint; v4Balance: bigint }> {
   const encodingApi = new EncodingApi(config.apiConfiguration);
 
   const v3Balance = await getWithdrawalBalanceWorkflow(
@@ -189,7 +185,7 @@ export async function getWithdrawalBalancesERC721(
     token,
     encodingApi,
     mintsApi,
-    config,
+    config
   );
 
   const v4Balance = await getWithdrawalBalanceWorkflow(
@@ -198,7 +194,7 @@ export async function getWithdrawalBalancesERC721(
     token,
     encodingApi,
     mintsApi,
-    config,
+    config
   );
 
   return {

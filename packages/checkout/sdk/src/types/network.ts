@@ -1,7 +1,7 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { ChainId } from './chains';
-import { NetworkInfo } from './networkInfo';
-import { TokenInfo } from './tokenInfo';
+import { BrowserProvider } from "ethers";
+import { ChainId } from "./chains";
+import { NetworkInfo } from "./networkInfo";
+import { TokenInfo } from "./tokenInfo";
 
 /**
  * Interface representing the parameters for {@link Checkout.addNetwork}.
@@ -64,7 +64,7 @@ export interface GetNetworkAllowListResult {
  * Enum representing the types of filters that can be applied to get the allow list of networks.
  */
 export enum NetworkFilterTypes {
-  ALL = 'all',
+  ALL = "all",
 }
 
 /**

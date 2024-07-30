@@ -1,6 +1,6 @@
 /* eslint-disable arrow-body-style */
-import { BigNumber, Contract, utils } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
+import { BigNumber, Contract, utils } from "ethers";
+import { BrowserProvider } from "ethers";
 import {
   ERC20Item,
   ERC721Balance,
@@ -11,47 +11,48 @@ import {
   NativeItem,
   TokenBalance,
   TokenInfo,
-} from '../../types';
+} from "../../types";
 import {
   BalanceERC20Requirement,
   BalanceERC721Requirement,
   BalanceNativeRequirement,
-} from './types';
+} from "./types";
 import {
   DEFAULT_TOKEN_DECIMALS,
   ERC20ABI,
   NATIVE,
   ZKEVM_NATIVE_TOKEN,
-} from '../../env';
-import { isNativeToken } from '../../tokens';
-import { isMatchingAddress } from '../../utils/utils';
+} from "../../env";
+import { isNativeToken } from "../../tokens";
+import { isMatchingAddress } from "../../utils/utils";
 
 export const getTokensFromRequirements = (
-  itemRequirements: ItemRequirement[],
-): TokenInfo[] => itemRequirements.map((itemRequirement) => {
-  switch (itemRequirement.type) {
-    case ItemType.ERC20:
-      return {
-        address: itemRequirement.tokenAddress,
-      } as TokenInfo;
-    case ItemType.NATIVE:
-      return {
-        address: NATIVE,
-      } as TokenInfo;
-    case ItemType.ERC721:
-    default:
-      return {
-        address: itemRequirement.contractAddress,
-      } as TokenInfo;
-  }
-});
+  itemRequirements: ItemRequirement[]
+): TokenInfo[] =>
+  itemRequirements.map((itemRequirement) => {
+    switch (itemRequirement.type) {
+      case ItemType.ERC20:
+        return {
+          address: itemRequirement.tokenAddress,
+        } as TokenInfo;
+      case ItemType.NATIVE:
+        return {
+          address: NATIVE,
+        } as TokenInfo;
+      case ItemType.ERC721:
+      default:
+        return {
+          address: itemRequirement.contractAddress,
+        } as TokenInfo;
+    }
+  });
 
 /**
  * Gets the balance requirement with delta for an ERC721 requirement.
  */
 export const getERC721BalanceRequirement = (
   itemRequirement: ERC721Item,
-  balances: ItemBalance[],
+  balances: ItemBalance[]
 ): BalanceERC721Requirement => {
   const requiredBalance = BigNumber.from(1);
 
@@ -61,24 +62,25 @@ export const getERC721BalanceRequirement = (
     return (
       isMatchingAddress(
         balanceERC721Result.contractAddress,
-        itemRequirement.contractAddress,
+        itemRequirement.contractAddress
       ) && balanceERC721Result.id === itemRequirement.id
     );
   });
 
   // Calculate the balance delta
-  const sufficient = requiredBalance.isNegative()
-    || requiredBalance.isZero()
-    || (itemBalanceResult?.balance.gte(requiredBalance) ?? false);
+  const sufficient =
+    requiredBalance.isNegative() ||
+    requiredBalance.isZero() ||
+    (itemBalanceResult?.balance.gte(requiredBalance) ?? false);
   const delta = requiredBalance.sub(
-    itemBalanceResult?.balance ?? BigNumber.from(0),
+    itemBalanceResult?.balance ?? BigNumber.from(0)
   );
   let erc721BalanceResult = itemBalanceResult as ERC721Balance;
   if (!erc721BalanceResult) {
     erc721BalanceResult = {
       type: ItemType.ERC721,
       balance: BigNumber.from(0),
-      formattedBalance: '0',
+      formattedBalance: "0",
       contractAddress: itemRequirement.contractAddress,
       id: itemRequirement.id,
     };
@@ -94,7 +96,7 @@ export const getERC721BalanceRequirement = (
     required: {
       ...erc721BalanceResult,
       balance: BigNumber.from(1),
-      formattedBalance: '1',
+      formattedBalance: "1",
     },
   };
 };
@@ -105,7 +107,7 @@ export const getERC721BalanceRequirement = (
 export const getTokenBalanceRequirement = async (
   itemRequirement: ERC20Item | NativeItem,
   balances: ItemBalance[],
-  provider: Web3Provider,
+  provider: Web3Provider
 ): Promise<BalanceNativeRequirement | BalanceERC20Requirement> => {
   let itemBalanceResult: ItemBalance | undefined;
 
@@ -114,7 +116,7 @@ export const getTokenBalanceRequirement = async (
     itemBalanceResult = balances.find((balance) => {
       return isMatchingAddress(
         (balance as TokenBalance).token?.address,
-        itemRequirement.tokenAddress,
+        itemRequirement.tokenAddress
       );
     });
   } else if (itemRequirement.type === ItemType.NATIVE) {
@@ -125,19 +127,21 @@ export const getTokenBalanceRequirement = async (
 
   // Calculate the balance delta
   const requiredBalance: BigNumber = itemRequirement.amount;
-  const sufficient = requiredBalance.isNegative()
-    || requiredBalance.isZero()
-    || (itemBalanceResult?.balance.gte(requiredBalance) ?? false);
+  const sufficient =
+    requiredBalance.isNegative() ||
+    requiredBalance.isZero() ||
+    (itemBalanceResult?.balance.gte(requiredBalance) ?? false);
 
   const delta = requiredBalance.sub(
-    itemBalanceResult?.balance ?? BigNumber.from(0),
+    itemBalanceResult?.balance ?? BigNumber.from(0)
   );
-  let name = '';
-  let symbol = '';
+  let name = "";
+  let symbol = "";
   let decimals = DEFAULT_TOKEN_DECIMALS;
   if (itemBalanceResult) {
-    decimals = (itemBalanceResult as TokenBalance).token?.decimals
-      ?? DEFAULT_TOKEN_DECIMALS;
+    decimals =
+      (itemBalanceResult as TokenBalance).token?.decimals ??
+      DEFAULT_TOKEN_DECIMALS;
     name = (itemBalanceResult as TokenBalance).token.name;
     symbol = (itemBalanceResult as TokenBalance).token.symbol;
   } else if (itemRequirement.type === ItemType.ERC20) {
@@ -146,21 +150,22 @@ export const getTokenBalanceRequirement = async (
       const contract = new Contract(
         itemRequirement.tokenAddress,
         JSON.stringify(ERC20ABI),
-        provider,
+        provider
       );
-      const [contractName, contractSymbol, contractDecimals] = await Promise.all([
-        contract.name(),
-        contract.symbol(),
-        contract.decimals(),
-      ]);
+      const [contractName, contractSymbol, contractDecimals] =
+        await Promise.all([
+          contract.name(),
+          contract.symbol(),
+          contract.decimals(),
+        ]);
       decimals = contractDecimals;
       name = contractName;
       symbol = contractSymbol;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(
-        'Failed to query contract information',
-        itemRequirement.tokenAddress,
+        "Failed to query contract information",
+        itemRequirement.tokenAddress
       );
     }
   }
@@ -172,7 +177,7 @@ export const getTokenBalanceRequirement = async (
       tokenBalanceResult = {
         type: ItemType.NATIVE,
         balance: BigNumber.from(0),
-        formattedBalance: '0',
+        formattedBalance: "0",
         token: ZKEVM_NATIVE_TOKEN,
       };
     }
@@ -202,7 +207,7 @@ export const getTokenBalanceRequirement = async (
     tokenBalanceResult = {
       type: itemRequirement.type,
       balance: BigNumber.from(0),
-      formattedBalance: '0',
+      formattedBalance: "0",
       token: {
         name,
         symbol,

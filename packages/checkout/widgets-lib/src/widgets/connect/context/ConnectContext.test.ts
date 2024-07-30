@@ -1,7 +1,7 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { Checkout, WalletProviderName } from '@imtbl/checkout-sdk';
-import { describe, expect } from '@jest/globals';
-import { Environment } from '@imtbl/config';
+import { BrowserProvider } from "ethers";
+import { Checkout, WalletProviderName } from "@imtbl/checkout-sdk";
+import { describe, expect } from "@jest/globals";
+import { Environment } from "@imtbl/config";
 import {
   ConnectActions,
   connectReducer,
@@ -10,10 +10,10 @@ import {
   SetProviderNamePayload,
   SetProviderPayload,
   SetSendCloseEventPayload,
-} from './ConnectContext';
+} from "./ConnectContext";
 
-describe('connect-context', () => {
-  it('should update state with checkout when reducer called with SET_CHECKOUT action', () => {
+describe("connect-context", () => {
+  it("should update state with checkout when reducer called with SET_CHECKOUT action", () => {
     const setCheckoutPayload: SetCheckoutPayload = {
       type: ConnectActions.SET_CHECKOUT,
       checkout: new Checkout({
@@ -27,7 +27,7 @@ describe('connect-context', () => {
     expect(checkout).toBeInstanceOf(Checkout);
   });
 
-  it('should update state with provider when reducer called with SET_PROVIDER action', () => {
+  it("should update state with provider when reducer called with SET_PROVIDER action", () => {
     const setProviderPayload: SetProviderPayload = {
       type: ConnectActions.SET_PROVIDER,
       provider: {} as Web3Provider,
@@ -40,7 +40,7 @@ describe('connect-context', () => {
     expect(provider).not.toBeNull();
   });
 
-  it('should update state with checkout when reducer called with SET_WALLET_PROVIDER_NAME action', () => {
+  it("should update state with checkout when reducer called with SET_WALLET_PROVIDER_NAME action", () => {
     const setProviderNamePayload: SetProviderNamePayload = {
       type: ConnectActions.SET_WALLET_PROVIDER_NAME,
       walletProviderName: WalletProviderName.METAMASK,
@@ -52,11 +52,11 @@ describe('connect-context', () => {
     expect(walletProviderName).toEqual(WalletProviderName.METAMASK);
   });
 
-  it('should update state with send close function when reducer called with SET_SEND_CLOSE_EVENT action', () => {
+  it("should update state with send close function when reducer called with SET_SEND_CLOSE_EVENT action", () => {
     const newSendCloseEvent = () => {
       // TODO: Should this this be removed?
       // eslint-disable-next-line no-console
-      console.log('Send close event');
+      console.log("Send close event");
     };
     const setSendCloseEventPayload: SetSendCloseEventPayload = {
       type: ConnectActions.SET_SEND_CLOSE_EVENT,

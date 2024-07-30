@@ -6,22 +6,20 @@ import {
   Button,
   Drawer,
   Heading,
-} from '@biom3/react';
-import {
-  useCallback, useMemo, useEffect,
-} from 'react';
-import { useTranslation } from 'react-i18next';
-import { Web3Provider } from '@ethersproject/providers';
-import { ChainId, Checkout } from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
-import { FooterLogo } from '../Footer/FooterLogo';
-import { getL1ChainId } from '../../lib';
-import { getChainNameById } from '../../lib/chains';
+} from "@biom3/react";
+import { useCallback, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { BrowserProvider } from "ethers";
+import { ChainId, Checkout } from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
+import { FooterLogo } from "../Footer/FooterLogo";
+import { getL1ChainId } from "../../lib";
+import { getChainNameById } from "../../lib/chains";
 import {
   isMetaMaskProvider,
   isWalletConnectProvider,
-} from '../../lib/provider';
-import { getRemoteImage } from '../../lib/utils';
+} from "../../lib/provider";
+import { getRemoteImage } from "../../lib/utils";
 
 export interface NetworkSwitchDrawerProps {
   visible: boolean;
@@ -43,12 +41,12 @@ export function NetworkSwitchDrawer({
 
   const ethImageUrl = getRemoteImage(
     checkout.config.environment ?? Environment.PRODUCTION,
-    '/switchnetworkethereum.png',
+    "/switchnetworkethereum.png"
   );
 
   const zkevmImageUrl = getRemoteImage(
     checkout.config.environment ?? Environment.PRODUCTION,
-    '/switchnetworkzkevm.png',
+    "/switchnetworkzkevm.png"
   );
 
   const targetChainName = getChainNameById(targetChainId);
@@ -68,19 +66,19 @@ export function NetworkSwitchDrawer({
   const isWalletConnect = isWalletConnectProvider(provider);
 
   const walletConnectPeerName = useMemo(() => {
-    if (!isWalletConnect) return '';
+    if (!isWalletConnect) return "";
     return (provider.provider as any)?.session?.peer?.metadata?.name as string;
   }, [provider, isWalletConnect]);
 
   const isMetaMaskMobileWalletPeer = useMemo(
-    () => walletConnectPeerName?.toLowerCase().includes('metamask'),
-    [walletConnectPeerName],
+    () => walletConnectPeerName?.toLowerCase().includes("metamask"),
+    [walletConnectPeerName]
   );
 
   const walletDisplayName = useMemo(() => {
-    if (isMetaMaskProvider(provider)) return 'MetaMask wallet';
+    if (isMetaMaskProvider(provider)) return "MetaMask wallet";
     if (isWalletConnect && walletConnectPeerName) return walletConnectPeerName;
-    return 'wallet';
+    return "wallet";
   }, [provider, isWalletConnect, walletConnectPeerName]);
 
   const requireManualSwitch = isWalletConnect && isMetaMaskMobileWalletPeer;
@@ -101,99 +99,106 @@ export function NetworkSwitchDrawer({
       onCloseDrawer={onCloseDrawer}
       showHeaderBar={false}
     >
-      <Drawer.Content sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
+      <Drawer.Content
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
         <AspectRatioImage
           aspectRatio="21:9"
-          use={(
+          use={
             <img
               src={showEthImage ? ethImageUrl : zkevmImageUrl}
-              alt={t('drawers.networkSwitch.heading', {
+              alt={t("drawers.networkSwitch.heading", {
                 wallet: walletDisplayName,
               })}
             />
-          )}
+          }
         />
         <ButtCon
           icon="Close"
           variant="tertiary"
           sx={{
-            pos: 'absolute',
-            top: 'base.spacing.x5',
-            left: 'base.spacing.x5',
-            backdropFilter: 'blur(30px)',
+            pos: "absolute",
+            top: "base.spacing.x5",
+            left: "base.spacing.x5",
+            backdropFilter: "blur(30px)",
           }}
           onClick={onCloseDrawer}
         />
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 'base.spacing.x4',
-          paddingX: 'base.spacing.x6',
-        }}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "base.spacing.x4",
+            paddingX: "base.spacing.x6",
+          }}
         >
-          <Heading size="small" weight="bold" sx={{ textAlign: 'center', paddingX: 'base.spacing.x6' }}>
-            {t('drawers.networkSwitch.heading', {
+          <Heading
+            size="small"
+            weight="bold"
+            sx={{ textAlign: "center", paddingX: "base.spacing.x6" }}
+          >
+            {t("drawers.networkSwitch.heading", {
               wallet: walletDisplayName,
             })}
           </Heading>
           {/** MetaMask mobile requires manual switch */}
           {requireManualSwitch && (
-          <Body
-            size="medium"
-            weight="regular"
-            sx={{
-              color: 'base.color.text.body.secondary',
-              textAlign: 'center',
-              paddingX: 'base.spacing.x6',
-            }}
-          >
-            {t('drawers.networkSwitch.manualSwitch.body', {
-              chain: targetChainName,
-            })}
-          </Body>
+            <Body
+              size="medium"
+              weight="regular"
+              sx={{
+                color: "base.color.text.body.secondary",
+                textAlign: "center",
+                paddingX: "base.spacing.x6",
+              }}
+            >
+              {t("drawers.networkSwitch.manualSwitch.body", {
+                chain: targetChainName,
+              })}
+            </Body>
           )}
           {!requireManualSwitch && (
-          <Body
-            size="medium"
-            weight="regular"
-            sx={{
-              color: 'base.color.text.body.secondary',
-              textAlign: 'center',
-              paddingX: 'base.spacing.x6',
-            }}
-          >
-            {t('drawers.networkSwitch.controlledSwitch.body', {
-              chain: targetChainName,
-            })}
-          </Body>
+            <Body
+              size="medium"
+              weight="regular"
+              sx={{
+                color: "base.color.text.body.secondary",
+                textAlign: "center",
+                paddingX: "base.spacing.x6",
+              }}
+            >
+              {t("drawers.networkSwitch.controlledSwitch.body", {
+                chain: targetChainName,
+              })}
+            </Body>
           )}
         </Box>
 
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          paddingX: 'base.spacing.x4',
-          width: '100%',
-        }}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            paddingX: "base.spacing.x4",
+            width: "100%",
+          }}
         >
           {!requireManualSwitch && (
-          <Button
-            size="large"
-            variant="primary"
-            sx={{ width: '100%', marginBottom: 'base.spacing.x2' }}
-            onClick={handleSwitchNetwork}
-          >
-            {t('drawers.networkSwitch.switchButton', {
-              chain: targetChainName,
-            })}
-          </Button>
+            <Button
+              size="large"
+              variant="primary"
+              sx={{ width: "100%", marginBottom: "base.spacing.x2" }}
+              onClick={handleSwitchNetwork}
+            >
+              {t("drawers.networkSwitch.switchButton", {
+                chain: targetChainName,
+              })}
+            </Button>
           )}
           <FooterLogo />
         </Box>

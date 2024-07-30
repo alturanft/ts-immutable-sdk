@@ -1,5 +1,8 @@
-import { ChainId, GetBalanceResult, WalletProviderName } from '@imtbl/checkout-sdk';
-import { BigNumber } from '@ethersproject/bignumber';
+import {
+  ChainId,
+  GetBalanceResult,
+  WalletProviderName,
+} from "@imtbl/checkout-sdk";
 import {
   SetSwitchNetworkPayload,
   WalletActions,
@@ -9,19 +12,19 @@ import {
   TopUpFeature,
   SetTokenBalancesPayload,
   SetWalletProviderNamePayload,
-} from './WalletContext';
+} from "./WalletContext";
 
-describe('WalletContext', () => {
-  it('should update state with network info and token balances when reducer called with SET_NETWORK action', () => {
+describe("WalletContext", () => {
+  it("should update state with network info and token balances when reducer called with SET_NETWORK action", () => {
     const setSwitchNetworkPayload: SetSwitchNetworkPayload = {
       type: WalletActions.SET_NETWORK,
       network: {
-        name: 'Ethereum',
+        name: "Ethereum",
         chainId: ChainId.ETHEREUM,
         nativeCurrency: {
-          symbol: 'ETH',
+          symbol: "ETH",
           decimals: 18,
-          name: 'Ethereum',
+          name: "Ethereum",
         },
         isSupported: true,
       },
@@ -32,30 +35,30 @@ describe('WalletContext', () => {
       payload: setSwitchNetworkPayload,
     });
     expect(network).toEqual({
-      name: 'Ethereum',
+      name: "Ethereum",
       chainId: ChainId.ETHEREUM,
       nativeCurrency: {
-        symbol: 'ETH',
+        symbol: "ETH",
         decimals: 18,
-        name: 'Ethereum',
+        name: "Ethereum",
       },
       isSupported: true,
     });
   });
 
-  it('should update token balances when reducer called with SET_TOKEN_BALANCES action', () => {
+  it("should update token balances when reducer called with SET_TOKEN_BALANCES action", () => {
     const setTokenBalancesPayload: SetTokenBalancesPayload = {
       type: WalletActions.SET_TOKEN_BALANCES,
       tokenBalances: [
         {
-          balance: BigNumber.from('1000000000000000000'),
-          formattedBalance: '1',
+          balance: BigInt("1000000000000000000"),
+          formattedBalance: "1",
           token: {
-            name: 'Ethereum',
-            symbol: 'ETH',
-            address: '',
+            name: "Ethereum",
+            symbol: "ETH",
+            address: "",
             decimals: 18,
-            icon: '',
+            icon: "",
           },
         } as GetBalanceResult,
       ],
@@ -67,20 +70,20 @@ describe('WalletContext', () => {
     });
     expect(tokenBalances).toEqual([
       {
-        balance: BigNumber.from('1000000000000000000'),
-        formattedBalance: '1',
+        balance: BigInt("1000000000000000000"),
+        formattedBalance: "1",
         token: {
-          name: 'Ethereum',
-          symbol: 'ETH',
-          address: '',
+          name: "Ethereum",
+          symbol: "ETH",
+          address: "",
           decimals: 18,
-          icon: '',
+          icon: "",
         },
       },
     ]);
   });
 
-  it('should update state with supported top-ups when reducer called with SET_SUPPORTED_TOP_UPS action', () => {
+  it("should update state with supported top-ups when reducer called with SET_SUPPORTED_TOP_UPS action", () => {
     const enabledTopUps: TopUpFeature = {
       isBridgeEnabled: false,
       isOnRampEnabled: false,
@@ -102,7 +105,7 @@ describe('WalletContext', () => {
     });
   });
 
-  it('should update wallet provider name when reducer called with SET_WALLET_PROVIDER_NAME action', () => {
+  it("should update wallet provider name when reducer called with SET_WALLET_PROVIDER_NAME action", () => {
     const setWalletProviderNamePayload: SetWalletProviderNamePayload = {
       type: WalletActions.SET_WALLET_PROVIDER_NAME,
       walletProviderName: WalletProviderName.METAMASK,

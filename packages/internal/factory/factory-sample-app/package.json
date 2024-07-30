@@ -4,7 +4,7 @@
   "dependencies": {
     "@imtbl/config": "0.0.0",
     "@imtbl/factory-sdk": "0.0.0",
-    "ethers": "^5.7.2"
+    "ethers": "^6.11.1"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",

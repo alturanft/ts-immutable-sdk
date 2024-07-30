@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { BuyOrder, BuyOverrides } from './smartCheckout';
+import { BrowserProvider } from "ethers";
+import { BuyOrder, BuyOverrides } from "./smartCheckout";
 
 /**
  * Interface representing the parameters for {@link Checkout.buy}

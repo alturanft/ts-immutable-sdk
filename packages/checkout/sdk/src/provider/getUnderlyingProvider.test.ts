@@ -1,11 +1,11 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { ChainId } from '../types/chains';
-import { getUnderlyingChainId } from './getUnderlyingProvider';
-import { WalletAction } from '../types/wallet';
-import { CheckoutErrorType } from '../errors';
+import { BrowserProvider } from "ethers";
+import { ChainId } from "../types/chains";
+import { getUnderlyingChainId } from "./getUnderlyingProvider";
+import { WalletAction } from "../types/wallet";
+import { CheckoutErrorType } from "../errors";
 
-describe('getUnderlyingChainId', () => {
-  it('should return underlying chain id from property', async () => {
+describe("getUnderlyingChainId", () => {
+  it("should return underlying chain id from property", async () => {
     const provider = {
       provider: {
         chainId: ChainId.SEPOLIA,
@@ -18,10 +18,10 @@ describe('getUnderlyingChainId', () => {
     expect(provider.provider.request).not.toBeCalled();
   });
 
-  it('should return the underlying chain id from rpc call', async () => {
+  it("should return the underlying chain id from rpc call", async () => {
     const provider = {
       provider: {
-        request: jest.fn().mockResolvedValue('0xaa36a7'),
+        request: jest.fn().mockResolvedValue("0xaa36a7"),
       },
     } as unknown as Web3Provider;
 
@@ -33,70 +33,71 @@ describe('getUnderlyingChainId', () => {
     });
   });
 
-  it('should properly parse chain id', async () => {
+  it("should properly parse chain id", async () => {
     const intChainId = 13473;
     const strChainId = intChainId.toString();
     const hexChainId = `0x${intChainId.toString(16)}`;
-    const getMockProvider = (chainId: unknown) => ({ provider: { chainId } } as unknown as Web3Provider);
+    const getMockProvider = (chainId: unknown) =>
+      ({ provider: { chainId } } as unknown as Web3Provider);
 
     // Number
     expect(await getUnderlyingChainId(getMockProvider(intChainId))).toEqual(
-      intChainId,
+      intChainId
     );
 
     // String to Number
     expect(await getUnderlyingChainId(getMockProvider(strChainId))).toEqual(
-      intChainId,
+      intChainId
     );
 
     // Hex to Number
     expect(await getUnderlyingChainId(getMockProvider(hexChainId))).toEqual(
-      intChainId,
+      intChainId
     );
   });
 
-  it('should throw an error if provider missing from web3provider', async () => {
+  it("should throw an error if provider missing from web3provider", async () => {
     try {
       await getUnderlyingChainId({} as Web3Provider);
     } catch (err: any) {
       expect(err.message).toEqual(
-        'Parsed provider is not a valid Web3Provider',
+        "Parsed provider is not a valid Web3Provider"
       );
       expect(err.type).toEqual(CheckoutErrorType.WEB3_PROVIDER_ERROR);
     }
   });
 
-  it('should throw an error if provider.request missing', async () => {
+  it("should throw an error if provider.request missing", async () => {
     try {
       await getUnderlyingChainId({ provider: {} } as Web3Provider);
     } catch (err: any) {
       expect(err.message).toEqual(
-        'Parsed provider is not a valid Web3Provider',
+        "Parsed provider is not a valid Web3Provider"
       );
       expect(err.type).toEqual(CheckoutErrorType.WEB3_PROVIDER_ERROR);
     }
   });
 
-  it('should throw an error if invalid chain id value from property', async () => {
+  it("should throw an error if invalid chain id value from property", async () => {
     const provider = {
       provider: {
-        chainId: 'invalid',
+        chainId: "invalid",
         request: jest.fn(),
       },
     } as unknown as Web3Provider;
 
     expect(provider.provider.request).not.toHaveBeenCalled();
-    expect(getUnderlyingChainId(provider)).rejects.toThrow('Invalid chainId');
+    expect(getUnderlyingChainId(provider)).rejects.toThrow("Invalid chainId");
   });
 
-  it('should throw an error if invalid chain id value returned from rpc call ', async () => {
+  it("should throw an error if invalid chain id value returned from rpc call ", async () => {
     const provider = {
       provider: {
-        request: jest.fn().mockResolvedValue('invalid'),
+        request: jest.fn().mockResolvedValue("invalid"),
       },
     } as unknown as Web3Provider;
 
-    expect(getUnderlyingChainId(provider)).rejects.toThrow('Invalid chainId');
+    expect(getUnderlyingChainId(provider)).rejects.toThrow("Invalid chainId");
     expect(provider.provider.request).toHaveBeenCalled();
   });
 });

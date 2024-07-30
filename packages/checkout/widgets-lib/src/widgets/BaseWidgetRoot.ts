@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Root, createRoot } from 'react-dom/client';
+import { Root, createRoot } from "react-dom/client";
 import {
   Widget,
   Checkout,
@@ -11,11 +11,17 @@ import {
   ProviderUpdated,
   WidgetParameters,
   WalletEventType,
-} from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import i18next from 'i18next';
-import { StrongCheckoutWidgetsConfig, withDefaultWidgetConfigs } from '../lib/withDefaultWidgetConfig';
-import { addProviderListenersForWidgetRoot, baseWidgetProviderEvent } from '../lib';
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import i18next from "i18next";
+import {
+  StrongCheckoutWidgetsConfig,
+  withDefaultWidgetConfigs,
+} from "../lib/withDefaultWidgetConfig";
+import {
+  addProviderListenersForWidgetRoot,
+  baseWidgetProviderEvent,
+} from "../lib";
 
 export abstract class Base<T extends WidgetType> implements Widget<T> {
   protected checkout: Checkout;
@@ -32,11 +38,14 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
 
   protected web3Provider: Web3Provider | undefined;
 
-  protected eventHandlers: Map<keyof WidgetEventData[T], Function> = new Map<keyof WidgetEventData[T], Function>();
+  protected eventHandlers: Map<keyof WidgetEventData[T], Function> = new Map<
+    keyof WidgetEventData[T],
+    Function
+  >();
 
   protected eventHandlersFunction?: (event: any) => void;
 
-  protected eventTopic: string = '';
+  protected eventTopic: string = "";
 
   constructor(sdk: Checkout, props: WidgetProperties<T>) {
     const validatedProps = this.getValidatedProperties(props);
@@ -57,7 +66,7 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
     if (language === null || language === undefined) return;
     await i18next.changeLanguage(language);
     // eslint-disable-next-line no-console
-    console.log('Language changed:', language);
+    console.log("Language changed:", language);
   }
 
   unmount() {
@@ -82,7 +91,7 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
     const targetElement = document.getElementById(id);
 
     if (!this.widgetElement) {
-      this.widgetElement = document.createElement('div');
+      this.widgetElement = document.createElement("div");
     }
 
     if (targetElement?.children.length === 0) {
@@ -109,7 +118,9 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
 
     if (props.provider) {
       // eslint-disable-next-line no-console
-      console.warn('Updating a widget provider through the update() method is not supported yet');
+      console.warn(
+        "Updating a widget provider through the update() method is not supported yet"
+      );
     }
 
     this.setLanguage(props.config?.language);
@@ -117,12 +128,18 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
   }
 
   // eslint-disable-next-line max-len
-  addListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName, callback: (data: WidgetEventData[T][KEventName]) => void): void {
+  addListener<KEventName extends keyof WidgetEventData[T]>(
+    type: KEventName,
+    callback: (data: WidgetEventData[T][KEventName]) => void
+  ): void {
     this.eventHandlers.set(type, callback);
 
     if (this.eventHandlersFunction) {
       window.removeEventListener(this.eventTopic, this.eventHandlersFunction);
-      window.removeEventListener(IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER, this.eventHandlersFunction);
+      window.removeEventListener(
+        IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER,
+        this.eventHandlersFunction
+      );
     }
 
     this.eventHandlersFunction = (event: any) => {
@@ -131,15 +148,23 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
     };
 
     window.addEventListener(this.eventTopic, this.eventHandlersFunction);
-    window.addEventListener(IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER, this.eventHandlersFunction);
+    window.addEventListener(
+      IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER,
+      this.eventHandlersFunction
+    );
   }
 
-  removeListener<KEventName extends keyof WidgetEventData[T]>(type: KEventName): void {
+  removeListener<KEventName extends keyof WidgetEventData[T]>(
+    type: KEventName
+  ): void {
     this.eventHandlers.delete(type);
 
     if (this.eventHandlersFunction) {
       window.removeEventListener(this.eventTopic, this.eventHandlersFunction);
-      window.removeEventListener(IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER, this.eventHandlersFunction);
+      window.removeEventListener(
+        IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER,
+        this.eventHandlersFunction
+      );
     }
 
     if (this.eventHandlers.size <= 0) return;
@@ -150,7 +175,10 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
     };
 
     window.addEventListener(this.eventTopic, this.eventHandlersFunction);
-    window.addEventListener(IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER, this.eventHandlersFunction);
+    window.addEventListener(
+      IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER,
+      this.eventHandlersFunction
+    );
   }
 
   protected strongConfig(): StrongCheckoutWidgetsConfig {
@@ -176,23 +204,27 @@ export abstract class Base<T extends WidgetType> implements Widget<T> {
   private setupProviderUpdatedListener() {
     window.addEventListener(
       IMTBLWidgetEvents.IMTBL_WIDGETS_PROVIDER,
-      this.handleProviderUpdatedEvent,
+      this.handleProviderUpdatedEvent
     );
     const widgetRoot = this;
-    window.addEventListener(baseWidgetProviderEvent, () => widgetRoot.handleEIP1193ProviderEvents(widgetRoot));
+    window.addEventListener(baseWidgetProviderEvent, () =>
+      widgetRoot.handleEIP1193ProviderEvents(widgetRoot)
+    );
   }
 
   private setupDisconnectProviderListener() {
     window.addEventListener(
       IMTBLWidgetEvents.IMTBL_WALLET_WIDGET_EVENT,
-      this.handleDisconnectEvent,
+      this.handleDisconnectEvent
     );
   }
 
   private handleEIP1193ProviderEvents(widgetRoot: Base<T>) {
     if (widgetRoot.web3Provider) {
       // eslint-disable-next-line no-param-reassign
-      widgetRoot.web3Provider = new Web3Provider(widgetRoot.web3Provider!.provider);
+      widgetRoot.web3Provider = new Web3Provider(
+        widgetRoot.web3Provider!.provider
+      );
     }
     widgetRoot.render();
   }

@@ -1,5 +1,5 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { utils } from 'ethers';
+import { BrowserProvider } from "ethers";
+import { utils } from "ethers";
 import {
   ERC1155Item,
   ERC1155ItemRequirement,
@@ -11,20 +11,27 @@ import {
   ItemType,
   NativeItem,
   NativeItemRequirement,
-} from '../../types';
-import { getTokenContract } from '../../instance';
-import { ERC20ABI } from '../../env';
+} from "../../types";
+import { getTokenContract } from "../../instance";
+import { ERC20ABI } from "../../env";
 
 export async function getItemRequirementsFromRequirements(
   provider: Web3Provider,
-  requirements: (NativeItemRequirement | ERC20ItemRequirement | ERC721ItemRequirement | ERC1155ItemRequirement)[],
+  requirements: (
+    | NativeItemRequirement
+    | ERC20ItemRequirement
+    | ERC721ItemRequirement
+    | ERC1155ItemRequirement
+  )[]
 ): Promise<ItemRequirement[]> {
   // Get all decimal values by calling contracts for each ERC20
-  const decimalPromises:any = [];
+  const decimalPromises: any = [];
   requirements.forEach((itemRequirementParam) => {
     if (itemRequirementParam.type === ItemType.ERC20) {
-      const { tokenAddress } = (itemRequirementParam as ERC20ItemRequirement);
-      decimalPromises.push(getTokenContract(tokenAddress, ERC20ABI, provider).decimals());
+      const { tokenAddress } = itemRequirementParam as ERC20ItemRequirement;
+      decimalPromises.push(
+        getTokenContract(tokenAddress, ERC20ABI, provider).decimals()
+      );
     }
   });
 

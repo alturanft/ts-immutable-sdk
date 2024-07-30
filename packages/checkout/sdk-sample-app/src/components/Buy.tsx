@@ -1,9 +1,9 @@
-import { Checkout } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import LoadingButton from './LoadingButton';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage } from './messages';
-import { Body, Box, FormControl, TextInput } from '@biom3/react';
+import { Checkout } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import LoadingButton from "./LoadingButton";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage } from "./messages";
+import { Body, Box, FormControl, TextInput } from "@biom3/react";
 
 interface BuyProps {
   checkout: Checkout;
@@ -11,28 +11,28 @@ interface BuyProps {
 }
 
 export default function Buy({ checkout, provider }: BuyProps) {
-  const [orderId, setOrderId] = useState<string>('');
+  const [orderId, setOrderId] = useState<string>("");
   const [orderIdError, setOrderIdError] = useState<any>(null);
-  const [unitsToFill, setUnitsToFill] = useState<string>('1');
-  const [unitsToFillError, setUnitsToFillError] = useState<string>('');
+  const [unitsToFill, setUnitsToFill] = useState<string>("1");
+  const [unitsToFillError, setUnitsToFillError] = useState<string>("");
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   async function buyClick() {
     if (!orderId) {
-      setOrderIdError('Please enter an order ID');
+      setOrderIdError("Please enter an order ID");
       return;
     }
     if (!unitsToFill) {
-      setUnitsToFillError('Please enter units to fill');
+      setUnitsToFillError("Please enter units to fill");
       return;
     }
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setError(null);
@@ -40,9 +40,20 @@ export default function Buy({ checkout, provider }: BuyProps) {
     try {
       const buyResult = await checkout.buy({
         provider,
-        orders: [{id: orderId, fillAmount: unitsToFill, takerFees: [{amount: {percentageDecimal: 0.01}, recipient: '0x96654086969DCaa88933E753Aa52d46EAB269Ff7'}]}],
+        orders: [
+          {
+            id: orderId,
+            fillAmount: unitsToFill,
+            takerFees: [
+              {
+                amount: { percentageDecimal: 0.01 },
+                recipient: "0x96654086969DCaa88933E753Aa52d46EAB269Ff7",
+              },
+            ],
+          },
+        ],
       });
-      console.log('Buy result', buyResult);
+      console.log("Buy result", buyResult);
       setLoading(false);
     } catch (err: any) {
       console.log(err);
@@ -57,14 +68,14 @@ export default function Buy({ checkout, provider }: BuyProps) {
 
   const updateOrderId = (event: any) => {
     setOrderId(event.target.value);
-    setOrderIdError('');
-  }
+    setOrderIdError("");
+  };
 
   const updateUnitsToFill = (event: any) => {
     const value = event.target.value;
     setUnitsToFill(value);
-    setUnitsToFillError('');
-  }
+    setUnitsToFillError("");
+  };
 
   useEffect(() => {
     setError(null);
@@ -73,7 +84,7 @@ export default function Buy({ checkout, provider }: BuyProps) {
 
   return (
     <Box>
-      <FormControl validationStatus={orderIdError ? 'error' : 'success'} >
+      <FormControl validationStatus={orderIdError ? "error" : "success"}>
         <FormControl.Label>Order ID</FormControl.Label>
         <TextInput onChange={updateOrderId} />
         {orderIdError && (
@@ -81,11 +92,11 @@ export default function Buy({ checkout, provider }: BuyProps) {
         )}
       </FormControl>
       <br />
-      <FormControl validationStatus={unitsToFillError ? 'error' : 'success'} >
+      <FormControl validationStatus={unitsToFillError ? "error" : "success"}>
         <FormControl.Label>Units To Fill</FormControl.Label>
         <TextInput
           value={unitsToFill}
-          type='number'
+          type="number"
           onChange={updateUnitsToFill}
         />
         {unitsToFillError && (
@@ -93,11 +104,18 @@ export default function Buy({ checkout, provider }: BuyProps) {
         )}
       </FormControl>
       <br />
-      <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 'base.spacing.x2'}}>
-      <LoadingButton onClick={buyClick} loading={loading}>
-        Buy
-      </LoadingButton>
-      <Body size="xSmall">(adds 1% taker fee)</Body>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "base.spacing.x2",
+        }}
+      >
+        <LoadingButton onClick={buyClick} loading={loading}>
+          Buy
+        </LoadingButton>
+        <Body size="xSmall">(adds 1% taker fee)</Body>
       </Box>
       {!error && <SuccessMessage>Buy success.</SuccessMessage>}
       {error && (

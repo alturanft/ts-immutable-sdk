@@ -1,7 +1,7 @@
-import { describe, expect } from '@jest/globals';
-import { Web3Provider } from '@ethersproject/providers';
-import { Checkout } from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
+import { describe, expect } from "@jest/globals";
+import { BrowserProvider } from "ethers";
+import { Checkout } from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
 import {
   ConnectLoaderActions,
   ConnectionStatus,
@@ -10,10 +10,10 @@ import {
   UpdateConnectionStatusPayload,
   connectLoaderReducer,
   initialConnectLoaderState,
-} from './ConnectLoaderContext';
+} from "./ConnectLoaderContext";
 
-describe('connect-loader-context', () => {
-  it('should update connection status when reducer called with UPDATE_CONNECTION_STATUS', () => {
+describe("connect-loader-context", () => {
+  it("should update connection status when reducer called with UPDATE_CONNECTION_STATUS", () => {
     const updateViewPayload: UpdateConnectionStatusPayload = {
       type: ConnectLoaderActions.UPDATE_CONNECTION_STATUS,
       connectionStatus: ConnectionStatus.CONNECTED_WITH_NETWORK,
@@ -31,7 +31,7 @@ describe('connect-loader-context', () => {
     });
   });
 
-  it('should update state with checkout when reducer called with SET_CHECKOUT action', () => {
+  it("should update state with checkout when reducer called with SET_CHECKOUT action", () => {
     const setCheckoutPayload: SetCheckoutPayload = {
       type: ConnectLoaderActions.SET_CHECKOUT,
       checkout: new Checkout({
@@ -45,7 +45,7 @@ describe('connect-loader-context', () => {
     expect(checkout).toBeInstanceOf(Checkout);
   });
 
-  it('should update state with provider when reducer called with SET_PROVIDER action', () => {
+  it("should update state with provider when reducer called with SET_PROVIDER action", () => {
     const setProviderPayload: SetProviderPayload = {
       type: ConnectLoaderActions.SET_PROVIDER,
       provider: {} as Web3Provider,

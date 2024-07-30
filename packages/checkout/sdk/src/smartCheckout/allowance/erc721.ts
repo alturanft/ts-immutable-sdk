@@ -1,58 +1,60 @@
-import { TransactionRequest, Web3Provider } from '@ethersproject/providers';
-import { BigNumber, Contract } from 'ethers';
-import { CheckoutError, CheckoutErrorType } from '../../errors';
-import { ItemRequirement, ItemType } from '../../types';
-import { Allowance, InsufficientERC721 } from './types';
-import { ERC721ABI } from '../../env';
+import { BrowserProvider, Contract, TransactionRequest } from "ethers";
+import { CheckoutError, CheckoutErrorType } from "../../errors";
+import { ItemRequirement, ItemType } from "../../types";
+import { Allowance, InsufficientERC721 } from "./types";
+import { ERC721ABI } from "../../env";
 
 // Returns true if the spender address is approved for all ERC721s of this collection
 export const getERC721ApprovedForAll = async (
-  provider: Web3Provider,
+  provider: BrowserProvider,
   ownerAddress: string,
   contractAddress: string,
-  spenderAddress: string,
+  spenderAddress: string
 ): Promise<boolean> => {
   try {
     const contract = new Contract(
       contractAddress,
       JSON.stringify(ERC721ABI),
-      provider,
+      provider
     );
     return await contract.isApprovedForAll(ownerAddress, spenderAddress);
   } catch (err: any) {
     throw new CheckoutError(
-      'Failed to check approval for all ERC721s of collection',
+      "Failed to check approval for all ERC721s of collection",
       CheckoutErrorType.GET_ERC721_ALLOWANCE_ERROR,
       {
         ownerAddress,
         contractAddress,
         spenderAddress,
         error: err,
-      },
+      }
     );
   }
 };
 
 // Returns a populated transaction to approve the ERC721 for the spender.
 export const getApproveTransaction = async (
-  provider: Web3Provider,
+  provider: BrowserProvider,
   ownerAddress: string,
   contractAddress: string,
   spenderAddress: string,
-  id: BigNumber,
+  id: bigint
 ): Promise<TransactionRequest | undefined> => {
   try {
     const contract = new Contract(
       contractAddress,
       JSON.stringify(ERC721ABI),
-      provider,
+      provider
     );
-    const transaction = await contract.populateTransaction.approve(spenderAddress, id);
+    const transaction = await contract.approve.populateTransaction(
+      spenderAddress,
+      id
+    );
     if (transaction) transaction.from = ownerAddress;
     return transaction;
   } catch (err: any) {
     throw new CheckoutError(
-      'Failed to get the approval transaction for ERC721',
+      "Failed to get the approval transaction for ERC721",
       CheckoutErrorType.GET_ERC721_ALLOWANCE_ERROR,
       {
         id: id.toString(),
@@ -60,7 +62,7 @@ export const getApproveTransaction = async (
         spenderAddress,
         ownerAddress,
         error: err,
-      },
+      }
     );
   }
 };
@@ -68,46 +70,49 @@ export const getApproveTransaction = async (
 // Returns the address that is approved for the ERC721.
 // This is sufficient when the spender is the approved address
 export const getERC721ApprovedAddress = async (
-  provider: Web3Provider,
+  provider: BrowserProvider,
   contractAddress: string,
-  id: BigNumber,
+  id: bigint
 ): Promise<string> => {
   try {
     const contract = new Contract(
       contractAddress,
       JSON.stringify(ERC721ABI),
-      provider,
+      provider
     );
     return await contract.getApproved(id);
   } catch (err: any) {
     throw new CheckoutError(
-      'Failed to get approved address for ERC721',
+      "Failed to get approved address for ERC721",
       CheckoutErrorType.GET_ERC721_ALLOWANCE_ERROR,
       {
         id: id.toString(),
         contractAddress,
         error: err,
-      },
+      }
     );
   }
 };
 
-export const convertIdToNumber = (id: string, contractAddress: string): BigNumber => {
+export const convertIdToNumber = (
+  id: string,
+  contractAddress: string
+): bigint => {
   try {
-    return BigNumber.from(id);
+    return BigInt(id);
   } catch (e) {
     throw new CheckoutError(
-      'Invalid ERC721 ID',
+      "Invalid ERC721 ID",
       CheckoutErrorType.GET_ERC721_ALLOWANCE_ERROR,
-      { id, contractAddress },
+      { id, contractAddress }
     );
   }
 };
 
 export const getApprovedCollections = async (
-  provider: Web3Provider,
+  provider: BrowserProvider,
   itemRequirements: ItemRequirement[],
-  owner: string,
+  owner: string
 ): Promise<Map<string, boolean>> => {
   const approvedCollections = new Map<string, boolean>();
   const approvedForAllPromises = new Map<string, Promise<boolean>>();
@@ -118,12 +123,10 @@ export const getApprovedCollections = async (
     const key = `${contractAddress}-${spenderAddress}`;
     approvedCollections.set(key, false);
     if (approvedForAllPromises.has(key)) continue;
-    approvedForAllPromises.set(key, getERC721ApprovedForAll(
-      provider,
-      owner,
-      contractAddress,
-      spenderAddress,
-    ));
+    approvedForAllPromises.set(
+      key,
+      getERC721ApprovedForAll(provider, owner, contractAddress, spenderAddress)
+    );
   }
 
   const approvals = await Promise.all(approvedForAllPromises.values());
@@ -136,12 +139,12 @@ export const getApprovedCollections = async (
 };
 
 export const hasERC721Allowances = async (
-  provider: Web3Provider,
+  provider: BrowserProvider,
   ownerAddress: string,
-  itemRequirements: ItemRequirement[],
+  itemRequirements: ItemRequirement[]
 ): Promise<{
-  sufficient: boolean,
-  allowances: Allowance[]
+  sufficient: boolean;
+  allowances: Allowance[];
 }> => {
   let sufficient = true;
   const sufficientAllowances: Allowance[] = [];
@@ -150,13 +153,16 @@ export const hasERC721Allowances = async (
   const erc721s = new Map<string, ItemRequirement>();
   const approvedAddressPromises = new Map<string, Promise<string>>();
   const insufficientERC721s = new Map<string, InsufficientERC721>();
-  const transactionPromises = new Map<string, Promise<TransactionRequest | undefined>>();
+  const transactionPromises = new Map<
+    string,
+    Promise<TransactionRequest | undefined>
+  >();
 
   // Check if there are any collections with approvals for all ERC721s for a given spender
   const approvedCollections = await getApprovedCollections(
     provider,
     itemRequirements,
-    ownerAddress,
+    ownerAddress
   );
 
   // Populate maps for both the ERC721 data and promises to get the approved addresses using the same key
@@ -183,7 +189,7 @@ export const hasERC721Allowances = async (
     erc721s.set(key, itemRequirement);
     approvedAddressPromises.set(
       key,
-      getERC721ApprovedAddress(provider, contractAddress, convertedId),
+      getERC721ApprovedAddress(provider, contractAddress, convertedId)
     );
   }
 
@@ -211,15 +217,12 @@ export const hasERC721Allowances = async (
     const key = `${contractAddress}-${id}`;
     const convertedId = convertIdToNumber(id, contractAddress);
     // Create maps for both the insufficient ERC721 data and the transaction promises using the same key so the results can be merged
-    insufficientERC721s.set(
-      key,
-      {
-        type: ItemType.ERC721,
-        sufficient: false,
-        itemRequirement,
-        approvalTransaction: undefined,
-      },
-    );
+    insufficientERC721s.set(key, {
+      type: ItemType.ERC721,
+      sufficient: false,
+      itemRequirement,
+      approvalTransaction: undefined,
+    });
     transactionPromises.set(
       key,
       getApproveTransaction(
@@ -227,8 +230,8 @@ export const hasERC721Allowances = async (
         ownerAddress,
         contractAddress,
         spenderAddress,
-        convertedId,
-      ),
+        convertedId
+      )
     );
   }
 
@@ -236,12 +239,19 @@ export const hasERC721Allowances = async (
   const transactions = await Promise.all(transactionPromises.values());
   const transactionPromiseIds = Array.from(transactionPromises.keys());
   transactions.forEach((transaction, index) => {
-    const insufficientERC721 = insufficientERC721s.get(transactionPromiseIds[index]);
+    const insufficientERC721 = insufficientERC721s.get(
+      transactionPromiseIds[index]
+    );
     if (!insufficientERC721) return;
     if (insufficientERC721.sufficient) return;
     insufficientERC721.approvalTransaction = transaction;
   });
 
   // Merge the allowance arrays to get both the sufficient allowances and the insufficient ERC721 allowances
-  return { sufficient, allowances: sufficientAllowances.concat(Array.from(insufficientERC721s.values())) };
+  return {
+    sufficient,
+    allowances: sufficientAllowances.concat(
+      Array.from(insufficientERC721s.values())
+    ),
+  };
 };

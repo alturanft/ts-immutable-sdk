@@ -1,12 +1,12 @@
-import { Box } from '@biom3/react';
-import EthereumProvider from '@walletconnect/ethereum-provider';
+import { Box } from "@biom3/react";
+import EthereumProvider from "@walletconnect/ethereum-provider";
 import {
   ChainId,
   CheckoutErrorType,
   EIP6963ProviderDetail,
   WalletProviderName,
   WalletProviderRdns,
-} from '@imtbl/checkout-sdk';
+} from "@imtbl/checkout-sdk";
 import {
   useCallback,
   useContext,
@@ -14,41 +14,41 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import { Web3Provider } from '@ethersproject/providers';
-import { UnableToConnectDrawer } from '../../../components/UnableToConnectDrawer/UnableToConnectDrawer';
-import { ChangedYourMindDrawer } from '../../../components/ChangedYourMindDrawer/ChangedYourMindDrawer';
-import { ConnectWidgetViews } from '../../../context/view-context/ConnectViewContextTypes';
-import { ConnectActions, ConnectContext } from '../context/ConnectContext';
-import { WalletItem } from './WalletItem';
+} from "react";
+import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { BrowserProvider } from "ethers";
+import { UnableToConnectDrawer } from "../../../components/UnableToConnectDrawer/UnableToConnectDrawer";
+import { ChangedYourMindDrawer } from "../../../components/ChangedYourMindDrawer/ChangedYourMindDrawer";
+import { ConnectWidgetViews } from "../../../context/view-context/ConnectViewContextTypes";
+import { ConnectActions, ConnectContext } from "../context/ConnectContext";
+import { WalletItem } from "./WalletItem";
 import {
   ViewActions,
   ViewContext,
-} from '../../../context/view-context/ViewContext';
+} from "../../../context/view-context/ViewContext";
 import {
   useAnalytics,
   UserJourney,
-} from '../../../context/analytics-provider/SegmentAnalyticsProvider';
-import { useWalletConnect } from '../../../lib/hooks/useWalletConnect';
-import { useInjectedProviders } from '../../../lib/hooks/useInjectedProviders';
-import { walletListStyle } from './WalletListStyles';
+} from "../../../context/analytics-provider/SegmentAnalyticsProvider";
+import { useWalletConnect } from "../../../lib/hooks/useWalletConnect";
+import { useInjectedProviders } from "../../../lib/hooks/useInjectedProviders";
+import { walletListStyle } from "./WalletListStyles";
 import {
   getProviderSlugFromRdns,
   isPassportProvider,
-} from '../../../lib/provider';
-import { addProviderListenersForWidgetRoot, getL1ChainId } from '../../../lib';
+} from "../../../lib/provider";
+import { addProviderListenersForWidgetRoot, getL1ChainId } from "../../../lib";
 import {
   listItemVariants,
   listVariants,
-} from '../../../lib/animation/listAnimation';
-import { WalletDrawer } from '../../../components/WalletDrawer/WalletDrawer';
-import { WalletChangeEvent } from '../../../components/WalletDrawer/WalletDrawerEvents';
-import { WalletConnectItem } from './WalletConnectItem';
-import { BrowserWalletItem } from './BrowserWalletItem';
-import { identifyUser } from '../../../lib/analytics/identifyUser';
-import { NonPassportWarningDrawer } from './NonPassportWarningDrawer';
+} from "../../../lib/animation/listAnimation";
+import { WalletDrawer } from "../../../components/WalletDrawer/WalletDrawer";
+import { WalletChangeEvent } from "../../../components/WalletDrawer/WalletDrawerEvents";
+import { WalletConnectItem } from "./WalletConnectItem";
+import { BrowserWalletItem } from "./BrowserWalletItem";
+import { identifyUser } from "../../../lib/analytics/identifyUser";
+import { NonPassportWarningDrawer } from "./NonPassportWarningDrawer";
 
 export interface WalletListProps {
   targetWalletRdns?: string;
@@ -71,29 +71,34 @@ export function WalletList(props: WalletListProps) {
   const [showWalletDrawer, setShowWalletDrawer] = useState(false);
   const { isWalletConnectEnabled, openWalletConnectModal } = useWalletConnect();
   const walletConnectItemRef = useRef(null);
-  const [showChangedYourMindDrawer, setShowChangedYourMindDrawer] = useState(false);
-  const [showUnableToConnectDrawer, setShowUnableToConnectDrawer] = useState(false);
+  const [showChangedYourMindDrawer, setShowChangedYourMindDrawer] =
+    useState(false);
+  const [showUnableToConnectDrawer, setShowUnableToConnectDrawer] =
+    useState(false);
   const [showNonPassportWarning, setShowNonPassportWarning] = useState(false);
-  const [chosenProviderDetail, setChosenProviderDetail] = useState<EIP6963ProviderDetail>();
+  const [chosenProviderDetail, setChosenProviderDetail] =
+    useState<EIP6963ProviderDetail>();
 
   const filteredProviders = useMemo(
-    () => providers
-      .filter(
-        (provider) => !(provider.info.rdns === WalletProviderRdns.PASSPORT),
-      )
-      .filter(
-        (provider) => !blocklistWalletRdns.includes(provider.info.rdns),
-      ),
-    [providers],
+    () =>
+      providers
+        .filter(
+          (provider) => !(provider.info.rdns === WalletProviderRdns.PASSPORT)
+        )
+        .filter(
+          (provider) => !blocklistWalletRdns.includes(provider.info.rdns)
+        ),
+    [providers]
   );
 
   // Don't allow Passport if targetChainId is L1
   const passportProviderDetail = useMemo(
-    () => targetChainId !== getL1ChainId(checkout!.config)
-      && providers
+    () =>
+      targetChainId !== getL1ChainId(checkout!.config) &&
+      providers
         .filter((provider) => !blocklistWalletRdns.includes(provider.info.rdns))
         .find((provider) => provider.info.rdns === WalletProviderRdns.PASSPORT),
-    [providers, checkout],
+    [providers, checkout]
   );
 
   const selectWeb3Provider = useCallback(
@@ -111,20 +116,20 @@ export function WalletList(props: WalletListProps) {
         },
       });
     },
-    [],
+    []
   );
 
   const handleConnectViewUpdate = async (provider: Web3Provider) => {
     const isPassport = isPassportProvider(provider);
     const chainId = await provider.provider.request!({
-      method: 'eth_chainId',
+      method: "eth_chainId",
       params: [],
     });
     // eslint-disable-next-line radix
     const parsedChainId = parseInt(chainId.toString());
     if (
-      parsedChainId !== targetChainId
-      && !allowedChains?.includes(parsedChainId)
+      parsedChainId !== targetChainId &&
+      !allowedChains?.includes(parsedChainId)
     ) {
       // TODO: What do we do with Passport here as it can't connect to L1
       if (isPassport) {
@@ -158,7 +163,8 @@ export function WalletList(props: WalletListProps) {
       if (!checkout) return;
 
       try {
-        const isMetaMask = providerDetail.info.rdns === WalletProviderRdns.METAMASK;
+        const isMetaMask =
+          providerDetail.info.rdns === WalletProviderRdns.METAMASK;
         const web3Provider = new Web3Provider(providerDetail.provider as any);
 
         try {
@@ -175,36 +181,36 @@ export function WalletList(props: WalletListProps) {
 
           selectWeb3Provider(
             web3Provider,
-            getProviderSlugFromRdns(providerDetail.info.rdns),
+            getProviderSlugFromRdns(providerDetail.info.rdns)
           );
           await handleConnectViewUpdate(web3Provider);
         } catch (err: CheckoutErrorType | any) {
           if (err.type === CheckoutErrorType.USER_REJECTED_REQUEST_ERROR) {
             // eslint-disable-next-line no-console
-            console.error('Connect rejected', err);
+            console.error("Connect rejected", err);
 
             setShowChangedYourMindDrawer(true);
           } else {
             // eslint-disable-next-line no-console
-            console.error('Connect error', err);
+            console.error("Connect error", err);
 
             setShowUnableToConnectDrawer(true);
           }
         }
       } catch (err: any) {
         // eslint-disable-next-line no-console
-        console.error('Connect unknown error', err);
+        console.error("Connect unknown error", err);
 
         setShowUnableToConnectDrawer(true);
       }
     },
-    [checkout],
+    [checkout]
   );
 
   const connectCallback = async (ethereumProvider: EthereumProvider) => {
     if (ethereumProvider.connected && ethereumProvider.session) {
       const web3Provider = new Web3Provider(ethereumProvider);
-      selectWeb3Provider(web3Provider, 'walletconnect');
+      selectWeb3Provider(web3Provider, "walletconnect");
 
       const chainId = await web3Provider.getSigner().getChainId();
 
@@ -234,9 +240,9 @@ export function WalletList(props: WalletListProps) {
   const handleWalletConnectConnection = async () => {
     track({
       userJourney: UserJourney.CONNECT,
-      screen: 'ConnectWallet',
-      control: 'WalletConnect',
-      controlType: 'MenuItem',
+      screen: "ConnectWallet",
+      control: "WalletConnect",
+      controlType: "MenuItem",
     });
     await openWalletConnectModal({
       connectCallback,
@@ -249,9 +255,9 @@ export function WalletList(props: WalletListProps) {
     setChosenProviderDetail(providerDetail);
     track({
       userJourney: UserJourney.CONNECT,
-      screen: 'ConnectWallet',
+      screen: "ConnectWallet",
       control: providerDetail.info.name,
-      controlType: 'MenuItem',
+      controlType: "MenuItem",
       extras: {
         wallet: getProviderSlugFromRdns(providerDetail.info.rdns),
         walletRdns: providerDetail.info.rdns,
@@ -264,9 +270,10 @@ export function WalletList(props: WalletListProps) {
 
   const handleWalletItemClick = useCallback(
     async (providerDetail: EIP6963ProviderDetail) => {
-      const isPassport = providerDetail.info.rdns === WalletProviderRdns.PASSPORT;
+      const isPassport =
+        providerDetail.info.rdns === WalletProviderRdns.PASSPORT;
       const hasSeenNonPassportWarning = localStorage.getItem(
-        'hasSeenNonPassportWarning',
+        "hasSeenNonPassportWarning"
       );
 
       if (!isPassport && !hasSeenNonPassportWarning) {
@@ -280,9 +287,9 @@ export function WalletList(props: WalletListProps) {
       setChosenProviderDetail(providerDetail);
       track({
         userJourney: UserJourney.CONNECT,
-        screen: 'ConnectWallet',
+        screen: "ConnectWallet",
         control: providerDetail.info.name,
-        controlType: 'MenuItem',
+        controlType: "MenuItem",
         extras: {
           wallet: getProviderSlugFromRdns(providerDetail.info.rdns),
           walletRdns: providerDetail.info.rdns,
@@ -291,7 +298,7 @@ export function WalletList(props: WalletListProps) {
       });
       await selectProviderDetail(providerDetail);
     },
-    [track, checkout],
+    [track, checkout]
   );
 
   const onChosenProviderDetailChange = useCallback(() => {
@@ -302,9 +309,9 @@ export function WalletList(props: WalletListProps) {
   const onBrowserWalletsClick = useCallback(() => {
     track({
       userJourney: UserJourney.CONNECT,
-      screen: 'ConnectWallet',
-      control: 'BrowserWallets',
-      controlType: 'MenuItem',
+      screen: "ConnectWallet",
+      control: "BrowserWallets",
+      controlType: "MenuItem",
     });
     setShowWalletDrawer(true);
   }, [track]);
@@ -313,18 +320,18 @@ export function WalletList(props: WalletListProps) {
     // Auto-trigger wallet connection via rdns
     if (targetWalletRdns && targetWalletRdns?.length > 0) {
       if (
-        targetWalletRdns === WalletProviderRdns.PASSPORT
-        && passportProviderDetail
+        targetWalletRdns === WalletProviderRdns.PASSPORT &&
+        passportProviderDetail
       ) {
         handleWalletItemClick(passportProviderDetail);
       } else if (
-        targetWalletRdns === WalletProviderRdns.WALLETCONNECT
-        && walletConnectItemRef.current
+        targetWalletRdns === WalletProviderRdns.WALLETCONNECT &&
+        walletConnectItemRef.current
       ) {
         (walletConnectItemRef.current as any).connect();
       } else {
         const targetProviderDetail = filteredProviders.find(
-          (providerDetail) => providerDetail.info.rdns === targetWalletRdns,
+          (providerDetail) => providerDetail.info.rdns === targetWalletRdns
         );
         if (targetProviderDetail) {
           handleWalletItemClick(targetProviderDetail);
@@ -335,7 +342,7 @@ export function WalletList(props: WalletListProps) {
 
   const handleNonPassportWarningDrawerButtonClick = async () => {
     if (chosenProviderDetail) {
-      localStorage.setItem('hasSeenNonPassportWarning', 'true');
+      localStorage.setItem("hasSeenNonPassportWarning", "true");
       setShowNonPassportWarning(false);
       await selectProviderDetail(chosenProviderDetail);
     }
@@ -355,13 +362,13 @@ export function WalletList(props: WalletListProps) {
           key={passportProviderDetail.info.rdns}
           onWalletItemClick={handleWalletItemClick}
           providerDetail={passportProviderDetail}
-          rc={(
+          rc={
             <motion.div
               variants={listItemVariants}
               custom={0}
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
             />
-          )}
+          }
         />
       )}
       {filteredProviders.length === 1 && (
@@ -369,13 +376,13 @@ export function WalletList(props: WalletListProps) {
           key={filteredProviders[0].info.rdns}
           onWalletItemClick={handleWalletItemClick}
           providerDetail={filteredProviders[0]}
-          rc={(
+          rc={
             <motion.div
               variants={listItemVariants}
               custom={0 + (passportProviderDetail ? 1 : 0)}
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
             />
-          )}
+          }
         />
       )}
       {filteredProviders.length > 1 && (
@@ -383,7 +390,7 @@ export function WalletList(props: WalletListProps) {
           variants={listItemVariants}
           custom={0 + (passportProviderDetail ? 1 : 0)}
           key="browserwallet"
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
         >
           <BrowserWalletItem
             onClick={onBrowserWalletsClick}
@@ -395,12 +402,12 @@ export function WalletList(props: WalletListProps) {
         <motion.div
           variants={listItemVariants}
           custom={
-            0
-            + (passportProviderDetail ? 1 : 0)
-            + (filteredProviders.length > 0 ? 1 : 0)
+            0 +
+            (passportProviderDetail ? 1 : 0) +
+            (filteredProviders.length > 0 ? 1 : 0)
           }
           key="walletconnect"
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
         >
           <WalletConnectItem
             ref={walletConnectItemRef}
@@ -412,7 +419,7 @@ export function WalletList(props: WalletListProps) {
       <WalletDrawer
         testId="select-wallet-drawer"
         drawerText={{
-          heading: t('views.CONNECT_WALLET.walletSelection.heading'),
+          heading: t("views.CONNECT_WALLET.walletSelection.heading"),
         }}
         showWalletConnect={false}
         showWalletSelectorTarget={false}

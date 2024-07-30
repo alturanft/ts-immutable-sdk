@@ -1,16 +1,16 @@
-import { parseEther } from '@ethersproject/units';
+import { parseEther } from "ethers";
 import {
   IMXClient,
   ImxModuleConfiguration,
   GenericIMXProvider,
   ProviderConfiguration,
   UnsignedOrderRequest,
-} from '@imtbl/sdk/x';
-import { configuration, StepSharedState } from './stepSharedState';
+} from "@imtbl/sdk/x";
+import { configuration, StepSharedState } from "./stepSharedState";
 
 // @binding([StepSharedState])
 export class Order {
-  constructor(protected stepSharedState: StepSharedState) { }
+  constructor(protected stepSharedState: StepSharedState) {}
 
   config: ImxModuleConfiguration = {
     baseConfig: { environment: configuration.environment },
@@ -31,7 +31,7 @@ export class Order {
     makerVar: string,
     orderVar: string,
     assetVar: string,
-    amount: string,
+    amount: string
   ) {
     try {
       const seller = this.stepSharedState.users[makerVar];
@@ -40,16 +40,20 @@ export class Order {
         sell: {
           tokenAddress: token.data.token_address,
           tokenId: token.data.id,
-          type: 'ERC721',
+          type: "ERC721",
         },
         buy: {
-          type: 'ETH',
+          type: "ETH",
           amount: parseEther(amount).toString(),
         },
         fees: [],
       };
 
-      const imxProvider = new GenericIMXProvider(this.providerConfig, seller.ethSigner, seller.starkSigner);
+      const imxProvider = new GenericIMXProvider(
+        this.providerConfig,
+        seller.ethSigner,
+        seller.starkSigner
+      );
       const createOrderResponse = await imxProvider.createOrder(order);
 
       this.stepSharedState.orders[orderVar] = {
@@ -57,19 +61,20 @@ export class Order {
         orderId: createOrderResponse.order_id!,
       };
     } catch (err) {
-      console.log('err', err);
+      console.log("err", err);
       throw err;
     }
   }
 
   // @when('{string} cancels sell order {string}', undefined, 30000)
-  public async cancelNFTSellOrder(
-    sellerVar: string,
-    sellOrderVar: string,
-  ) {
+  public async cancelNFTSellOrder(sellerVar: string, sellOrderVar: string) {
     const seller = this.stepSharedState.users[sellerVar];
     const order = this.stepSharedState.orders[sellOrderVar];
-    const imxProvider = new GenericIMXProvider(this.providerConfig, seller.ethSigner, seller.starkSigner);
+    const imxProvider = new GenericIMXProvider(
+      this.providerConfig,
+      seller.ethSigner,
+      seller.starkSigner
+    );
     // eslint-disable-next-line @typescript-eslint/naming-convention
     await imxProvider.cancelOrder({ order_id: order.orderId });
   }

@@ -3,14 +3,14 @@ import {
   Checkout,
   EIP6963ProviderDetail,
   TokenFilterTypes,
-} from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage, WarningMessage } from './messages';
-import LoadingButton from './LoadingButton';
-import { Box } from '@biom3/react';
-import { NetworkInfo } from '@imtbl/checkout-sdk';
-import { TokenInfo } from '@imtbl/checkout-sdk';
+} from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage, WarningMessage } from "./messages";
+import LoadingButton from "./LoadingButton";
+import { Box } from "@biom3/react";
+import { NetworkInfo } from "@imtbl/checkout-sdk";
+import { TokenInfo } from "@imtbl/checkout-sdk";
 
 export interface AllowListProps {
   checkout: Checkout | undefined;
@@ -20,20 +20,21 @@ export interface AllowListProps {
 export default function GetInjectedProviders(props: AllowListProps) {
   const { provider, checkout } = props;
 
-  const [resultProviders, setResultProviders] = useState<EIP6963ProviderDetail[]>();
+  const [resultProviders, setResultProviders] =
+    useState<EIP6963ProviderDetail[]>();
 
   async function getInjectedProviders() {
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     try {
       const injectedProviders = await checkout.getInjectedProviders();
-      console.log('Injected Providers:', injectedProviders);
+      console.log("Injected Providers:", injectedProviders);
       setResultProviders([...injectedProviders]);
     } catch (error: any) {
       setResultProviders([]);
@@ -49,9 +50,9 @@ export default function GetInjectedProviders(props: AllowListProps) {
       {!provider && <WarningMessage>Not connected.</WarningMessage>}
       <Box
         sx={{
-          marginTop: 'base.spacing.x4',
-          display: 'flex',
-          gap: 'base.spacing.x4',
+          marginTop: "base.spacing.x4",
+          display: "flex",
+          gap: "base.spacing.x4",
         }}
       >
         <LoadingButton onClick={getInjectedProviders} loading={false}>
@@ -64,8 +65,8 @@ export default function GetInjectedProviders(props: AllowListProps) {
           {resultProviders?.map((providerDetail) => (
             <div key={providerDetail.info.uuid}>
               <Box>
-                <img src={providerDetail.info.icon} width="48px" />
-                ({providerDetail.info.name}) - {providerDetail.info.uuid}
+                <img src={providerDetail.info.icon} width="48px" />(
+                {providerDetail.info.name}) - {providerDetail.info.uuid}
               </Box>
             </div>
           ))}

@@ -1,9 +1,9 @@
-import { Checkout, GetBalanceResult } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage, WarningMessage } from './messages';
-import LoadingButton from './LoadingButton';
-import { Box } from '@biom3/react';
+import { Checkout, GetBalanceResult } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage, WarningMessage } from "./messages";
+import LoadingButton from "./LoadingButton";
+import { Box } from "@biom3/react";
 
 interface BalanceProps {
   checkout: Checkout | undefined;
@@ -11,7 +11,7 @@ interface BalanceProps {
 }
 
 export default function GetBalance(props: BalanceProps) {
-  const tokenAddress = '0x741185AEFC3E539c1F42c1d6eeE8bFf1c89D70FE';
+  const tokenAddress = "0x741185AEFC3E539c1F42c1d6eeE8bFf1c89D70FE";
 
   const { provider, checkout } = props;
 
@@ -25,11 +25,11 @@ export default function GetBalance(props: BalanceProps) {
 
   async function getNativeBalanceClick() {
     if (!checkout) {
-      console.error('missing checkout, please connect frist');
+      console.error("missing checkout, please connect frist");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect frist');
+      console.error("missing provider, please connect frist");
       return;
     }
 
@@ -56,11 +56,11 @@ export default function GetBalance(props: BalanceProps) {
 
   async function getERC20BalanceClick() {
     if (!checkout) {
-      console.error('missing checkout, please connect frist');
+      console.error("missing checkout, please connect frist");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect frist');
+      console.error("missing provider, please connect frist");
       return;
     }
 
@@ -100,9 +100,9 @@ export default function GetBalance(props: BalanceProps) {
         {!provider && <WarningMessage>Not connected.</WarningMessage>}
         <Box
           sx={{
-            marginTop: 'base.spacing.x4',
-            display: 'flex',
-            gap: 'base.spacing.x4',
+            marginTop: "base.spacing.x4",
+            display: "flex",
+            gap: "base.spacing.x4",
           }}
         >
           <LoadingButton
@@ -137,8 +137,8 @@ export default function GetBalance(props: BalanceProps) {
           <SuccessMessage>
             <Box
               sx={{
-                fontWeight: 'base.text.body.large.bold.fontWeight',
-                marginBottom: 'base.spacing.x2',
+                fontWeight: "base.text.body.large.bold.fontWeight",
+                marginBottom: "base.spacing.x2",
               }}
             >
               Target token: {tokenAddress}

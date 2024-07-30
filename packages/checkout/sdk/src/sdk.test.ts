@@ -1,9 +1,8 @@
 /*
  * @jest-environment jsdom
  */
-import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
 import { Environment } from '@imtbl/config';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { Passport, UserProfile } from '@imtbl/passport';
 import {
   getNetworkAllowList,

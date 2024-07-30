@@ -1,14 +1,14 @@
-import { TransactionRequest } from '@ethersproject/providers';
+import { TransactionRequest } from "ethers";
 import {
   Action,
   TransactionPurpose,
   ActionType,
   SignablePurpose,
-} from '@imtbl/orderbook';
-import { UnsignedMessage, UnsignedTransactions } from './types';
+} from "@imtbl/orderbook";
+import { UnsignedMessage, UnsignedTransactions } from "./types";
 
 export const getUnsignedSellTransactions = async (
-  actions: Action[],
+  actions: Action[]
 ): Promise<UnsignedTransactions> => {
   let approvalTransactions: TransactionRequest[] = [];
   let fulfillmentTransactions: TransactionRequest[] = [];
@@ -34,7 +34,7 @@ export const getUnsignedSellTransactions = async (
 };
 
 export const getUnsignedERC20ApprovalTransactions = async (
-  actions: Action[],
+  actions: Action[]
 ): Promise<TransactionRequest[]> => {
   let approvalTransactions: TransactionRequest[] = [];
 
@@ -51,7 +51,7 @@ export const getUnsignedERC20ApprovalTransactions = async (
 };
 
 export const getUnsignedFulfillmentTransactions = async (
-  actions: Action[],
+  actions: Action[]
 ): Promise<TransactionRequest[]> => {
   let fulfillmentTransactions: TransactionRequest[] = [];
 
@@ -70,7 +70,7 @@ export const getUnsignedFulfillmentTransactions = async (
 export const getUnsignedMessage = (
   orderHash: string,
   orderComponents: any,
-  actions: Action[],
+  actions: Action[]
 ): UnsignedMessage | undefined => {
   let unsignedMessage;
 

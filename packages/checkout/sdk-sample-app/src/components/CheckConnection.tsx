@@ -1,12 +1,9 @@
-import {
-  CheckConnectionResult,
-  Checkout,
-} from '@imtbl/checkout-sdk';
-import { useEffect, useState } from 'react';
-import LoadingButton from './LoadingButton';
-import { Web3Provider } from '@ethersproject/providers';
-import { SuccessMessage, ErrorMessage, WarningMessage } from './messages';
-import { Box } from '@biom3/react';
+import { CheckConnectionResult, Checkout } from "@imtbl/checkout-sdk";
+import { useEffect, useState } from "react";
+import LoadingButton from "./LoadingButton";
+import { BrowserProvider } from "ethers";
+import { SuccessMessage, ErrorMessage, WarningMessage } from "./messages";
+import { Box } from "@biom3/react";
 
 interface CheckConnectionProps {
   checkout: Checkout | undefined;
@@ -22,11 +19,11 @@ export default function CheckConnection(props: CheckConnectionProps) {
 
   async function checkMyConnection() {
     if (!checkout) {
-      console.error('missing checkout, please connect frist');
+      console.error("missing checkout, please connect frist");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect frist');
+      console.error("missing provider, please connect frist");
       return;
     }
 
@@ -36,7 +33,7 @@ export default function CheckConnection(props: CheckConnectionProps) {
       const resp = await checkout.checkIsWalletConnected({
         provider,
       });
-      console.log('Connection result', resp);
+      console.log("Connection result", resp);
       setResult(resp);
       setLoading(false);
     } catch (err: any) {
@@ -58,12 +55,13 @@ export default function CheckConnection(props: CheckConnectionProps) {
 
   return (
     <div>
-      {!provider || !result?.isConnected && (
-        <WarningMessage>Not connected.</WarningMessage>
-      )}
+      {!provider ||
+        (!result?.isConnected && (
+          <WarningMessage>Not connected.</WarningMessage>
+        ))}
       <Box
         sx={{
-          marginTop: 'base.spacing.x4',
+          marginTop: "base.spacing.x4",
         }}
       >
         <LoadingButton onClick={checkMyConnection} loading={loading}>

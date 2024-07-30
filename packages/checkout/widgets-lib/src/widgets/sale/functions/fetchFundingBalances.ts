@@ -1,12 +1,12 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { Checkout, TransactionRequirement } from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
-import { compareStr } from '../../../lib/utils';
+import { BrowserProvider } from "ethers";
+import { Checkout, TransactionRequirement } from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
+import { compareStr } from "../../../lib/utils";
 import {
   OrderQuoteCurrency,
   FundingBalance,
   FundingBalanceResult,
-} from '../types';
+} from "../types";
 import {
   getAlternativeFundingSteps,
   getERC20ItemRequirement,
@@ -15,7 +15,7 @@ import {
   getGasEstimate,
   processGasFreeBalances,
   wrapPromisesWithOnResolve,
-} from './fetchFundingBalancesUtils';
+} from "./fetchFundingBalancesUtils";
 
 export type FundingBalanceParams = {
   provider: Web3Provider;
@@ -33,7 +33,7 @@ export type FundingBalanceParams = {
 };
 
 export const fetchFundingBalances = async (
-  params: FundingBalanceParams,
+  params: FundingBalanceParams
 ): Promise<FundingBalanceResult[]> => {
   const {
     provider,
@@ -48,14 +48,14 @@ export const fetchFundingBalances = async (
   } = params;
 
   const signer = provider?.getSigner();
-  const spenderAddress = (await signer?.getAddress()) || '';
+  const spenderAddress = (await signer?.getAddress()) || "";
   const environment = checkout.config.environment as Environment;
 
   const pushToFoundBalances = getFnToPushAndSortFundingBalances(baseCurrency);
   const updateFundingBalances = (balances: FundingBalance[] | null) => {
     if (Array.isArray(balances) && balances.length > 0) {
       onFundingBalance(
-        pushToFoundBalances(processGasFreeBalances(balances, provider)),
+        pushToFoundBalances(processGasFreeBalances(balances, provider))
       );
     }
   };
@@ -73,7 +73,7 @@ export const fetchFundingBalances = async (
       const itemRequirements = getERC20ItemRequirement(
         amount,
         spenderAddress,
-        currency.address,
+        currency.address
       );
 
       const transactionOrGasAmount = getIsGasless()
@@ -110,16 +110,17 @@ export const fetchFundingBalances = async (
     balancePromises,
     ({ currency, smartCheckoutResult }) => {
       if (isBaseCurrency(currency.name)) {
-        const fundingItemRequirement = smartCheckoutResult.transactionRequirements[0];
+        const fundingItemRequirement =
+          smartCheckoutResult.transactionRequirements[0];
         onFundingRequirement(fundingItemRequirement);
       }
 
       if (smartCheckoutResult.sufficient) {
         updateFundingBalances(
-          getFundingBalances(smartCheckoutResult, environment),
+          getFundingBalances(smartCheckoutResult, environment)
         );
       }
-    },
+    }
   );
 
   return results;

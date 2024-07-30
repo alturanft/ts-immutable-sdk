@@ -1,11 +1,11 @@
-import { Checkout } from '@imtbl/checkout-sdk';
-import { Web3Provider } from '@ethersproject/providers';
-import LoadingButton from './LoadingButton';
-import { useEffect, useState } from 'react';
-import { SuccessMessage, ErrorMessage } from './messages';
-import { Body, Box, FormControl, TextInput } from '@biom3/react';
-import { OrderStatusName, Orderbook } from '@imtbl/orderbook';
-import { Environment } from '@imtbl/config';
+import { Checkout } from "@imtbl/checkout-sdk";
+import { BrowserProvider } from "ethers";
+import LoadingButton from "./LoadingButton";
+import { useEffect, useState } from "react";
+import { SuccessMessage, ErrorMessage } from "./messages";
+import { Body, Box, FormControl, TextInput } from "@biom3/react";
+import { OrderStatusName, Orderbook } from "@imtbl/orderbook";
+import { Environment } from "@imtbl/config";
 
 interface ListingsProps {
   checkout: Checkout;
@@ -13,43 +13,45 @@ interface ListingsProps {
 }
 
 export default function Listings({ checkout, provider }: ListingsProps) {
-  const [sellContractAddress, setSellContractAddress] = useState<string>('');
+  const [sellContractAddress, setSellContractAddress] = useState<string>("");
   const [orderIdError, setAddressError] = useState<any>(null);
 
-  const [listingId, setListingId] = useState<string>('');
+  const [listingId, setListingId] = useState<string>("");
   const [listingIdError, setListingIdError] = useState<any>(null);
-  
+
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   async function getListingsClick() {
     if (!sellContractAddress && !listingId) {
-      setAddressError('Please enter an collection address');
-      setListingIdError('Or enter an collection address');
+      setAddressError("Please enter an collection address");
+      setListingIdError("Or enter an collection address");
       return;
     }
     if (!checkout) {
-      console.error('missing checkout, please connect first');
+      console.error("missing checkout, please connect first");
       return;
     }
     if (!provider) {
-      console.error('missing provider, please connect first');
+      console.error("missing provider, please connect first");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      const orderBook = new Orderbook({baseConfig: {environment: checkout.config.environment}})
+      const orderBook = new Orderbook({
+        baseConfig: { environment: checkout.config.environment },
+      });
 
       if (listingId) {
-        const result = await orderBook.getListing(listingId)
-        console.log('listings:', result)
+        const result = await orderBook.getListing(listingId);
+        console.log("listings:", result);
       } else {
         const result = await orderBook.listListings({
           sellItemContractAddress: sellContractAddress,
-          status: OrderStatusName.ACTIVE
-        })
-        console.log('listings:', result)
+          status: OrderStatusName.ACTIVE,
+        });
+        console.log("listings:", result);
       }
       setLoading(false);
     } catch (err: any) {
@@ -64,15 +66,15 @@ export default function Listings({ checkout, provider }: ListingsProps) {
 
   const updateSellContractAddress = (event: any) => {
     setSellContractAddress(event.target.value);
-    setAddressError('');
-    setListingIdError('');
-  }
+    setAddressError("");
+    setListingIdError("");
+  };
 
   const updateListingId = (event: any) => {
     setListingId(event.target.value);
-    setAddressError('');
-    setListingIdError('');
-  }
+    setAddressError("");
+    setListingIdError("");
+  };
 
   useEffect(() => {
     setError(null);
@@ -81,7 +83,7 @@ export default function Listings({ checkout, provider }: ListingsProps) {
 
   return (
     <Box>
-      <FormControl validationStatus={orderIdError ? 'error' : 'success'} >
+      <FormControl validationStatus={orderIdError ? "error" : "success"}>
         <FormControl.Label>Collection Address</FormControl.Label>
         <TextInput onChange={updateSellContractAddress} />
         {orderIdError && (
@@ -89,7 +91,7 @@ export default function Listings({ checkout, provider }: ListingsProps) {
         )}
       </FormControl>
       <br />
-      <FormControl validationStatus={orderIdError ? 'error' : 'success'} >
+      <FormControl validationStatus={orderIdError ? "error" : "success"}>
         <FormControl.Label>Listing Id (optional)</FormControl.Label>
         <TextInput onChange={updateListingId} />
         {listingIdError && (
@@ -100,7 +102,11 @@ export default function Listings({ checkout, provider }: ListingsProps) {
       <LoadingButton onClick={getListingsClick} loading={loading}>
         Get Listings
       </LoadingButton>
-      {!error && <SuccessMessage>Get listings success. Check console for result</SuccessMessage>}
+      {!error && (
+        <SuccessMessage>
+          Get listings success. Check console for result
+        </SuccessMessage>
+      )}
       {error && (
         <ErrorMessage>
           {error.message}. Check console logs for more details.

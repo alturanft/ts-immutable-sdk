@@ -1,4 +1,4 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 import {
   CreateListingParams,
   ERC20Item,
@@ -8,9 +8,9 @@ import {
   constants,
   ERC721Item as OrderbookERC721Item,
   ERC1155Item as OrderbookERC1155Item,
-} from '@imtbl/orderbook';
-import { BigNumber, Contract, utils } from 'ethers';
-import { track } from '@imtbl/metrics';
+} from "@imtbl/orderbook";
+import { BigNumber, Contract, utils } from "ethers";
+import { track } from "@imtbl/metrics";
 import {
   ERC721Item,
   ERC1155Item,
@@ -23,26 +23,26 @@ import {
   CheckoutStatus,
   SmartCheckoutResult,
   SmartCheckoutSufficient,
-} from '../../types';
-import * as instance from '../../instance';
-import { CheckoutConfiguration } from '../../config';
-import { CheckoutError, CheckoutErrorType } from '../../errors';
-import { smartCheckout } from '../smartCheckout';
+} from "../../types";
+import * as instance from "../../instance";
+import { CheckoutConfiguration } from "../../config";
+import { CheckoutError, CheckoutErrorType } from "../../errors";
+import { smartCheckout } from "../smartCheckout";
 import {
   getUnsignedSellTransactions,
   getUnsignedMessage,
   signApprovalTransactions,
   signMessage,
-} from '../actions';
-import { SignTransactionStatusType } from '../actions/types';
-import { calculateFees } from '../fees/fees';
-import { ERC20ABI } from '../../env';
-import { measureAsyncExecution } from '../../logger/debugLogger';
+} from "../actions";
+import { SignTransactionStatusType } from "../actions/types";
+import { calculateFees } from "../fees/fees";
+import { ERC20ABI } from "../../env";
+import { measureAsyncExecution } from "../../logger/debugLogger";
 
 export const getERC721Requirement = (
   id: string,
   contractAddress: string,
-  spenderAddress: string,
+  spenderAddress: string
 ): ERC721Item => ({
   type: ItemType.ERC721,
   id,
@@ -54,7 +54,7 @@ export const getERC1155Requirement = (
   id: string,
   contractAddress: string,
   spenderAddress: string,
-  amount: string,
+  amount: string
 ): ERC1155Item => ({
   type: ItemType.ERC1155,
   id,
@@ -65,7 +65,7 @@ export const getERC1155Requirement = (
 
 export const getBuyToken = (
   buyToken: BuyToken,
-  decimals: number = 18,
+  decimals: number = 18
 ): ERC20Item | NativeItem => {
   const bnAmount = utils.parseUnits(buyToken.amount, decimals);
 
@@ -86,27 +86,22 @@ export const getBuyToken = (
 export const sell = async (
   config: CheckoutConfiguration,
   provider: Web3Provider,
-  orders: Array<SellOrder>,
+  orders: Array<SellOrder>
 ): Promise<SellResult> => {
   let orderbook: Orderbook;
   let listing: PrepareListingResponse;
-  let spenderAddress = '';
+  let spenderAddress = "";
 
-  track('checkout_sdk', 'sell_initiated');
+  track("checkout_sdk", "sell_initiated");
 
   if (orders.length === 0) {
     throw new CheckoutError(
-      'No orders were provided to the orders array. Please provide at least one order.',
-      CheckoutErrorType.PREPARE_ORDER_LISTING_ERROR,
+      "No orders were provided to the orders array. Please provide at least one order.",
+      CheckoutErrorType.PREPARE_ORDER_LISTING_ERROR
     );
   }
 
-  const {
-    buyToken,
-    sellToken,
-    makerFees,
-    orderExpiry,
-  } = orders[0];
+  const { buyToken, sellToken, makerFees, orderExpiry } = orders[0];
 
   let decimals = 18;
   if (buyToken.type === ItemType.ERC20) {
@@ -114,61 +109,62 @@ export const sell = async (
     const buyTokenContract = new Contract(
       buyToken.tokenAddress,
       JSON.stringify(ERC20ABI),
-      provider,
+      provider
     );
 
     decimals = await measureAsyncExecution<number>(
       config,
-      'Time to get decimals of token contract for the buy token',
-      buyTokenContract.decimals(),
+      "Time to get decimals of token contract for the buy token",
+      buyTokenContract.decimals()
     );
   }
 
   const buyTokenOrNative = getBuyToken(buyToken, decimals);
-  const sellTokenHasType = 'type' in sellToken;
+  const sellTokenHasType = "type" in sellToken;
 
   try {
     const walletAddress = await measureAsyncExecution<string>(
       config,
-      'Time to get the address from the provider',
-      provider.getSigner().getAddress(),
+      "Time to get the address from the provider",
+      provider.getSigner().getAddress()
     );
     orderbook = instance.createOrderbookInstance(config);
     const { seaportContractAddress } = orderbook.config();
     spenderAddress = seaportContractAddress;
 
-    const sellItem: OrderbookERC721Item | OrderbookERC1155Item = sellTokenHasType && sellToken.type === ItemType.ERC1155
-      ? {
-        type: ItemType.ERC1155,
-        contractAddress: sellToken.collectionAddress,
-        tokenId: sellToken.id,
-        amount: sellToken.amount,
-      }
-      : {
-        type: ItemType.ERC721,
-        contractAddress: sellToken.collectionAddress,
-        tokenId: sellToken.id,
-      };
+    const sellItem: OrderbookERC721Item | OrderbookERC1155Item =
+      sellTokenHasType && sellToken.type === ItemType.ERC1155
+        ? {
+            type: ItemType.ERC1155,
+            contractAddress: sellToken.collectionAddress,
+            tokenId: sellToken.id,
+            amount: sellToken.amount,
+          }
+        : {
+            type: ItemType.ERC721,
+            contractAddress: sellToken.collectionAddress,
+            tokenId: sellToken.id,
+          };
 
     listing = await measureAsyncExecution<PrepareListingResponse>(
       config,
-      'Time to prepare the listing from the orderbook',
+      "Time to prepare the listing from the orderbook",
       orderbook.prepareListing({
         makerAddress: walletAddress,
         buy: buyTokenOrNative,
         sell: sellItem,
         orderExpiry,
-      }),
+      })
     );
   } catch (err: any) {
     throw new CheckoutError(
-      'An error occurred while preparing the listing',
+      "An error occurred while preparing the listing",
       CheckoutErrorType.PREPARE_ORDER_LISTING_ERROR,
       {
         error: err,
         id: sellToken.id,
         collectionAddress: sellToken.collectionAddress,
-      },
+      }
     );
   }
 
@@ -178,11 +174,15 @@ export const sell = async (
       sellToken.id,
       sellToken.collectionAddress,
       spenderAddress,
-      sellToken.amount,
+      sellToken.amount
     );
     itemRequirements.push(erc1155ItemRequirement);
   } else {
-    const erc721ItemRequirement = getERC721Requirement(sellToken.id, sellToken.collectionAddress, spenderAddress);
+    const erc721ItemRequirement = getERC721Requirement(
+      sellToken.id,
+      sellToken.collectionAddress,
+      spenderAddress
+    );
     itemRequirements.push(erc721ItemRequirement);
   }
 
@@ -191,27 +191,30 @@ export const sell = async (
   if (!isPassport) {
     smartCheckoutResult = await measureAsyncExecution<SmartCheckoutResult>(
       config,
-      'Total time running smart checkout',
-      smartCheckout(
-        config,
-        provider,
-        itemRequirements,
-        {
-          type: TransactionOrGasType.GAS,
-          gasToken: {
-            type: GasTokenType.NATIVE,
-            limit: BigNumber.from(constants.estimatedFulfillmentGasGwei),
-          },
+      "Total time running smart checkout",
+      smartCheckout(config, provider, itemRequirements, {
+        type: TransactionOrGasType.GAS,
+        gasToken: {
+          type: GasTokenType.NATIVE,
+          limit: BigNumber.from(constants.estimatedFulfillmentGasGwei),
         },
-      ),
+      })
     );
   } else {
-    smartCheckoutResult = { sufficient: true, transactionRequirements: [] } as SmartCheckoutSufficient;
+    smartCheckoutResult = {
+      sufficient: true,
+      transactionRequirements: [],
+    } as SmartCheckoutSufficient;
   }
 
   if (smartCheckoutResult.sufficient) {
-    const unsignedTransactions = await getUnsignedSellTransactions(listing.actions);
-    const approvalResult = await signApprovalTransactions(provider, unsignedTransactions.approvalTransactions);
+    const unsignedTransactions = await getUnsignedSellTransactions(
+      listing.actions
+    );
+    const approvalResult = await signApprovalTransactions(
+      provider,
+      unsignedTransactions.approvalTransactions
+    );
     if (approvalResult.type === SignTransactionStatusType.FAILED) {
       return {
         status: CheckoutStatus.FAILED,
@@ -224,26 +227,23 @@ export const sell = async (
     const unsignedMessage = getUnsignedMessage(
       listing.orderHash,
       listing.orderComponents,
-      listing.actions,
+      listing.actions
     );
     if (!unsignedMessage) {
       // For sell it is expected the orderbook will always return an unsigned message
       // If for some reason it is missing then we cannot proceed with the create listing
       throw new CheckoutError(
-        'The unsigned message is missing after preparing the listing',
+        "The unsigned message is missing after preparing the listing",
         CheckoutErrorType.SIGN_MESSAGE_ERROR,
         {
           id: sellToken.id,
           collectionAddress: sellToken.collectionAddress,
-        },
+        }
       );
     }
-    const signedMessage = await signMessage(
-      provider,
-      unsignedMessage,
-    );
+    const signedMessage = await signMessage(provider, unsignedMessage);
 
-    let orderId = '';
+    let orderId = "";
 
     const createListingParams: CreateListingParams = {
       orderComponents: signedMessage.orderComponents,
@@ -256,13 +256,19 @@ export const sell = async (
       let tokenQuantity = BigNumber.from(1);
 
       // if type exists in sellToken then it is valid ERC721 or ERC1155 and not deprecated type
-      if (sellTokenHasType && sellToken.type === ItemType.ERC1155) tokenQuantity = BigNumber.from(sellToken.amount);
+      if (sellTokenHasType && sellToken.type === ItemType.ERC1155)
+        tokenQuantity = BigNumber.from(sellToken.amount);
 
-      const orderBookFees = calculateFees(makerFees, buyTokenOrNative.amount, decimals, tokenQuantity);
+      const orderBookFees = calculateFees(
+        makerFees,
+        buyTokenOrNative.amount,
+        decimals,
+        tokenQuantity
+      );
       if (orderBookFees.length !== makerFees.length) {
         throw new CheckoutError(
-          'One of the fees is too small, must be greater than 0.000001',
-          CheckoutErrorType.CREATE_ORDER_LISTING_ERROR,
+          "One of the fees is too small, must be greater than 0.000001",
+          CheckoutErrorType.CREATE_ORDER_LISTING_ERROR
         );
       }
       createListingParams.makerFees = orderBookFees;
@@ -273,13 +279,13 @@ export const sell = async (
       orderId = order.result.id;
     } catch (err: any) {
       throw new CheckoutError(
-        'An error occurred while creating the listing',
+        "An error occurred while creating the listing",
         CheckoutErrorType.CREATE_ORDER_LISTING_ERROR,
         {
           error: err,
           collectionId: sellToken.id,
           collectionAddress: sellToken.collectionAddress,
-        },
+        }
       );
     }
 

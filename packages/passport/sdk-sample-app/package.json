@@ -12,7 +12,7 @@
     "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.10.3",
     "embla-carousel-react": "^8.1.5",
-    "ethers": "^5.7.2",
+    "ethers": "^6.11.1",
     "framer-motion": "^11.0.6",
     "next": "13.3.1",
     "react": "^18.2.0",

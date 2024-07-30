@@ -1,16 +1,14 @@
-import {
-  ChainId, ChainName, Checkout, WidgetTheme,
-} from '@imtbl/checkout-sdk';
-import { describe, it, cy } from 'local-cypress';
-import { mount } from 'cypress/react18';
-import { Environment } from '@imtbl/config';
-import { Web3Provider } from '@ethersproject/providers';
-import { ViewContextTestComponent } from '../../context/view-context/test-components/ViewContextTestComponent';
-import { cyIntercept, cySmartGet } from '../../lib/testUtils';
-import { ConnectLoader, ConnectLoaderParams } from './ConnectLoader';
-import { StrongCheckoutWidgetsConfig } from '../../lib/withDefaultWidgetConfig';
+import { ChainId, ChainName, Checkout, WidgetTheme } from "@imtbl/checkout-sdk";
+import { describe, it, cy } from "local-cypress";
+import { mount } from "cypress/react18";
+import { Environment } from "@imtbl/config";
+import { BrowserProvider } from "ethers";
+import { ViewContextTestComponent } from "../../context/view-context/test-components/ViewContextTestComponent";
+import { cyIntercept, cySmartGet } from "../../lib/testUtils";
+import { ConnectLoader, ConnectLoaderParams } from "./ConnectLoader";
+import { StrongCheckoutWidgetsConfig } from "../../lib/withDefaultWidgetConfig";
 
-describe('ConnectLoader', () => {
+describe("ConnectLoader", () => {
   const config: StrongCheckoutWidgetsConfig = {
     environment: Environment.SANDBOX,
     theme: WidgetTheme.DARK,
@@ -23,14 +21,14 @@ describe('ConnectLoader', () => {
   let providerRemoveListenerStub;
   let checkout;
   beforeEach(() => {
-    cy.viewport('ipad-2');
+    cy.viewport("ipad-2");
     cyIntercept();
-    providerOnStub = cy.stub().as('providerOnStub');
-    providerRemoveListenerStub = cy.stub().as('providerRemoveListenerStub');
+    providerOnStub = cy.stub().as("providerOnStub");
+    providerRemoveListenerStub = cy.stub().as("providerRemoveListenerStub");
     checkout = new Checkout();
   });
 
-  it('should show connect widget when no provider', () => {
+  it("should show connect widget when no provider", () => {
     const params = {
       allowedChains: [ChainId.IMTBL_ZKEVM_TESTNET],
       checkout,
@@ -45,19 +43,19 @@ describe('ConnectLoader', () => {
           <div id="inner-widget">Inner Widget</div>
         </ConnectLoader>
         ,
-      </ViewContextTestComponent>,
+      </ViewContextTestComponent>
     );
-    cySmartGet('wallet-list-metamask').should('be.visible');
-    cy.get('#inner-widget').should('not.exist');
+    cySmartGet("wallet-list-metamask").should("be.visible");
+    cy.get("#inner-widget").should("not.exist");
   });
 
-  it('should show ready to connect view when provider but not connected', () => {
+  it("should show ready to connect view when provider but not connected", () => {
     const provider = {
       on: providerOnStub,
       removeListener: providerRemoveListenerStub,
       request: () => {},
       getSigner: () => ({
-        getAddress: async () => Promise.resolve(''),
+        getAddress: async () => Promise.resolve(""),
       }),
     };
     const params = {
@@ -66,8 +64,8 @@ describe('ConnectLoader', () => {
       checkout,
     } as ConnectLoaderParams;
 
-    cy.stub(Checkout.prototype, 'checkIsWalletConnected')
-      .as('checkIsWalletConnectedStub')
+    cy.stub(Checkout.prototype, "checkIsWalletConnected")
+      .as("checkIsWalletConnectedStub")
       .resolves({
         isConnected: false,
       });
@@ -81,14 +79,14 @@ describe('ConnectLoader', () => {
         >
           <div id="inner-widget">Inner Widget</div>
         </ConnectLoader>
-      </ViewContextTestComponent>,
+      </ViewContextTestComponent>
     );
 
-    cySmartGet('footer-button').should('have.text', 'Ready to connect');
-    cy.get('#inner-widget').should('not.exist');
+    cySmartGet("footer-button").should("have.text", "Ready to connect");
+    cy.get("#inner-widget").should("not.exist");
   });
 
-  it('should show connect widget switch network when user addListener wrong network', () => {
+  it("should show connect widget switch network when user addListener wrong network", () => {
     const provider = {
       on: providerOnStub,
       removeListener: providerRemoveListenerStub,
@@ -101,33 +99,33 @@ describe('ConnectLoader', () => {
       checkout,
     };
 
-    cy.stub(Checkout.prototype, 'checkIsWalletConnected')
-      .as('checkIsWalletConnectedStub')
+    cy.stub(Checkout.prototype, "checkIsWalletConnected")
+      .as("checkIsWalletConnectedStub")
       .resolves({
         isConnected: true,
       });
 
-    cy.stub(Checkout.prototype, 'connect')
-      .as('connectStub')
+    cy.stub(Checkout.prototype, "connect")
+      .as("connectStub")
       .resolves({
         provider: {
           provider: {
             getSigner: () => ({
-              getAddress: async () => Promise.resolve(''),
+              getAddress: async () => Promise.resolve(""),
             }),
             getNetwork: async () => ({
               chainId: ChainId.ETHEREUM,
-              name: 'ETHEREUM',
+              name: "ETHEREUM",
             }),
             on: providerOnStub,
             removeListener: providerRemoveListenerStub,
           },
-          network: { name: 'ETHEREUM' },
+          network: { name: "ETHEREUM" },
         },
       });
 
-    cy.stub(Checkout.prototype, 'getNetworkInfo')
-      .as('getNetworkInfoStub')
+    cy.stub(Checkout.prototype, "getNetworkInfo")
+      .as("getNetworkInfoStub")
       .resolves({
         isSupported: false,
       });
@@ -141,14 +139,14 @@ describe('ConnectLoader', () => {
         >
           <div id="inner-widget">Inner Widget</div>
         </ConnectLoader>
-      </ViewContextTestComponent>,
+      </ViewContextTestComponent>
     );
 
-    cySmartGet('switch-network-view').should('be.visible');
-    cy.get('#inner-widget').should('not.exist');
+    cySmartGet("switch-network-view").should("be.visible");
+    cy.get("#inner-widget").should("not.exist");
   });
 
-  it('should go through connect flow and show inner widget if provider not connected', () => {
+  it("should go through connect flow and show inner widget if provider not connected", () => {
     const provider = {
       on: providerOnStub,
       removeListener: providerRemoveListenerStub,
@@ -159,7 +157,7 @@ describe('ConnectLoader', () => {
       web3Provider: {
         provider,
         getSigner: () => ({
-          getAddress: async () => Promise.resolve(''),
+          getAddress: async () => Promise.resolve(""),
         }),
         isMetaMask: true,
       } as any as Web3Provider,
@@ -167,8 +165,8 @@ describe('ConnectLoader', () => {
       checkout,
     };
 
-    cy.stub(Checkout.prototype, 'checkIsWalletConnected')
-      .as('checkIsWalletConnectedStub')
+    cy.stub(Checkout.prototype, "checkIsWalletConnected")
+      .as("checkIsWalletConnectedStub")
       .onFirstCall()
       .resolves({
         isConnected: false,
@@ -178,20 +176,20 @@ describe('ConnectLoader', () => {
         isConnected: true,
       });
 
-    cy.stub(Checkout.prototype, 'createProvider')
-      .as('createProviderStub')
+    cy.stub(Checkout.prototype, "createProvider")
+      .as("createProviderStub")
       .resolves({
         provider: {
           provider,
           getSigner: () => ({
-            getAddress: async () => Promise.resolve(''),
+            getAddress: async () => Promise.resolve(""),
           }),
           isMetaMask: true,
         } as any as Web3Provider,
       });
 
-    cy.stub(Checkout.prototype, 'connect')
-      .as('connectStub')
+    cy.stub(Checkout.prototype, "connect")
+      .as("connectStub")
       .onFirstCall()
       .resolves({
         provider: {
@@ -200,7 +198,7 @@ describe('ConnectLoader', () => {
             removeListener: providerRemoveListenerStub,
           },
           getSigner: () => ({
-            getAddress: async () => Promise.resolve(''),
+            getAddress: async () => Promise.resolve(""),
           }),
           getNetwork: async () => ({
             chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -209,8 +207,8 @@ describe('ConnectLoader', () => {
         },
       });
 
-    cy.stub(Checkout.prototype, 'getNetworkInfo')
-      .as('getNetworkInfoStub')
+    cy.stub(Checkout.prototype, "getNetworkInfo")
+      .as("getNetworkInfoStub")
       .resolves({
         isSupported: true,
         chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -225,14 +223,14 @@ describe('ConnectLoader', () => {
         >
           <div id="inner-widget">Inner Widget</div>
         </ConnectLoader>
-      </ViewContextTestComponent>,
+      </ViewContextTestComponent>
     );
 
-    cySmartGet('footer-button').click();
-    cy.get('#inner-widget').should('be.visible');
+    cySmartGet("footer-button").click();
+    cy.get("#inner-widget").should("be.visible");
   });
 
-  it('should not show connect flow when user already connected', () => {
+  it("should not show connect flow when user already connected", () => {
     const provider = {
       on: providerOnStub,
       removeListener: providerRemoveListenerStub,
@@ -243,7 +241,7 @@ describe('ConnectLoader', () => {
       web3Provider: {
         provider,
         getSigner: () => ({
-          getAddress: async () => Promise.resolve(''),
+          getAddress: async () => Promise.resolve(""),
         }),
         getNetwork: async () => ({
           chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -254,14 +252,14 @@ describe('ConnectLoader', () => {
       checkout,
     };
 
-    cy.stub(Checkout.prototype, 'checkIsWalletConnected')
-      .as('checkIsWalletConnectedStub')
+    cy.stub(Checkout.prototype, "checkIsWalletConnected")
+      .as("checkIsWalletConnectedStub")
       .resolves({
         isConnected: true,
       });
 
-    cy.stub(Checkout.prototype, 'connect')
-      .as('connectStub')
+    cy.stub(Checkout.prototype, "connect")
+      .as("connectStub")
       .resolves({
         provider: {
           provider: {
@@ -269,7 +267,7 @@ describe('ConnectLoader', () => {
             removeListener: providerRemoveListenerStub,
           },
           getSigner: () => ({
-            getAddress: async () => Promise.resolve(''),
+            getAddress: async () => Promise.resolve(""),
           }),
           getNetwork: async () => ({
             chainId: ChainId.IMTBL_ZKEVM_TESTNET,
@@ -278,12 +276,10 @@ describe('ConnectLoader', () => {
         },
       });
 
-    cy.stub(Checkout, 'isWeb3Provider')
-      .as('isWeb3ProviderStub')
-      .returns(true);
+    cy.stub(Checkout, "isWeb3Provider").as("isWeb3ProviderStub").returns(true);
 
-    cy.stub(Checkout.prototype, 'getNetworkInfo')
-      .as('getNetworkInfoStub')
+    cy.stub(Checkout.prototype, "getNetworkInfo")
+      .as("getNetworkInfoStub")
       .resolves({
         chainId: ChainId.IMTBL_ZKEVM_TESTNET,
         isSupported: true,
@@ -298,10 +294,10 @@ describe('ConnectLoader', () => {
         >
           <div id="inner-widget">Inner Widget</div>
         </ConnectLoader>
-      </ViewContextTestComponent>,
+      </ViewContextTestComponent>
     );
 
-    cy.get('#inner-widget').should('be.visible');
+    cy.get("#inner-widget").should("be.visible");
   });
 
   // TODO: This functionality has been moved into the BaseWidgetRoot. The tests should be moved there

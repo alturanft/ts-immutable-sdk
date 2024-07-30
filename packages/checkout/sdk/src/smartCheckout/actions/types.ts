@@ -1,5 +1,5 @@
-import { TransactionRequest } from '@ethersproject/providers';
-import { TypedDataDomain, TypedDataField } from 'ethers';
+import { TransactionRequest } from "ethers";
+import { TypedDataDomain, TypedDataField } from "ethers";
 
 export type UnsignedTransactions = {
   approvalTransactions: TransactionRequest[];
@@ -13,7 +13,7 @@ export type UnsignedMessage = {
     domain: TypedDataDomain;
     types: Record<string, TypedDataField[]>;
     value: Record<string, any>;
-  },
+  };
 };
 
 export type SignedMessage = {
@@ -22,7 +22,9 @@ export type SignedMessage = {
   signedMessage: string;
 };
 
-export type SignTransactionResult = SignTransactionSuccessStatus | SignTransactionFailedStatus;
+export type SignTransactionResult =
+  | SignTransactionSuccessStatus
+  | SignTransactionFailedStatus;
 
 export interface SignTransactionSuccessStatus {
   type: SignTransactionStatusType.SUCCESS;
@@ -35,6 +37,6 @@ export interface SignTransactionFailedStatus {
 }
 
 export enum SignTransactionStatusType {
-  SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED',
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
 }

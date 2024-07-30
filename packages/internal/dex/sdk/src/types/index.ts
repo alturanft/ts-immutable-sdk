@@ -1,5 +1,5 @@
-import { ethers } from 'ethers';
-import { ModuleConfiguration } from '@imtbl/config';
+import { ethers } from "ethers";
+import { ModuleConfiguration } from "@imtbl/config";
 
 export type ExchangeContracts = {
   multicall: string;
@@ -54,11 +54,11 @@ export type Fee = {
 /**
  * Type representing an amount with the token information
  * @property {@link Coin} token - The coin for the amount, either a {@link Native} or {@link ERC20}
- * @property {ethers.BigNumber} value - The value of the amount in the token's smallest unit
+ * @property {BigInt} value - The value of the amount in the token's smallest unit
  */
 export type CoinAmount<T extends Coin> = {
   token: T;
-  value: ethers.BigNumber;
+  value: bigint;
 };
 
 /**
@@ -107,7 +107,7 @@ export type TransactionResponse = {
  * @property {string | undefined} name - The token name or undefined if it is not available
  */
 export type ERC20 = {
-  type: 'erc20';
+  type: "erc20";
   chainId: number;
   address: string;
   decimals: number;
@@ -124,7 +124,7 @@ export type ERC20 = {
  * @property {string | undefined} name - The token name or undefined if it is not available
  */
 export type Native = {
-  type: 'native';
+  type: "native";
   chainId: number;
   decimals: number;
   symbol?: string;
@@ -155,11 +155,11 @@ export type Token = {
 /**
  * Interface representing a token amount
  * @property {@link Token} token - The token
- * @property {@link ethers.BigNumber} value - The amount
+ * @property {@link BigInt} value - The amount
  */
 export type Amount = {
   token: Token;
-  value: ethers.BigNumber;
+  value: bigint;
 };
 
 /**

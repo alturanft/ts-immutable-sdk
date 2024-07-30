@@ -1,19 +1,20 @@
-import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
-import { Contract } from 'ethers';
+import { JsonRpcProvider, BrowserProvider } from "ethers";
+import { Contract } from "ethers";
 import {
   BridgeConfig,
   ChainId,
   DexConfig,
   GetTokenAllowListResult,
-  OnRampConfig, OnRampProvider,
+  OnRampConfig,
+  OnRampProvider,
   TokenFilter,
   TokenFilterTypes,
   TokenInfo,
-} from '../types';
-import { CheckoutConfiguration, getL1ChainId } from '../config';
-import { ERC20ABI, NATIVE } from '../env';
-import { CheckoutErrorType, withCheckoutError } from '../errors';
-import { isMatchingAddress } from '../utils/utils';
+} from "../types";
+import { CheckoutConfiguration, getL1ChainId } from "../config";
+import { ERC20ABI, NATIVE } from "../env";
+import { CheckoutErrorType, withCheckoutError } from "../errors";
+import { isMatchingAddress } from "../utils/utils";
 
 type TokenAllowListParams = {
   type: TokenFilterTypes;
@@ -23,11 +24,7 @@ type TokenAllowListParams = {
 
 export const getTokenAllowList = async (
   config: CheckoutConfiguration,
-  {
-    type = TokenFilterTypes.ALL,
-    chainId,
-    exclude,
-  }: TokenAllowListParams,
+  { type = TokenFilterTypes.ALL, chainId, exclude }: TokenAllowListParams
 ): Promise<GetTokenAllowListResult> => {
   let tokens: TokenInfo[] = [];
   let onRampConfig: OnRampConfig;
@@ -40,44 +37,52 @@ export const getTokenAllowList = async (
       // Fetch tokens from dex-tokens config because
       // Dex needs to have a whitelisted list of tokens due to
       // legal reasons.
-      tokens = ((await config.remote.getConfig('dex')) as DexConfig)
-        .tokens || [];
+      tokens =
+        ((await config.remote.getConfig("dex")) as DexConfig).tokens || [];
       break;
     case TokenFilterTypes.ONRAMP:
-      onRampConfig = (await config.remote.getConfig('onramp')) as OnRampConfig;
+      onRampConfig = (await config.remote.getConfig("onramp")) as OnRampConfig;
       if (!onRampConfig) tokens = [];
 
       tokens = onRampConfig[OnRampProvider.TRANSAK]?.tokens || [];
       break;
     case TokenFilterTypes.BRIDGE:
-      onBridgeConfig = ((await config.remote.getConfig('bridge')) as BridgeConfig);
+      onBridgeConfig = (await config.remote.getConfig(
+        "bridge"
+      )) as BridgeConfig;
       if (!onBridgeConfig) tokens = [];
 
       tokens = onBridgeConfig[targetChainId]?.tokens || [];
       break;
     case TokenFilterTypes.ALL:
     default:
-      tokens = (await config.remote.getTokensConfig(targetChainId)).allowed as TokenInfo[];
+      tokens = (await config.remote.getTokensConfig(targetChainId))
+        .allowed as TokenInfo[];
   }
 
   if (!exclude || exclude?.length === 0) return { tokens };
 
   return {
-    tokens: tokens.filter((token) => !exclude.map((e) => e.address).includes(token.address || '')) as TokenInfo[],
+    tokens: tokens.filter(
+      (token) => !exclude.map((e) => e.address).includes(token.address || "")
+    ) as TokenInfo[],
   };
 };
 
-export const isNativeToken = (
-  address: string | undefined,
-): boolean => !address || isMatchingAddress(address, NATIVE);
+export const isNativeToken = (address: string | undefined): boolean =>
+  !address || isMatchingAddress(address, NATIVE);
 
 export async function getERC20TokenInfo(
-  web3Provider: Web3Provider | JsonRpcProvider,
-  tokenAddress: string,
+  web3Provider: BrowserProvider | JsonRpcProvider,
+  tokenAddress: string
 ) {
   return await withCheckoutError<TokenInfo>(
     async () => {
-      const contract = new Contract(tokenAddress, JSON.stringify(ERC20ABI), web3Provider);
+      const contract = new Contract(
+        tokenAddress,
+        JSON.stringify(ERC20ABI),
+        web3Provider
+      );
 
       const [name, symbol, decimals] = await Promise.all([
         contract.name(),
@@ -92,6 +97,6 @@ export async function getERC20TokenInfo(
         address: tokenAddress,
       };
     },
-    { type: CheckoutErrorType.GET_ERC20_INFO_ERROR },
+    { type: CheckoutErrorType.GET_ERC20_INFO_ERROR }
   );
 }

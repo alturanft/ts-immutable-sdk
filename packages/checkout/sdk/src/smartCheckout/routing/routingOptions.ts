@@ -1,12 +1,13 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { CheckoutConfiguration } from '../../config';
-import { isOnRampAvailable, isSwapAvailable } from './geoBlocking';
-import { AvailableRoutingOptions } from '../../types';
+import { BrowserProvider } from "ethers";
+import { CheckoutConfiguration } from "../../config";
+import { isOnRampAvailable, isSwapAvailable } from "./geoBlocking";
+import { AvailableRoutingOptions } from "../../types";
 
-const isPassportProvider = (provider: Web3Provider) => (provider.provider as any)?.isPassport === true ?? false;
+const isPassportProvider = (provider: Web3Provider) =>
+  (provider.provider as any)?.isPassport === true ?? false;
 
 type GeoBlockingCheck = {
-  id: 'onRamp' | 'swap';
+  id: "onRamp" | "swap";
   promise: Promise<boolean>;
 };
 
@@ -15,8 +16,8 @@ type GeoBlockingCheck = {
  */
 export const getAvailableRoutingOptions = async (
   config: CheckoutConfiguration,
-  provider: Web3Provider,
-) : Promise<AvailableRoutingOptions> => {
+  provider: Web3Provider
+): Promise<AvailableRoutingOptions> => {
   const availableRoutingOptions = {
     onRamp: config.isOnRampEnabled,
     swap: config.isSwapEnabled,
@@ -26,26 +27,30 @@ export const getAvailableRoutingOptions = async (
   // Geo-blocking checks
   const geoBlockingChecks: GeoBlockingCheck[] = [];
   if (availableRoutingOptions.onRamp) {
-    geoBlockingChecks.push({ id: 'onRamp', promise: isOnRampAvailable() });
+    geoBlockingChecks.push({ id: "onRamp", promise: isOnRampAvailable() });
   }
   if (availableRoutingOptions.swap) {
-    geoBlockingChecks.push({ id: 'swap', promise: isSwapAvailable(config) });
+    geoBlockingChecks.push({ id: "swap", promise: isSwapAvailable(config) });
   }
 
   if (geoBlockingChecks.length > 0) {
-    const promises = geoBlockingChecks.map((geoBlockingCheck) => geoBlockingCheck.promise);
+    const promises = geoBlockingChecks.map(
+      (geoBlockingCheck) => geoBlockingCheck.promise
+    );
     const geoBlockingStatus = await Promise.allSettled(promises);
 
     geoBlockingStatus.forEach((result, index) => {
       const statusId = geoBlockingChecks[index].id;
-      availableRoutingOptions[statusId] = availableRoutingOptions[statusId]
-        && result.status === 'fulfilled'
-        && result.value;
+      availableRoutingOptions[statusId] =
+        availableRoutingOptions[statusId] &&
+        result.status === "fulfilled" &&
+        result.value;
     });
   }
 
   // Bridge not available if passport provider
-  availableRoutingOptions.bridge = availableRoutingOptions.bridge && !isPassportProvider(provider);
+  availableRoutingOptions.bridge =
+    availableRoutingOptions.bridge && !isPassportProvider(provider);
 
   return availableRoutingOptions;
 };

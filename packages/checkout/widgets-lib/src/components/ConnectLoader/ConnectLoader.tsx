@@ -1,30 +1,25 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { BrowserProvider } from "ethers";
 import {
   ChainId,
   Checkout,
   WalletProviderName,
   CheckoutErrorType,
-
-} from '@imtbl/checkout-sdk';
-import React, {
-  useEffect,
-  useMemo,
-  useReducer,
-} from 'react';
-import { ErrorView } from '../../views/error/ErrorView';
+} from "@imtbl/checkout-sdk";
+import React, { useEffect, useMemo, useReducer } from "react";
+import { ErrorView } from "../../views/error/ErrorView";
 import {
   ConnectLoaderActions,
   ConnectLoaderContext,
   ConnectionStatus,
   connectLoaderReducer,
   initialConnectLoaderState,
-} from '../../context/connect-loader-context/ConnectLoaderContext';
-import { LoadingView } from '../../views/loading/LoadingView';
-import ConnectWidget from '../../widgets/connect/ConnectWidget';
-import { ConnectWidgetViews } from '../../context/view-context/ConnectViewContextTypes';
-import { StrongCheckoutWidgetsConfig } from '../../lib/withDefaultWidgetConfig';
-import { useAnalytics } from '../../context/analytics-provider/SegmentAnalyticsProvider';
-import { identifyUser } from '../../lib/analytics/identifyUser';
+} from "../../context/connect-loader-context/ConnectLoaderContext";
+import { LoadingView } from "../../views/loading/LoadingView";
+import ConnectWidget from "../../widgets/connect/ConnectWidget";
+import { ConnectWidgetViews } from "../../context/view-context/ConnectViewContextTypes";
+import { StrongCheckoutWidgetsConfig } from "../../lib/withDefaultWidgetConfig";
+import { useAnalytics } from "../../context/analytics-provider/SegmentAnalyticsProvider";
+import { identifyUser } from "../../lib/analytics/identifyUser";
 
 export interface ConnectLoaderProps {
   children?: React.ReactNode;
@@ -57,19 +52,22 @@ export function ConnectLoader({
 
   const [connectLoaderState, connectLoaderDispatch] = useReducer(
     connectLoaderReducer,
-    { ...initialConnectLoaderState, checkout }, // set checkout instance here
+    { ...initialConnectLoaderState, checkout } // set checkout instance here
   );
-  const connectLoaderReducerValues = useMemo(() => ({
-    connectLoaderState,
-    connectLoaderDispatch,
-  }), [connectLoaderState, connectLoaderDispatch]);
-  const {
-    connectionStatus, deepLink, provider,
-  } = connectLoaderState;
+  const connectLoaderReducerValues = useMemo(
+    () => ({
+      connectLoaderState,
+      connectLoaderDispatch,
+    }),
+    [connectLoaderState, connectLoaderDispatch]
+  );
+  const { connectionStatus, deepLink, provider } = connectLoaderState;
 
   const { identify } = useAnalytics();
 
-  const hasNoWalletProviderNameAndNoWeb3Provider = (localProvider?: Web3Provider): boolean => {
+  const hasNoWalletProviderNameAndNoWeb3Provider = (
+    localProvider?: Web3Provider
+  ): boolean => {
     if (!walletProviderName && !localProvider) {
       connectLoaderDispatch({
         payload: {
@@ -83,7 +81,9 @@ export function ConnectLoader({
     return false;
   };
 
-  const hasWalletProviderNameAndNoWeb3Provider = async (localProvider?: Web3Provider): Promise<boolean> => {
+  const hasWalletProviderNameAndNoWeb3Provider = async (
+    localProvider?: Web3Provider
+  ): Promise<boolean> => {
     try {
       // If the wallet provider name was passed through but the provider was
       // not injected then create a provider using the wallet provider name
@@ -132,7 +132,9 @@ export function ConnectLoader({
     return false;
   };
 
-  const isWalletConnected = async (localProvider: Web3Provider): Promise<boolean> => {
+  const isWalletConnected = async (
+    localProvider: Web3Provider
+  ): Promise<boolean> => {
     const { isConnected } = await checkout.checkIsWalletConnected({
       provider: localProvider!,
     });
@@ -152,7 +154,7 @@ export function ConnectLoader({
   useEffect(() => {
     if (window === undefined) {
       // eslint-disable-next-line no-console
-      console.error('missing window object: please run Checkout client side');
+      console.error("missing window object: please run Checkout client side");
       return;
     }
 
@@ -172,11 +174,13 @@ export function ConnectLoader({
         // TODO: handle all of the inner try catches with error handling
         // At this point the Web3Provider exists
         // This will bypass the wallet list screen
-        const isConnected = (await isWalletConnected(web3Provider!));
+        const isConnected = await isWalletConnected(web3Provider!);
         if (!isConnected) return;
 
         try {
-          const currentNetworkInfo = await checkout.getNetworkInfo({ provider: web3Provider! });
+          const currentNetworkInfo = await checkout.getNetworkInfo({
+            provider: web3Provider!,
+          });
 
           // TODO: do this instead, replace chainId check with below code instead of checkout.getNetworkInfo
           // Also, skip the entire section if it is Passport.
@@ -184,7 +188,10 @@ export function ConnectLoader({
 
           // If unsupported network or current network is not in the allowed chains
           // then show the switch network screen
-          if (!currentNetworkInfo.isSupported || !allowedChains.includes(currentNetworkInfo.chainId)) {
+          if (
+            !currentNetworkInfo.isSupported ||
+            !allowedChains.includes(currentNetworkInfo.chainId)
+          ) {
             connectLoaderDispatch({
               payload: {
                 type: ConnectLoaderActions.UPDATE_CONNECTION_STATUS,
@@ -229,13 +236,13 @@ export function ConnectLoader({
 
   return (
     <>
-      {(connectionStatus === ConnectionStatus.LOADING) && (
-      <LoadingView loadingText="Loading" />
+      {connectionStatus === ConnectionStatus.LOADING && (
+        <LoadingView loadingText="Loading" />
       )}
       <ConnectLoaderContext.Provider value={connectLoaderReducerValues}>
-        {(connectionStatus === ConnectionStatus.NOT_CONNECTED_NO_PROVIDER
-        || connectionStatus === ConnectionStatus.NOT_CONNECTED
-        || connectionStatus === ConnectionStatus.CONNECTED_WRONG_NETWORK) && (
+        {(connectionStatus === ConnectionStatus.NOT_CONNECTED_NO_PROVIDER ||
+          connectionStatus === ConnectionStatus.NOT_CONNECTED ||
+          connectionStatus === ConnectionStatus.CONNECTED_WRONG_NETWORK) && (
           <ConnectWidget
             config={widgetConfig}
             targetChainId={targetChainId}
@@ -247,21 +254,22 @@ export function ConnectLoader({
           />
         )}
         {/* If the user has connected then render the widget */}
-        {connectionStatus === ConnectionStatus.CONNECTED_WITH_NETWORK && (children)}
+        {connectionStatus === ConnectionStatus.CONNECTED_WITH_NETWORK &&
+          children}
       </ConnectLoaderContext.Provider>
       {connectionStatus === ConnectionStatus.ERROR && (
-      <ErrorView
-        onCloseClick={closeEvent}
-        onActionClick={() => {
-          connectLoaderDispatch({
-            payload: {
-              type: ConnectLoaderActions.UPDATE_CONNECTION_STATUS,
-              connectionStatus: ConnectionStatus.NOT_CONNECTED,
-            },
-          });
-        }}
-        actionText="Try Again"
-      />
+        <ErrorView
+          onCloseClick={closeEvent}
+          onActionClick={() => {
+            connectLoaderDispatch({
+              payload: {
+                type: ConnectLoaderActions.UPDATE_CONNECTION_STATUS,
+                connectionStatus: ConnectionStatus.NOT_CONNECTED,
+              },
+            });
+          }}
+          actionText="Try Again"
+        />
       )}
     </>
   );

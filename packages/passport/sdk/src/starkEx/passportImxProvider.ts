@@ -1,4 +1,4 @@
-import { TransactionResponse } from '@ethersproject/abstract-provider';
+import { TransactionResponse } from "@ethersproject/abstract-provider";
 import {
   AnyToken,
   EthSigner,
@@ -9,26 +9,33 @@ import {
   UnsignedExchangeTransferRequest,
   UnsignedOrderRequest,
   UnsignedTransferRequest,
-} from '@imtbl/x-client';
-import { IMXProvider } from '@imtbl/x-provider';
-import { Web3Provider } from '@ethersproject/providers';
+} from "@imtbl/x-client";
+import { IMXProvider } from "@imtbl/x-provider";
+import { BrowserProvider } from "ethers";
+import { imx, ImxApiClients } from "@imtbl/generated-clients";
+import TypedEventEmitter from "../utils/typedEventEmitter";
+import AuthManager from "../authManager";
+import GuardianClient from "../guardian";
 import {
-  imx,
-  ImxApiClients,
-} from '@imtbl/generated-clients';
-import TypedEventEmitter from '../utils/typedEventEmitter';
-import AuthManager from '../authManager';
-import GuardianClient from '../guardian';
+  PassportEventMap,
+  PassportEvents,
+  UserImx,
+  User,
+  IMXSigners,
+  isUserImx,
+} from "../types";
+import { PassportError, PassportErrorType } from "../errors/passportError";
 import {
-  PassportEventMap, PassportEvents, UserImx, User, IMXSigners, isUserImx,
-} from '../types';
-import { PassportError, PassportErrorType } from '../errors/passportError';
-import {
-  batchNftTransfer, cancelOrder, createOrder, createTrade, exchangeTransfer, transfer,
-} from './workflows';
-import registerOffchain from './workflows/registerOffchain';
-import MagicAdapter from '../magicAdapter';
-import { getStarkSigner } from './getStarkSigner';
+  batchNftTransfer,
+  cancelOrder,
+  createOrder,
+  createTrade,
+  exchangeTransfer,
+  transfer,
+} from "./workflows";
+import registerOffchain from "./workflows/registerOffchain";
+import MagicAdapter from "../magicAdapter";
+import { getStarkSigner } from "./getStarkSigner";
 
 export interface PassportImxProviderOptions {
   authManager: AuthManager;
@@ -130,8 +137,8 @@ export class PassportImxProvider implements IMXProvider {
 
     if (!user || !this.signers) {
       throw new PassportError(
-        'User has been logged out',
-        PassportErrorType.NOT_LOGGED_IN_ERROR,
+        "User has been logged out",
+        PassportErrorType.NOT_LOGGED_IN_ERROR
       );
     }
 
@@ -141,11 +148,11 @@ export class PassportImxProvider implements IMXProvider {
   async #getSigners(): Promise<IMXSigners> {
     const signers = await this.signers;
     // Throw the stored error if the signers failed to initialise
-    if (typeof signers === 'undefined') {
-      if (typeof this.signerInitialisationError !== 'undefined') {
+    if (typeof signers === "undefined") {
+      if (typeof this.signerInitialisationError !== "undefined") {
         throw this.signerInitialisationError;
       }
-      throw new Error('Signers failed to initialise');
+      throw new Error("Signers failed to initialise");
     }
 
     return signers;
@@ -159,8 +166,8 @@ export class PassportImxProvider implements IMXProvider {
 
     if (!isUserImx(user)) {
       throw new PassportError(
-        'User has not been registered with StarkEx',
-        PassportErrorType.USER_NOT_REGISTERED_ERROR,
+        "User has not been registered with StarkEx",
+        PassportErrorType.USER_NOT_REGISTERED_ERROR
       );
     }
 
@@ -171,20 +178,21 @@ export class PassportImxProvider implements IMXProvider {
     };
   }
 
-  async transfer(request: UnsignedTransferRequest): Promise<imx.CreateTransferResponseV1> {
-    return (
-      this.guardianClient.withDefaultConfirmationScreenTask(async () => {
-        const { user, starkSigner } = await this.#getRegisteredImxUserAndSigners();
+  async transfer(
+    request: UnsignedTransferRequest
+  ): Promise<imx.CreateTransferResponseV1> {
+    return this.guardianClient.withDefaultConfirmationScreenTask(async () => {
+      const { user, starkSigner } =
+        await this.#getRegisteredImxUserAndSigners();
 
-        return transfer({
-          request,
-          user,
-          starkSigner,
-          transfersApi: this.immutableXClient.transfersApi,
-          guardianClient: this.guardianClient,
-        });
-      })()
-    );
+      return transfer({
+        request,
+        user,
+        starkSigner,
+        transfersApi: this.immutableXClient.transfersApi,
+        guardianClient: this.guardianClient,
+      });
+    })();
   }
 
   async registerOffchain(): Promise<imx.RegisterUserResponse> {
@@ -198,7 +206,7 @@ export class PassportImxProvider implements IMXProvider {
       signers.starkSigner,
       user,
       this.authManager,
-      this.imxApiClients,
+      this.imxApiClients
     );
   }
 
@@ -211,67 +219,70 @@ export class PassportImxProvider implements IMXProvider {
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   isRegisteredOnchain(): Promise<boolean> {
     throw new PassportError(
-      'Operation not supported',
-      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR,
+      "Operation not supported",
+      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR
     );
   }
 
-  async createOrder(request: UnsignedOrderRequest): Promise<imx.CreateOrderResponse> {
-    return this.guardianClient.withDefaultConfirmationScreenTask(
-      async () => {
-        const { user, starkSigner } = await this.#getRegisteredImxUserAndSigners();
-        return createOrder({
-          request,
-          user,
-          starkSigner,
-          ordersApi: this.immutableXClient.ordersApi,
-          guardianClient: this.guardianClient,
-        });
-      },
-    )();
+  async createOrder(
+    request: UnsignedOrderRequest
+  ): Promise<imx.CreateOrderResponse> {
+    return this.guardianClient.withDefaultConfirmationScreenTask(async () => {
+      const { user, starkSigner } =
+        await this.#getRegisteredImxUserAndSigners();
+      return createOrder({
+        request,
+        user,
+        starkSigner,
+        ordersApi: this.immutableXClient.ordersApi,
+        guardianClient: this.guardianClient,
+      });
+    })();
   }
 
   async cancelOrder(
-    request: imx.GetSignableCancelOrderRequest,
+    request: imx.GetSignableCancelOrderRequest
   ): Promise<imx.CancelOrderResponse> {
-    return this.guardianClient.withDefaultConfirmationScreenTask(
-      async () => {
-        const { user, starkSigner } = await this.#getRegisteredImxUserAndSigners();
+    return this.guardianClient.withDefaultConfirmationScreenTask(async () => {
+      const { user, starkSigner } =
+        await this.#getRegisteredImxUserAndSigners();
 
-        return cancelOrder({
-          request,
-          user,
-          starkSigner,
-          ordersApi: this.immutableXClient.ordersApi,
-          guardianClient: this.guardianClient,
-        });
-      },
-    )();
+      return cancelOrder({
+        request,
+        user,
+        starkSigner,
+        ordersApi: this.immutableXClient.ordersApi,
+        guardianClient: this.guardianClient,
+      });
+    })();
   }
 
-  async createTrade(request: imx.GetSignableTradeRequest): Promise<imx.CreateTradeResponse> {
-    return this.guardianClient.withDefaultConfirmationScreenTask(
-      async () => {
-        const { user, starkSigner } = await this.#getRegisteredImxUserAndSigners();
+  async createTrade(
+    request: imx.GetSignableTradeRequest
+  ): Promise<imx.CreateTradeResponse> {
+    return this.guardianClient.withDefaultConfirmationScreenTask(async () => {
+      const { user, starkSigner } =
+        await this.#getRegisteredImxUserAndSigners();
 
-        return createTrade({
-          request,
-          user,
-          starkSigner,
-          tradesApi: this.immutableXClient.tradesApi,
-          guardianClient: this.guardianClient,
-        });
-      },
-    )();
+      return createTrade({
+        request,
+        user,
+        starkSigner,
+        tradesApi: this.immutableXClient.tradesApi,
+        guardianClient: this.guardianClient,
+      });
+    })();
   }
 
   async batchNftTransfer(
-    request: NftTransferDetails[],
+    request: NftTransferDetails[]
   ): Promise<imx.CreateTransferResponse> {
-    return this.guardianClient.withConfirmationScreenTask(
-      { width: 480, height: 784 },
-    )(async () => {
-      const { user, starkSigner } = await this.#getRegisteredImxUserAndSigners();
+    return this.guardianClient.withConfirmationScreenTask({
+      width: 480,
+      height: 784,
+    })(async () => {
+      const { user, starkSigner } =
+        await this.#getRegisteredImxUserAndSigners();
 
       return batchNftTransfer({
         request,
@@ -284,7 +295,7 @@ export class PassportImxProvider implements IMXProvider {
   }
 
   async exchangeTransfer(
-    request: UnsignedExchangeTransferRequest,
+    request: UnsignedExchangeTransferRequest
   ): Promise<imx.CreateTransferResponseV1> {
     const { user, starkSigner } = await this.#getRegisteredImxUserAndSigners();
 
@@ -299,16 +310,18 @@ export class PassportImxProvider implements IMXProvider {
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   deposit(deposit: TokenAmount): Promise<TransactionResponse> {
     throw new PassportError(
-      'Operation not supported',
-      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR,
+      "Operation not supported",
+      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR
     );
   }
 
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  prepareWithdrawal(request: TokenAmount): Promise<imx.CreateWithdrawalResponse> {
+  prepareWithdrawal(
+    request: TokenAmount
+  ): Promise<imx.CreateWithdrawalResponse> {
     throw new PassportError(
-      'Operation not supported',
-      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR,
+      "Operation not supported",
+      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR
     );
   }
 
@@ -317,11 +330,11 @@ export class PassportImxProvider implements IMXProvider {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     starkPublicKey: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    token: AnyToken,
+    token: AnyToken
   ): Promise<TransactionResponse> {
     throw new PassportError(
-      'Operation not supported',
-      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR,
+      "Operation not supported",
+      PassportErrorType.OPERATION_NOT_SUPPORTED_ERROR
     );
   }
 
@@ -329,8 +342,8 @@ export class PassportImxProvider implements IMXProvider {
     const user = await this.#getAuthenticatedUser();
     if (!isUserImx(user)) {
       throw new PassportError(
-        'User has not been registered with StarkEx',
-        PassportErrorType.USER_NOT_REGISTERED_ERROR,
+        "User has not been registered with StarkEx",
+        PassportErrorType.USER_NOT_REGISTERED_ERROR
       );
     }
 

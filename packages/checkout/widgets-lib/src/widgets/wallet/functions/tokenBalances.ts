@@ -1,14 +1,14 @@
-import { Web3Provider } from '@ethersproject/providers';
-import { Checkout, ChainId, GetBalanceResult } from '@imtbl/checkout-sdk';
-import { Environment } from '@imtbl/config';
+import { BrowserProvider } from "ethers";
+import { Checkout, ChainId, GetBalanceResult } from "@imtbl/checkout-sdk";
+import { Environment } from "@imtbl/config";
 import {
   calculateCryptoToFiat,
   getTokenImageByAddress,
   isNativeToken,
   sortTokensByAmount,
-} from '../../../lib/utils';
-import { DEFAULT_BALANCE_RETRY_POLICY } from '../../../lib';
-import { retry } from '../../../lib/retry';
+} from "../../../lib/utils";
+import { DEFAULT_BALANCE_RETRY_POLICY } from "../../../lib";
+import { retry } from "../../../lib/retry";
 
 export type BalanceInfo = {
   id: string;
@@ -23,7 +23,7 @@ export type BalanceInfo = {
 export const getTokenBalances = async (
   checkout: Checkout,
   provider: Web3Provider,
-  chainId: ChainId,
+  chainId: ChainId
 ): Promise<GetBalanceResult[]> => {
   if (!checkout || !provider || !chainId) return [];
 
@@ -31,19 +31,20 @@ export const getTokenBalances = async (
   // Do not catch the error so that the caller can decide
   // how to handle the experience.
   const getAllBalancesResult = await retry(
-    () => checkout.getAllBalances({
-      provider,
-      walletAddress,
-      chainId,
-    }),
-    DEFAULT_BALANCE_RETRY_POLICY,
+    () =>
+      checkout.getAllBalances({
+        provider,
+        walletAddress,
+        chainId,
+      }),
+    DEFAULT_BALANCE_RETRY_POLICY
   );
   if (!getAllBalancesResult) return [];
 
   const sortedTokens = sortTokensByAmount(
     checkout.config,
     getAllBalancesResult.balances,
-    chainId,
+    chainId
   ).map((balanceResult) => ({
     ...balanceResult,
     token: {
@@ -52,7 +53,7 @@ export const getTokenBalances = async (
         checkout.config.environment as Environment,
         isNativeToken(balanceResult.token.address)
           ? balanceResult.token.symbol
-          : balanceResult.token.address ?? '',
+          : balanceResult.token.address ?? ""
       ),
     },
   }));
@@ -68,17 +69,18 @@ const formatTokenId = (chainId: ChainId, symbol: string, address?: string) => {
 export const mapTokenBalancesWithConversions = (
   chainId: ChainId,
   balances: GetBalanceResult[],
-  conversions: Map<string, number>,
-): BalanceInfo[] => balances.map((balance) => ({
-  id: formatTokenId(chainId, balance.token.symbol, balance.token.address),
-  balance: balance.formattedBalance,
-  fiatAmount: calculateCryptoToFiat(
-    balance.formattedBalance,
-    balance.token.symbol,
-    conversions,
-  ),
-  symbol: balance.token.symbol,
-  address: balance.token.address,
-  description: balance.token.name,
-  icon: balance.token.icon,
-}));
+  conversions: Map<string, number>
+): BalanceInfo[] =>
+  balances.map((balance) => ({
+    id: formatTokenId(chainId, balance.token.symbol, balance.token.address),
+    balance: balance.formattedBalance,
+    fiatAmount: calculateCryptoToFiat(
+      balance.formattedBalance,
+      balance.token.symbol,
+      conversions
+    ),
+    symbol: balance.token.symbol,
+    address: balance.token.address,
+    description: balance.token.name,
+    icon: balance.token.icon,
+  }));
